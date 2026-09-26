@@ -198,6 +198,10 @@ class ReviewService:
             end_date=None,
             objectives="",
             findings="",
+            objectives_checklist="[]",
+            checklist="[]",
+            decision=None,
+            decision_reason="",
             created_at=now,
             updated_at=now,
         )

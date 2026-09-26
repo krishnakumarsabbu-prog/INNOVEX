@@ -169,9 +169,27 @@ CREATE TABLE IF NOT EXISTS validation_sprints (
     end_date TEXT,
     objectives TEXT DEFAULT '',
     findings TEXT DEFAULT '',
+    objectives_checklist TEXT DEFAULT '[]',
+    checklist TEXT DEFAULT '[]',
+    decision TEXT,
+    decision_reason TEXT DEFAULT '',
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
     FOREIGN KEY (idea_id) REFERENCES ideas(id)
+);
+
+CREATE TABLE IF NOT EXISTS validation_evidence (
+    id TEXT PRIMARY KEY,
+    sprint_id TEXT NOT NULL,
+    evidence_type TEXT NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT DEFAULT '',
+    url TEXT DEFAULT '',
+    conclusion TEXT DEFAULT '',
+    created_by TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (sprint_id) REFERENCES validation_sprints(id)
 );
 
 CREATE TABLE IF NOT EXISTS innovations (
@@ -356,3 +374,16 @@ CREATE TABLE IF NOT EXISTS idea_evidence (
 def init_db() -> None:
     db = DatabaseConnection.get_instance()
     db.execute_script(SCHEMA_SQL)
+    _migrate_validation_sprints(db)
+
+
+def _migrate_validation_sprints(db: DatabaseConnection) -> None:
+    cols = {row["name"] for row in db.query_all("PRAGMA table_info(validation_sprints)")}
+    for col, col_type in [
+        ("objectives_checklist", "TEXT DEFAULT '[]'"),
+        ("checklist", "TEXT DEFAULT '[]'"),
+        ("decision", "TEXT"),
+        ("decision_reason", "TEXT DEFAULT ''"),
+    ]:
+        if col not in cols:
+            db.execute(f"ALTER TABLE validation_sprints ADD COLUMN {col} {col_type}")

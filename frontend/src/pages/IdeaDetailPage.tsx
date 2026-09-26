@@ -343,21 +343,18 @@ export function IdeaDetailPage() {
                   <p className="text-sm font-medium">{userMap.get(validation.manager_id)?.name || 'Unassigned'}</p>
                 </div>
               )}
-              {validation.objectives && (
-                <div>
-                  <span className="text-sm text-enterprise-charcoal/70">Objectives</span>
-                  <p className="text-sm">{validation.objectives}</p>
+              {validation.decision && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-enterprise-charcoal/70">Decision</span>
+                  <StatusBadge status={validation.decision} />
                 </div>
               )}
-              {validation.findings && (
-                <div>
-                  <span className="text-sm text-enterprise-charcoal/70">Findings</span>
-                  <p className="text-sm">{validation.findings}</p>
-                </div>
-              )}
+              <Link to={`/ideas/${id}/validation`} className="btn-secondary text-sm w-full text-center block mt-2">
+                Open Validation Sprint
+              </Link>
             </div>
           ) : (
-            <EmptyState icon={<AlertCircle className="w-6 h-6" />} title="No validation sprint" message="A validation sprint can be started once the idea is approved." />
+            <EmptyState icon={<AlertCircle className="w-6 h-6" />} title="No validation sprint" message="A validation sprint can be started once the idea is sent to validation." />
           )}
         </div>
       </div>

@@ -137,6 +137,23 @@ export interface ValidationSprint {
   end_date: string | null;
   objectives: string;
   findings: string;
+  objectives_checklist: string[];
+  checklist: string[];
+  decision: string | null;
+  decision_reason: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ValidationEvidence {
+  id: string;
+  sprint_id: string;
+  evidence_type: string;
+  title: string;
+  description: string;
+  url: string;
+  conclusion: string;
+  created_by: string | null;
   created_at: string;
   updated_at: string;
 }

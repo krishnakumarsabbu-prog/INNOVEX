@@ -133,8 +133,26 @@ class ValidationSprint:
     end_date: str | None
     objectives: str
     findings: str
-    created_at: str
-    updated_at: str
+    objectives_checklist: str = "[]"
+    checklist: str = "[]"
+    decision: str | None = None
+    decision_reason: str = ""
+    created_at: str = ""
+    updated_at: str = ""
+
+
+@dataclass
+class ValidationEvidence:
+    id: str
+    sprint_id: str
+    evidence_type: str
+    title: str
+    description: str = ""
+    url: str = ""
+    conclusion: str = ""
+    created_by: str | None = None
+    created_at: str = ""
+    updated_at: str = ""
 
 
 @dataclass

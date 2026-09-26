@@ -22,6 +22,7 @@ from app.repositories.memory.team_membership_repo import InMemoryTeamMembershipR
 from app.repositories.memory.team_repo import InMemoryTeamRepository
 from app.repositories.memory.user_repo import InMemoryUserRepository
 from app.repositories.memory.validation_repo import InMemoryValidationSprintRepository
+from app.repositories.memory.validation_evidence_repo import InMemoryValidationEvidenceRepository
 from app.repositories.memory.work_item_repo import InMemoryWorkItemRepository
 
 from app.repositories.interfaces import (
@@ -55,6 +56,7 @@ class RepositoryFactory:
         self._review_assignment = InMemoryReviewAssignmentRepository(self._db)
         self._review_dimension = InMemoryReviewDimensionRepository(self._db)
         self._validation = InMemoryValidationSprintRepository(self._db)
+        self._validation_evidence = InMemoryValidationEvidenceRepository(self._db)
         self._innovation = InMemoryInnovationRepository(self._db)
         self._innovation_role = InMemoryInnovationRoleRepository(self._db)
         self._team_membership = InMemoryTeamMembershipRepository(self._db)
@@ -112,6 +114,10 @@ class RepositoryFactory:
     @property
     def validation(self) -> BaseRepository:
         return self._validation
+
+    @property
+    def validation_evidence(self) -> BaseRepository:
+        return self._validation_evidence
 
     @property
     def innovation(self) -> InnovationRepositoryInterface:

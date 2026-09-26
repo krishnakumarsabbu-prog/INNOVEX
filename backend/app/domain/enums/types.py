@@ -90,6 +90,44 @@ class ValidationStatus(str, Enum):
     FAILED = "failed"
 
 
+class ValidationDecision(str, Enum):
+    CONTINUE_OPEN_INNOVATION = "continue_open_innovation"
+    RETURN_FOR_MORE_VALIDATION = "return_for_more_validation"
+    PARK = "park"
+    CLOSE = "close"
+
+
+class ValidationEvidenceType(str, Enum):
+    ARCHITECTURE = "architecture"
+    TECHNICAL_ANALYSIS = "technical_analysis"
+    POC = "poc"
+    SECURITY_REVIEW = "security_review"
+    RISK_ASSESSMENT = "risk_assessment"
+    DEPENDENCY_ANALYSIS = "dependency_analysis"
+
+
+VALIDATION_OBJECTIVES = [
+    "technical_feasibility",
+    "architecture",
+    "security",
+    "data_availability",
+    "integration_feasibility",
+    "estimated_effort",
+    "business_value",
+    "poc_scope",
+]
+
+VALIDATION_CHECKLIST = [
+    "architecture_defined",
+    "poc_created",
+    "security_reviewed",
+    "dependencies_identified",
+    "data_source_confirmed",
+    "engineering_effort_estimated",
+    "success_criteria_defined",
+]
+
+
 class MilestoneStatus(str, Enum):
     PENDING = "pending"
     IN_PROGRESS = "in_progress"

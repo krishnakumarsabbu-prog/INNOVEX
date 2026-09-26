@@ -2,7 +2,7 @@ import { api } from './client';
 import type {
   SetupStatus, SetupRequest, SetupResponse, User, Idea, IdeaEvidence, IdeaFollow, Review,
   ReviewDimension, ReviewQueueItem, ReviewDecisionPayload,
-  ValidationSprint, Innovation, Position, Application, Team, Project,
+  ValidationSprint, ValidationEvidence, Innovation, Position, Application, Team, Project,
   Milestone, Evidence, Activity, Notification, Dashboard,
 } from '../types';
 
@@ -48,12 +48,14 @@ export const reviewApi = {
 };
 
 export const validationApi = {
-  getAll: () => api.get<ValidationSprint[]>('/validation').then(r => r.data),
-  getById: (id: string) => api.get<ValidationSprint>(`/validation/${id}`).then(r => r.data),
-  getByIdea: (ideaId: string) => api.get<ValidationSprint | null>(`/validation/idea/${ideaId}`).then(r => r.data),
-  create: (data: Partial<ValidationSprint>) => api.post<ValidationSprint>('/validation', data).then(r => r.data),
-  update: (id: string, data: Partial<ValidationSprint>) => api.put<ValidationSprint>(`/validation/${id}`, data).then(r => r.data),
-  delete: (id: string) => api.delete(`/validation/${id}`).then(r => r.data),
+  getByIdea: (ideaId: string) => api.get<ValidationSprint | null>(`/ideas/${ideaId}/validation`).then(r => r.data),
+  create: (ideaId: string, data: Partial<ValidationSprint>) => api.post<ValidationSprint>(`/ideas/${ideaId}/validation`, data).then(r => r.data),
+  update: (ideaId: string, data: Partial<ValidationSprint>) => api.patch<ValidationSprint>(`/ideas/${ideaId}/validation`, data).then(r => r.data),
+  getEvidence: (ideaId: string) => api.get<ValidationEvidence[]>(`/ideas/${ideaId}/validation/evidence`).then(r => r.data),
+  createEvidence: (ideaId: string, data: Partial<ValidationEvidence>) => api.post<ValidationEvidence>(`/ideas/${ideaId}/validation/evidence`, data).then(r => r.data),
+  updateEvidence: (ideaId: string, evidenceId: string, data: Partial<ValidationEvidence>) => api.put<ValidationEvidence>(`/ideas/${ideaId}/validation/evidence/${evidenceId}`, data).then(r => r.data),
+  deleteEvidence: (ideaId: string, evidenceId: string) => api.delete(`/ideas/${ideaId}/validation/evidence/${evidenceId}`).then(r => r.data),
+  makeDecision: (ideaId: string, data: { decision: string; reason: string }) => api.post<ValidationSprint>(`/ideas/${ideaId}/validation/decision`, data).then(r => r.data),
 };
 
 export const innovationApi = {

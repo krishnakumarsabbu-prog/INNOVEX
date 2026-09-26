@@ -253,6 +253,8 @@ class ValidationSprintCreate(BaseModel):
     principal_engineer_id: Optional[str] = None
     manager_id: Optional[str] = None
     objectives: str = ""
+    objectives_checklist: list[str] = []
+    checklist: list[str] = []
 
 
 class ValidationSprintUpdate(BaseModel):
@@ -263,6 +265,10 @@ class ValidationSprintUpdate(BaseModel):
     end_date: Optional[str] = None
     objectives: Optional[str] = None
     findings: Optional[str] = None
+    objectives_checklist: Optional[list[str]] = None
+    checklist: Optional[list[str]] = None
+    decision: Optional[str] = None
+    decision_reason: Optional[str] = None
 
 
 class ValidationSprintResponse(BaseModel):
@@ -275,8 +281,47 @@ class ValidationSprintResponse(BaseModel):
     end_date: Optional[str]
     objectives: str
     findings: str
+    objectives_checklist: list[str] = []
+    checklist: list[str] = []
+    decision: Optional[str] = None
+    decision_reason: str = ""
     created_at: str
     updated_at: str
+
+
+class ValidationEvidenceCreate(BaseModel):
+    evidence_type: str
+    title: str = Field(..., min_length=1, max_length=200)
+    description: str = ""
+    url: str = ""
+    conclusion: str = ""
+    created_by: Optional[str] = None
+
+
+class ValidationEvidenceUpdate(BaseModel):
+    evidence_type: Optional[str] = None
+    title: Optional[str] = None
+    description: Optional[str] = None
+    url: Optional[str] = None
+    conclusion: Optional[str] = None
+
+
+class ValidationEvidenceResponse(BaseModel):
+    id: str
+    sprint_id: str
+    evidence_type: str
+    title: str
+    description: str
+    url: str
+    conclusion: str
+    created_by: Optional[str]
+    created_at: str
+    updated_at: str
+
+
+class ValidationDecisionRequest(BaseModel):
+    decision: str
+    reason: str = ""
 
 
 class InnovationCreate(BaseModel):

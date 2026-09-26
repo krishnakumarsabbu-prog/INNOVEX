@@ -1,0 +1,29 @@
+Project Name :
+
+INNOVEX
+Enterprise Innovation & Engineering Exchange
+From Ideas to Impact
+
+
+Frontend Tech stack
+React 19
+TypeScript
+Vite
+Tailwind CSS
+React Router
+TanStack Query
+React Hook Form
+Zod
+Lucide React
+Recharts
+
+Backend Tech Stack
+Python 3.12+
+FastAPI
+Pydantic v2
+Uvicorn
+
+database
+
+Mode	Data stored in	Persists after application stops?
+SQLite file DB	.db file on disk	✅ Yes

@@ -1,0 +1,321 @@
+from datetime import datetime
+from pydantic import BaseModel, EmailStr, Field
+from typing import Optional
+
+
+class OrganizationCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=200)
+    admin_name: str = Field(..., min_length=1, max_length=200)
+    admin_email: EmailStr
+
+
+class OrganizationResponse(BaseModel):
+    id: str
+    name: str
+    created_at: str
+    updated_at: str
+
+
+class SetupStatusResponse(BaseModel):
+    setup_required: bool
+    organization: Optional[OrganizationResponse] = None
+
+
+class UserCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=200)
+    email: EmailStr
+    role: str = "engineer"
+    title: str = ""
+    department: str = ""
+    skills: list[str] = []
+
+
+class UserUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    role: Optional[str] = None
+    title: Optional[str] = None
+    department: Optional[str] = None
+    skills: Optional[list[str]] = None
+
+
+class UserResponse(BaseModel):
+    id: str
+    name: str
+    email: str
+    role: str
+    title: str
+    department: str
+    skills: list[str]
+    created_at: str
+    updated_at: str
+
+
+class IdeaCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=300)
+    description: str = Field(..., min_length=1)
+    category: str = Field(..., min_length=1, max_length=100)
+    problem_statement: str = ""
+    proposed_solution: str = ""
+    submitted_by: str
+
+
+class IdeaUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    category: Optional[str] = None
+    problem_statement: Optional[str] = None
+    proposed_solution: Optional[str] = None
+    status: Optional[str] = None
+
+
+class IdeaResponse(BaseModel):
+    id: str
+    title: str
+    description: str
+    category: str
+    problem_statement: str
+    proposed_solution: str
+    status: str
+    submitted_by: str
+    created_at: str
+    updated_at: str
+
+
+class ReviewCreate(BaseModel):
+    idea_id: str
+    reviewer_id: str
+    decision: str = "pending"
+    comments: str = ""
+
+
+class ReviewUpdate(BaseModel):
+    decision: Optional[str] = None
+    comments: Optional[str] = None
+
+
+class ReviewResponse(BaseModel):
+    id: str
+    idea_id: str
+    reviewer_id: str
+    decision: str
+    comments: str
+    created_at: str
+    updated_at: str
+
+
+class ValidationSprintCreate(BaseModel):
+    idea_id: str
+    principal_engineer_id: Optional[str] = None
+    manager_id: Optional[str] = None
+    objectives: str = ""
+
+
+class ValidationSprintUpdate(BaseModel):
+    principal_engineer_id: Optional[str] = None
+    manager_id: Optional[str] = None
+    status: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    objectives: Optional[str] = None
+    findings: Optional[str] = None
+
+
+class ValidationSprintResponse(BaseModel):
+    id: str
+    idea_id: str
+    principal_engineer_id: Optional[str]
+    manager_id: Optional[str]
+    status: str
+    start_date: Optional[str]
+    end_date: Optional[str]
+    objectives: str
+    findings: str
+    created_at: str
+    updated_at: str
+
+
+class InnovationCreate(BaseModel):
+    idea_id: str
+    summary: str = ""
+
+
+class InnovationUpdate(BaseModel):
+    stage: Optional[str] = None
+    is_open: Optional[bool] = None
+    summary: Optional[str] = None
+
+
+class InnovationResponse(BaseModel):
+    id: str
+    idea_id: str
+    stage: str
+    is_open: bool
+    summary: str
+    created_at: str
+    updated_at: str
+
+
+class PositionCreate(BaseModel):
+    innovation_id: str
+    title: str
+    role: str
+    technology: str
+    capacity: int = 1
+
+
+class PositionUpdate(BaseModel):
+    title: Optional[str] = None
+    role: Optional[str] = None
+    technology: Optional[str] = None
+    capacity: Optional[int] = None
+
+
+class PositionResponse(BaseModel):
+    id: str
+    innovation_id: str
+    title: str
+    role: str
+    technology: str
+    capacity: int
+    filled: int
+    status: str
+    created_at: str
+    updated_at: str
+
+
+class ApplicationCreate(BaseModel):
+    position_id: str
+    user_id: str
+
+
+class ApplicationResponse(BaseModel):
+    id: str
+    position_id: str
+    user_id: str
+    status: str
+    created_at: str
+    updated_at: str
+
+
+class TeamCreate(BaseModel):
+    name: str
+    innovation_id: Optional[str] = None
+    project_id: Optional[str] = None
+    lead_id: Optional[str] = None
+    member_ids: list[str] = []
+
+
+class TeamUpdate(BaseModel):
+    name: Optional[str] = None
+    lead_id: Optional[str] = None
+    member_ids: Optional[list[str]] = None
+
+
+class TeamResponse(BaseModel):
+    id: str
+    name: str
+    innovation_id: Optional[str]
+    project_id: Optional[str]
+    lead_id: Optional[str]
+    member_ids: list[str]
+    created_at: str
+    updated_at: str
+
+
+class ProjectCreate(BaseModel):
+    name: str
+    innovation_id: Optional[str] = None
+    team_id: Optional[str] = None
+    description: str = ""
+
+
+class ProjectUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    status: Optional[str] = None
+    team_id: Optional[str] = None
+
+
+class ProjectResponse(BaseModel):
+    id: str
+    name: str
+    innovation_id: Optional[str]
+    team_id: Optional[str]
+    description: str
+    status: str
+    created_at: str
+    updated_at: str
+
+
+class MilestoneCreate(BaseModel):
+    project_id: str
+    title: str
+    description: str = ""
+    due_date: Optional[str] = None
+
+
+class MilestoneUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    status: Optional[str] = None
+    due_date: Optional[str] = None
+    completed_at: Optional[str] = None
+
+
+class MilestoneResponse(BaseModel):
+    id: str
+    project_id: str
+    title: str
+    description: str
+    status: str
+    due_date: Optional[str]
+    completed_at: Optional[str]
+    created_at: str
+    updated_at: str
+
+
+class EvidenceCreate(BaseModel):
+    project_id: str
+    title: str
+    description: str = ""
+    evidence_type: str = "document"
+    url: str = ""
+    created_by: str
+
+
+class EvidenceResponse(BaseModel):
+    id: str
+    project_id: str
+    title: str
+    description: str
+    evidence_type: str
+    url: str
+    created_by: str
+    created_at: str
+    updated_at: str
+
+
+class ActivityResponse(BaseModel):
+    id: str
+    entity_type: str
+    entity_id: str
+    action: str
+    description: str
+    user_id: Optional[str]
+    created_at: str
+
+
+class NotificationResponse(BaseModel):
+    id: str
+    user_id: str
+    message: str
+    read: bool
+    created_at: str
+
+
+class DashboardResponse(BaseModel):
+    organization: Optional[OrganizationResponse]
+    metrics: dict
+    recent_activities: list[ActivityResponse]
+    pipeline: dict

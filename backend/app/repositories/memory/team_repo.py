@@ -1,9 +1,9 @@
-import json
 from app.database.memory_store import DatabaseConnection
 from app.domain.models.entities import Team
+from app.repositories.interfaces import TeamRepositoryInterface
 
 
-class TeamRepository:
+class InMemoryTeamRepository(TeamRepositoryInterface):
     def __init__(self, db: DatabaseConnection | None = None):
         self._db = db or DatabaseConnection.get_instance()
 
@@ -11,10 +11,12 @@ class TeamRepository:
         if not row:
             return None
         d = dict(row)
+        import json
         d["member_ids"] = json.loads(d.get("member_ids", "[]"))
         return Team(**d)
 
     def create(self, team: Team) -> Team:
+        import json
         self._db.execute(
             "INSERT INTO teams (id, name, innovation_id, project_id, lead_id, member_ids, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             (team.id, team.name, team.innovation_id, team.project_id, team.lead_id,
@@ -37,6 +39,7 @@ class TeamRepository:
         return self._row_to_team(self._db.query_one("SELECT * FROM teams WHERE project_id = ?", (project_id,)))
 
     def update(self, team_id: str, **kwargs) -> Team | None:
+        import json
         team = self.get_by_id(team_id)
         if not team:
             return None
@@ -57,3 +60,6 @@ class TeamRepository:
     def count(self) -> int:
         row = self._db.query_one("SELECT COUNT(*) as cnt FROM teams")
         return row["cnt"] if row else 0
+
+
+TeamRepository = InMemoryTeamRepository

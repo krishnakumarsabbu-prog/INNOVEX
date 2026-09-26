@@ -2,7 +2,13 @@ from fastapi import APIRouter, Depends
 from app.api.dependencies import get_repository_factory
 from app.database.repository_factory import RepositoryFactory
 from app.services.innovation_service import InnovationService
-from app.schemas.models import InnovationCreate, InnovationUpdate, InnovationResponse, PositionCreate, PositionUpdate, PositionResponse, ApplicationCreate, ApplicationResponse
+from app.schemas.models import (
+    InnovationCreate, InnovationUpdate, InnovationResponse,
+    PositionCreate, PositionUpdate, PositionResponse,
+    ApplicationCreate, ApplicationResponse,
+    JoinRequestCreate, JoinRequestResponse,
+    TeamMembershipResponse, FollowResponse,
+)
 
 router = APIRouter(prefix="/innovations", tags=["innovations"])
 
@@ -91,11 +97,70 @@ async def get_open_positions(service: InnovationService = Depends(get_innovation
     return [PositionResponse(**_position_dict(p)) for p in positions]
 
 
+@router.post("/{innovation_id}/join-requests", response_model=JoinRequestResponse)
+async def create_join_request(innovation_id: str, data: JoinRequestCreate, service: InnovationService = Depends(get_innovation_service)):
+    data.innovation_id = innovation_id
+    req = service.request_to_join(data)
+    return JoinRequestResponse(**_join_req_dict(req))
+
+
+@router.get("/{innovation_id}/join-requests", response_model=list[JoinRequestResponse])
+async def get_join_requests(innovation_id: str, service: InnovationService = Depends(get_innovation_service)):
+    reqs = service._repos.join_request.get_by_innovation(innovation_id)
+    return [JoinRequestResponse(**_join_req_dict(r)) for r in reqs]
+
+
+@router.put("/join-requests/{request_id}/approve", response_model=JoinRequestResponse)
+async def approve_join_request(request_id: str, service: InnovationService = Depends(get_innovation_service)):
+    req = service.approve_join_request(request_id)
+    return JoinRequestResponse(**_join_req_dict(req))
+
+
+@router.put("/join-requests/{request_id}/decline", response_model=JoinRequestResponse)
+async def decline_join_request(request_id: str, service: InnovationService = Depends(get_innovation_service)):
+    req = service.decline_join_request(request_id)
+    return JoinRequestResponse(**_join_req_dict(req))
+
+
+@router.get("/{innovation_id}/team", response_model=list[TeamMembershipResponse])
+async def get_team_members(innovation_id: str, service: InnovationService = Depends(get_innovation_service)):
+    members = service.get_team_members(innovation_id)
+    return [TeamMembershipResponse(
+        id=m.id, innovation_id=m.innovation_id, user_id=m.user_id, role=m.role, joined_at=m.joined_at
+    ) for m in members]
+
+
+@router.post("/{innovation_id}/follow", response_model=FollowResponse)
+async def follow_innovation(innovation_id: str, user_id: str, service: InnovationService = Depends(get_innovation_service)):
+    result = service.follow(innovation_id, user_id)
+    return FollowResponse(**result)
+
+
+@router.delete("/{innovation_id}/follow")
+async def unfollow_innovation(innovation_id: str, user_id: str, service: InnovationService = Depends(get_innovation_service)):
+    service.unfollow(innovation_id, user_id)
+    return {"unfollowed": True}
+
+
+@router.get("/{innovation_id}/followers", response_model=list[FollowResponse])
+async def get_followers(innovation_id: str, service: InnovationService = Depends(get_innovation_service)):
+    return service.get_followers(innovation_id)
+
+
+@router.get("/{innovation_id}/followers/count")
+async def get_follower_count(innovation_id: str, service: InnovationService = Depends(get_innovation_service)):
+    return {"count": service.get_follower_count(innovation_id)}
+
+
 def _innovation_dict(innovation) -> dict:
     return {
         "id": innovation.id, "idea_id": innovation.idea_id,
         "stage": innovation.stage, "is_open": innovation.is_open,
-        "summary": innovation.summary, "created_at": innovation.created_at, "updated_at": innovation.updated_at,
+        "summary": innovation.summary,
+        "founder_id": innovation.founder_id,
+        "principal_engineer_id": innovation.principal_engineer_id,
+        "manager_id": innovation.manager_id,
+        "created_at": innovation.created_at, "updated_at": innovation.updated_at,
     }
 
 
@@ -111,7 +176,16 @@ def _position_dict(position) -> dict:
 
 def _app_dict(app) -> dict:
     return {
-        "id": app.id, "position_id": app.position_id,
+        "id": app.id, "position_id": app.innovation_id,
         "user_id": app.user_id, "status": app.status,
         "created_at": app.created_at, "updated_at": app.updated_at,
+    }
+
+
+def _join_req_dict(req) -> dict:
+    return {
+        "id": req.id, "innovation_id": req.innovation_id,
+        "user_id": req.user_id, "role": req.role,
+        "status": req.status, "message": req.message,
+        "created_at": req.created_at, "updated_at": req.updated_at,
     }

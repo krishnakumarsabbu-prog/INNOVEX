@@ -1,7 +1,7 @@
 from app.core.security import generate_id, utc_now
 from app.core.exceptions import NotFoundError
 from app.database.repository_factory import RepositoryFactory
-from app.domain.models.entities import ValidationSprint, Activity, Notification
+from app.domain.models.entities import ValidationSprint, Activity, Notification, AuditEvent
 from app.domain.enums.types import ValidationStatus, IdeaStatus
 from app.schemas.models import ValidationSprintCreate, ValidationSprintUpdate
 
@@ -30,12 +30,18 @@ class ValidationService:
         )
         self._repos.validation.create(sprint)
 
-        self._repos.idea.update(idea.id, status=IdeaStatus.IN_VALIDATION.value, updated_at=now)
+        self._repos.idea.update(idea.id, status=IdeaStatus.VALIDATION.value, updated_at=now)
 
         self._repos.activity.create(Activity(
             id=generate_id(), entity_type="validation", entity_id=sprint.id,
             action="started", description=f"Validation sprint started for idea '{idea.title}'",
             user_id=None, created_at=now,
+        ))
+
+        self._repos.audit.create(AuditEvent(
+            id=generate_id(), entity_type="validation", entity_id=sprint.id,
+            action="started", user_id=None,
+            details=f"Validation sprint started for idea '{idea.title}'", created_at=now,
         ))
 
         if data.principal_engineer_id:

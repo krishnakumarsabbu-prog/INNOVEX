@@ -1,9 +1,9 @@
 from app.core.security import generate_id, utc_now
 from app.core.exceptions import NotFoundError, ValidationError
 from app.database.repository_factory import RepositoryFactory
-from app.domain.models.entities import Idea, Activity, Notification
+from app.domain.models.entities import Idea, Activity, Notification, IdeaTechnology, AuditEvent
 from app.domain.enums.types import IdeaStatus, ReviewDecision
-from app.schemas.models import IdeaCreate, IdeaUpdate, ReviewCreate, ReviewUpdate
+from app.schemas.models import IdeaCreate, IdeaUpdate, ReviewCreate
 
 
 class IdeaService:
@@ -28,10 +28,21 @@ class IdeaService:
         )
         self._repos.idea.create(idea)
 
+        for tech in data.technologies:
+            self._repos.idea_technology.create(IdeaTechnology(
+                id=generate_id(), idea_id=idea.id, technology=tech, created_at=now,
+            ))
+
         self._repos.activity.create(Activity(
             id=generate_id(), entity_type="idea", entity_id=idea.id,
             action="submitted", description=f"Idea '{idea.title}' submitted",
             user_id=data.submitted_by, created_at=now,
+        ))
+
+        self._repos.audit.create(AuditEvent(
+            id=generate_id(), entity_type="idea", entity_id=idea.id,
+            action="submitted", user_id=data.submitted_by,
+            details=f"Idea '{idea.title}' submitted", created_at=now,
         ))
 
         admins = self._repos.user.get_by_role("admin")
@@ -54,6 +65,11 @@ class IdeaService:
 
     def get_by_submitter(self, user_id: str) -> list[Idea]:
         return self._repos.idea.get_by_submitter(user_id)
+
+    def get_technologies(self, idea_id: str) -> list[str]:
+        self.get_by_id(idea_id)
+        techs = self._repos.idea_technology.get_by_idea(idea_id)
+        return [t.technology for t in techs]
 
     def update(self, idea_id: str, data: IdeaUpdate, updated_by: str | None = None) -> Idea:
         idea = self.get_by_id(idea_id)
@@ -95,20 +111,27 @@ class IdeaService:
         )
         self._repos.review.create(review)
 
-        if data.decision == ReviewDecision.APPROVE.value:
-            idea = self._repos.idea.update(idea.id, status=IdeaStatus.UNDER_REVIEW.value, updated_at=now)
-        elif data.decision == ReviewDecision.REJECT.value:
+        decision = data.decision
+        if decision == ReviewDecision.SEND_TO_VALIDATION.value:
+            self._repos.idea.update(idea.id, status=IdeaStatus.VALIDATION.value, updated_at=now)
+        elif decision == ReviewDecision.APPROVE.value:
+            self._repos.idea.update(idea.id, status=IdeaStatus.APPROVED.value, updated_at=now)
+        elif decision == ReviewDecision.PARK.value:
+            self._repos.idea.update(idea.id, status=IdeaStatus.PARKED.value, updated_at=now)
+        elif decision == ReviewDecision.REJECT.value:
             self._repos.idea.update(idea.id, status=IdeaStatus.REJECTED.value, updated_at=now)
+        elif decision == ReviewDecision.REQUEST_INFORMATION.value:
+            self._repos.idea.update(idea.id, status=IdeaStatus.UNDER_REVIEW.value, updated_at=now)
 
         self._repos.activity.create(Activity(
             id=generate_id(), entity_type="review", entity_id=review_id,
-            action="created", description=f"Review added for idea '{idea.title}' with decision: {data.decision}",
+            action="created", description=f"Review added for idea '{idea.title}' with decision: {decision}",
             user_id=data.reviewer_id, created_at=now,
         ))
 
         self._repos.notification.create(Notification(
             id=generate_id(), user_id=idea.submitted_by,
-            message=f"Your idea '{idea.title}' has been reviewed: {data.decision}",
+            message=f"Your idea '{idea.title}' has been reviewed: {decision}",
             read=False, created_at=now,
         ))
 

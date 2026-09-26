@@ -1,8 +1,9 @@
 from app.database.memory_store import DatabaseConnection
 from app.domain.models.entities import Evidence
+from app.repositories.interfaces import EvidenceRepositoryInterface
 
 
-class EvidenceRepository:
+class InMemoryEvidenceRepository(EvidenceRepositoryInterface):
     def __init__(self, db: DatabaseConnection | None = None):
         self._db = db or DatabaseConnection.get_instance()
 
@@ -47,3 +48,6 @@ class EvidenceRepository:
     def count(self) -> int:
         row = self._db.query_one("SELECT COUNT(*) as cnt FROM evidence")
         return row["cnt"] if row else 0
+
+
+EvidenceRepository = InMemoryEvidenceRepository

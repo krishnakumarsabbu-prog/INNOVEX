@@ -1,8 +1,9 @@
 from app.database.memory_store import DatabaseConnection
 from app.domain.models.entities import Activity
+from app.repositories.interfaces import ActivityRepositoryInterface
 
 
-class ActivityRepository:
+class InMemoryActivityRepository(ActivityRepositoryInterface):
     def __init__(self, db: DatabaseConnection | None = None):
         self._db = db or DatabaseConnection.get_instance()
 
@@ -28,6 +29,9 @@ class ActivityRepository:
         )
         return [Activity(**dict(r)) for r in rows]
 
+    def update(self, activity_id: str, **kwargs) -> Activity | None:
+        return None
+
     def delete(self, activity_id: str) -> bool:
         cursor = self._db.execute("DELETE FROM activities WHERE id = ?", (activity_id,))
         return cursor.rowcount > 0
@@ -35,3 +39,6 @@ class ActivityRepository:
     def count(self) -> int:
         row = self._db.query_one("SELECT COUNT(*) as cnt FROM activities")
         return row["cnt"] if row else 0
+
+
+ActivityRepository = InMemoryActivityRepository

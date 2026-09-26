@@ -1,8 +1,9 @@
 from app.database.memory_store import DatabaseConnection
 from app.domain.models.entities import Review
+from app.repositories.interfaces import ReviewRepositoryInterface
 
 
-class ReviewRepository:
+class InMemoryReviewRepository(ReviewRepositoryInterface):
     def __init__(self, db: DatabaseConnection | None = None):
         self._db = db or DatabaseConnection.get_instance()
 
@@ -46,3 +47,6 @@ class ReviewRepository:
     def delete(self, review_id: str) -> bool:
         cursor = self._db.execute("DELETE FROM reviews WHERE id = ?", (review_id,))
         return cursor.rowcount > 0
+
+
+ReviewRepository = InMemoryReviewRepository

@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from datetime import datetime
+from typing import Any
 
 
 @dataclass
@@ -28,6 +28,15 @@ class User:
 
 
 @dataclass
+class Skill:
+    id: str
+    name: str
+    category: str = ""
+    created_at: str = ""
+    updated_at: str = ""
+
+
+@dataclass
 class Idea:
     id: str
     title: str
@@ -43,6 +52,14 @@ class Idea:
 
 
 @dataclass
+class IdeaTechnology:
+    id: str
+    idea_id: str
+    technology: str
+    created_at: str = ""
+
+
+@dataclass
 class Review:
     id: str
     idea_id: str
@@ -51,6 +68,16 @@ class Review:
     comments: str
     created_at: str
     updated_at: str
+
+
+@dataclass
+class ReviewAssignment:
+    id: str
+    idea_id: str
+    reviewer_id: str
+    status: str = "pending"
+    created_at: str = ""
+    updated_at: str = ""
 
 
 @dataclass
@@ -75,32 +102,46 @@ class Innovation:
     stage: str
     is_open: bool
     summary: str
-    created_at: str
-    updated_at: str
+    founder_id: str | None = None
+    principal_engineer_id: str | None = None
+    manager_id: str | None = None
+    created_at: str = ""
+    updated_at: str = ""
 
 
 @dataclass
-class Position:
+class InnovationRole:
     id: str
     innovation_id: str
     title: str
     role: str
-    technology: str
-    capacity: int
-    filled: int
-    status: str
-    created_at: str
-    updated_at: str
+    technology: str = ""
+    capacity: int = 1
+    filled: int = 0
+    status: str = "open"
+    created_at: str = ""
+    updated_at: str = ""
 
 
 @dataclass
-class PositionApplication:
+class TeamMembership:
     id: str
-    position_id: str
+    innovation_id: str
     user_id: str
-    status: str
-    created_at: str
-    updated_at: str
+    role: str = ""
+    joined_at: str = ""
+
+
+@dataclass
+class JoinRequest:
+    id: str
+    innovation_id: str
+    user_id: str
+    role: str = ""
+    status: str = "requested"
+    message: str = ""
+    created_at: str = ""
+    updated_at: str = ""
 
 
 @dataclass
@@ -141,6 +182,20 @@ class Milestone:
 
 
 @dataclass
+class WorkItem:
+    id: str
+    project_id: str
+    milestone_id: str | None
+    title: str
+    description: str = ""
+    status: str = "backlog"
+    assignee_id: str | None = None
+    order_index: int = 0
+    created_at: str = ""
+    updated_at: str = ""
+
+
+@dataclass
 class Evidence:
     id: str
     project_id: str
@@ -171,3 +226,44 @@ class Notification:
     message: str
     read: bool
     created_at: str
+
+
+@dataclass
+class Follow:
+    id: str
+    innovation_id: str
+    user_id: str
+    created_at: str = ""
+
+
+@dataclass
+class AuditEvent:
+    id: str
+    entity_type: str
+    entity_id: str
+    action: str
+    user_id: str | None
+    details: str = ""
+    created_at: str = ""
+
+
+# ---- Backward-compat aliases (existing API uses Position/PositionApplication) ----
+
+InnovationRole.__doc__ = "Also exposed as Position via the API"
+
+
+@dataclass
+class Position(InnovationRole):
+    """Backward-compat alias for InnovationRole used by existing API endpoints."""
+    pass
+
+
+@dataclass
+class PositionApplication:
+    """Backward-compat alias for JoinRequest used by existing API endpoints."""
+    id: str
+    position_id: str
+    user_id: str
+    status: str
+    created_at: str
+    updated_at: str

@@ -1,9 +1,11 @@
 import json
+
 from app.database.memory_store import DatabaseConnection
 from app.domain.models.entities import User
+from app.repositories.interfaces import UserRepositoryInterface
 
 
-class UserRepository:
+class InMemoryUserRepository(UserRepositoryInterface):
     def __init__(self, db: DatabaseConnection | None = None):
         self._db = db or DatabaseConnection.get_instance()
 
@@ -67,3 +69,6 @@ class UserRepository:
             (pattern, pattern, pattern),
         )
         return [self._row_to_user(r) for r in rows]
+
+
+UserRepository = InMemoryUserRepository

@@ -7,6 +7,7 @@ from app.schemas.models import (
     ProjectCreate, ProjectUpdate, ProjectResponse,
     MilestoneCreate, MilestoneUpdate, MilestoneResponse,
     EvidenceCreate, EvidenceResponse,
+    WorkItemCreate, WorkItemUpdate, WorkItemResponse,
 )
 
 router = APIRouter(tags=["engineering"])
@@ -115,6 +116,31 @@ async def delete_milestone(milestone_id: str, service: ProjectService = Depends(
     return {"deleted": True}
 
 
+@router.post("/projects/{project_id}/work-items", response_model=WorkItemResponse)
+async def create_work_item(project_id: str, data: WorkItemCreate, service: ProjectService = Depends(get_project_service)):
+    data.project_id = project_id
+    item = service.create_work_item(data)
+    return WorkItemResponse(**_work_item_dict(item))
+
+
+@router.get("/projects/{project_id}/work-items", response_model=list[WorkItemResponse])
+async def get_work_items(project_id: str, service: ProjectService = Depends(get_project_service)):
+    items = service.get_work_items(project_id)
+    return [WorkItemResponse(**_work_item_dict(i)) for i in items]
+
+
+@router.put("/work-items/{work_item_id}", response_model=WorkItemResponse)
+async def update_work_item(work_item_id: str, data: WorkItemUpdate, service: ProjectService = Depends(get_project_service)):
+    item = service.update_work_item(work_item_id, data)
+    return WorkItemResponse(**_work_item_dict(item))
+
+
+@router.delete("/work-items/{work_item_id}")
+async def delete_work_item(work_item_id: str, service: ProjectService = Depends(get_project_service)):
+    service.delete_work_item(work_item_id)
+    return {"deleted": True}
+
+
 @router.post("/projects/{project_id}/evidence", response_model=EvidenceResponse)
 async def create_evidence(project_id: str, data: EvidenceCreate, service: ProjectService = Depends(get_project_service)):
     data.project_id = project_id
@@ -157,6 +183,16 @@ def _milestone_dict(milestone) -> dict:
         "status": milestone.status, "due_date": milestone.due_date,
         "completed_at": milestone.completed_at,
         "created_at": milestone.created_at, "updated_at": milestone.updated_at,
+    }
+
+
+def _work_item_dict(item) -> dict:
+    return {
+        "id": item.id, "project_id": item.project_id, "milestone_id": item.milestone_id,
+        "title": item.title, "description": item.description,
+        "status": item.status, "assignee_id": item.assignee_id,
+        "order_index": item.order_index,
+        "created_at": item.created_at, "updated_at": item.updated_at,
     }
 
 

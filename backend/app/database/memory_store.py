@@ -60,175 +60,254 @@ class DatabaseConnection:
         return conn.execute(sql, params).fetchall()
 
 
+SCHEMA_SQL = """
+CREATE TABLE IF NOT EXISTS organizations (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    created_by TEXT,
+    updated_by TEXT
+);
+
+CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    role TEXT NOT NULL,
+    title TEXT DEFAULT '',
+    department TEXT DEFAULT '',
+    skills TEXT DEFAULT '[]',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    created_by TEXT,
+    updated_by TEXT
+);
+
+CREATE TABLE IF NOT EXISTS skills (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    category TEXT DEFAULT '',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS ideas (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    category TEXT NOT NULL,
+    problem_statement TEXT DEFAULT '',
+    proposed_solution TEXT DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'submitted',
+    submitted_by TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    updated_by TEXT,
+    FOREIGN KEY (submitted_by) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS idea_technologies (
+    id TEXT PRIMARY KEY,
+    idea_id TEXT NOT NULL,
+    technology TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (idea_id) REFERENCES ideas(id)
+);
+
+CREATE TABLE IF NOT EXISTS reviews (
+    id TEXT PRIMARY KEY,
+    idea_id TEXT NOT NULL,
+    reviewer_id TEXT NOT NULL,
+    decision TEXT NOT NULL DEFAULT 'pending',
+    comments TEXT DEFAULT '',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (idea_id) REFERENCES ideas(id),
+    FOREIGN KEY (reviewer_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS review_assignments (
+    id TEXT PRIMARY KEY,
+    idea_id TEXT NOT NULL,
+    reviewer_id TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (idea_id) REFERENCES ideas(id),
+    FOREIGN KEY (reviewer_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS validation_sprints (
+    id TEXT PRIMARY KEY,
+    idea_id TEXT NOT NULL,
+    principal_engineer_id TEXT,
+    manager_id TEXT,
+    status TEXT NOT NULL DEFAULT 'not_started',
+    start_date TEXT,
+    end_date TEXT,
+    objectives TEXT DEFAULT '',
+    findings TEXT DEFAULT '',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (idea_id) REFERENCES ideas(id)
+);
+
+CREATE TABLE IF NOT EXISTS innovations (
+    id TEXT PRIMARY KEY,
+    idea_id TEXT NOT NULL,
+    stage TEXT NOT NULL DEFAULT 'validation',
+    is_open INTEGER NOT NULL DEFAULT 0,
+    summary TEXT DEFAULT '',
+    founder_id TEXT,
+    principal_engineer_id TEXT,
+    manager_id TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (idea_id) REFERENCES ideas(id)
+);
+
+CREATE TABLE IF NOT EXISTS innovation_roles (
+    id TEXT PRIMARY KEY,
+    innovation_id TEXT NOT NULL,
+    title TEXT NOT NULL,
+    role TEXT NOT NULL,
+    technology TEXT DEFAULT '',
+    capacity INTEGER NOT NULL DEFAULT 1,
+    filled INTEGER NOT NULL DEFAULT 0,
+    status TEXT NOT NULL DEFAULT 'open',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (innovation_id) REFERENCES innovations(id)
+);
+
+CREATE TABLE IF NOT EXISTS team_memberships (
+    id TEXT PRIMARY KEY,
+    innovation_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    role TEXT DEFAULT '',
+    joined_at TEXT NOT NULL,
+    FOREIGN KEY (innovation_id) REFERENCES innovations(id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS join_requests (
+    id TEXT PRIMARY KEY,
+    innovation_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    role TEXT DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'requested',
+    message TEXT DEFAULT '',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (innovation_id) REFERENCES innovations(id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS teams (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    innovation_id TEXT,
+    project_id TEXT,
+    lead_id TEXT,
+    member_ids TEXT DEFAULT '[]',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS projects (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    innovation_id TEXT,
+    team_id TEXT,
+    description TEXT DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'not_started',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS milestones (
+    id TEXT PRIMARY KEY,
+    project_id TEXT NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'pending',
+    due_date TEXT,
+    completed_at TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (project_id) REFERENCES projects(id)
+);
+
+CREATE TABLE IF NOT EXISTS work_items (
+    id TEXT PRIMARY KEY,
+    project_id TEXT NOT NULL,
+    milestone_id TEXT,
+    title TEXT NOT NULL,
+    description TEXT DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'backlog',
+    assignee_id TEXT,
+    order_index INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (project_id) REFERENCES projects(id),
+    FOREIGN KEY (milestone_id) REFERENCES milestones(id)
+);
+
+CREATE TABLE IF NOT EXISTS evidence (
+    id TEXT PRIMARY KEY,
+    project_id TEXT NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT DEFAULT '',
+    evidence_type TEXT DEFAULT 'document',
+    url TEXT DEFAULT '',
+    created_by TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (project_id) REFERENCES projects(id)
+);
+
+CREATE TABLE IF NOT EXISTS activities (
+    id TEXT PRIMARY KEY,
+    entity_type TEXT NOT NULL,
+    entity_id TEXT NOT NULL,
+    action TEXT NOT NULL,
+    description TEXT NOT NULL,
+    user_id TEXT,
+    created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS notifications (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    message TEXT NOT NULL,
+    read INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS follows (
+    id TEXT PRIMARY KEY,
+    innovation_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    UNIQUE(innovation_id, user_id),
+    FOREIGN KEY (innovation_id) REFERENCES innovations(id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS audit_events (
+    id TEXT PRIMARY KEY,
+    entity_type TEXT NOT NULL,
+    entity_id TEXT NOT NULL,
+    action TEXT NOT NULL,
+    user_id TEXT,
+    details TEXT DEFAULT '',
+    created_at TEXT NOT NULL
+);
+"""
+
+
 def init_db() -> None:
     db = DatabaseConnection.get_instance()
-    schema = """
-    CREATE TABLE IF NOT EXISTS organizations (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
-        created_by TEXT,
-        updated_by TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS users (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        email TEXT NOT NULL UNIQUE,
-        role TEXT NOT NULL,
-        title TEXT DEFAULT '',
-        department TEXT DEFAULT '',
-        skills TEXT DEFAULT '[]',
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
-        created_by TEXT,
-        updated_by TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS ideas (
-        id TEXT PRIMARY KEY,
-        title TEXT NOT NULL,
-        description TEXT NOT NULL,
-        category TEXT NOT NULL,
-        problem_statement TEXT DEFAULT '',
-        proposed_solution TEXT DEFAULT '',
-        status TEXT NOT NULL DEFAULT 'submitted',
-        submitted_by TEXT NOT NULL,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
-        updated_by TEXT,
-        FOREIGN KEY (submitted_by) REFERENCES users(id)
-    );
-
-    CREATE TABLE IF NOT EXISTS reviews (
-        id TEXT PRIMARY KEY,
-        idea_id TEXT NOT NULL,
-        reviewer_id TEXT NOT NULL,
-        decision TEXT NOT NULL DEFAULT 'pending',
-        comments TEXT DEFAULT '',
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
-        FOREIGN KEY (idea_id) REFERENCES ideas(id),
-        FOREIGN KEY (reviewer_id) REFERENCES users(id)
-    );
-
-    CREATE TABLE IF NOT EXISTS validation_sprints (
-        id TEXT PRIMARY KEY,
-        idea_id TEXT NOT NULL,
-        principal_engineer_id TEXT,
-        manager_id TEXT,
-        status TEXT NOT NULL DEFAULT 'not_started',
-        start_date TEXT,
-        end_date TEXT,
-        objectives TEXT DEFAULT '',
-        findings TEXT DEFAULT '',
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
-        FOREIGN KEY (idea_id) REFERENCES ideas(id)
-    );
-
-    CREATE TABLE IF NOT EXISTS innovations (
-        id TEXT PRIMARY KEY,
-        idea_id TEXT NOT NULL,
-        stage TEXT NOT NULL DEFAULT 'idea',
-        is_open INTEGER NOT NULL DEFAULT 0,
-        summary TEXT DEFAULT '',
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
-        FOREIGN KEY (idea_id) REFERENCES ideas(id)
-    );
-
-    CREATE TABLE IF NOT EXISTS positions (
-        id TEXT PRIMARY KEY,
-        innovation_id TEXT NOT NULL,
-        title TEXT NOT NULL,
-        role TEXT NOT NULL,
-        technology TEXT NOT NULL,
-        capacity INTEGER NOT NULL DEFAULT 1,
-        filled INTEGER NOT NULL DEFAULT 0,
-        status TEXT NOT NULL DEFAULT 'open',
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
-        FOREIGN KEY (innovation_id) REFERENCES innovations(id)
-    );
-
-    CREATE TABLE IF NOT EXISTS position_applications (
-        id TEXT PRIMARY KEY,
-        position_id TEXT NOT NULL,
-        user_id TEXT NOT NULL,
-        status TEXT NOT NULL DEFAULT 'pending',
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
-        FOREIGN KEY (position_id) REFERENCES positions(id),
-        FOREIGN KEY (user_id) REFERENCES users(id)
-    );
-
-    CREATE TABLE IF NOT EXISTS teams (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        innovation_id TEXT,
-        project_id TEXT,
-        lead_id TEXT,
-        member_ids TEXT DEFAULT '[]',
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS projects (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        innovation_id TEXT,
-        team_id TEXT,
-        description TEXT DEFAULT '',
-        status TEXT NOT NULL DEFAULT 'planning',
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS milestones (
-        id TEXT PRIMARY KEY,
-        project_id TEXT NOT NULL,
-        title TEXT NOT NULL,
-        description TEXT DEFAULT '',
-        status TEXT NOT NULL DEFAULT 'pending',
-        due_date TEXT,
-        completed_at TEXT,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
-        FOREIGN KEY (project_id) REFERENCES projects(id)
-    );
-
-    CREATE TABLE IF NOT EXISTS evidence (
-        id TEXT PRIMARY KEY,
-        project_id TEXT NOT NULL,
-        title TEXT NOT NULL,
-        description TEXT DEFAULT '',
-        evidence_type TEXT DEFAULT 'document',
-        url TEXT DEFAULT '',
-        created_by TEXT NOT NULL,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
-        FOREIGN KEY (project_id) REFERENCES projects(id)
-    );
-
-    CREATE TABLE IF NOT EXISTS activities (
-        id TEXT PRIMARY KEY,
-        entity_type TEXT NOT NULL,
-        entity_id TEXT NOT NULL,
-        action TEXT NOT NULL,
-        description TEXT NOT NULL,
-        user_id TEXT,
-        created_at TEXT NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS notifications (
-        id TEXT PRIMARY KEY,
-        user_id TEXT NOT NULL,
-        message TEXT NOT NULL,
-        read INTEGER NOT NULL DEFAULT 0,
-        created_at TEXT NOT NULL,
-        FOREIGN KEY (user_id) REFERENCES users(id)
-    );
-    """
-    db.execute_script(schema)
+    db.execute_script(SCHEMA_SQL)

@@ -1,5 +1,5 @@
 from app.database.repository_factory import RepositoryFactory
-from app.domain.enums.types import IdeaStatus, InnovationStage, ProjectStatus, PositionStatus
+from app.domain.enums.types import IdeaStatus, InnovationStage, ProjectStatus, RoleStatus
 from app.schemas.models import DashboardResponse, OrganizationResponse, ActivityResponse
 
 
@@ -15,17 +15,17 @@ class DashboardService:
 
         metrics = {
             "ideas": self._repos.idea.count(),
+            "draft": self._repos.idea.count_by_status(IdeaStatus.DRAFT.value),
+            "submitted": self._repos.idea.count_by_status(IdeaStatus.SUBMITTED.value),
             "under_review": self._repos.idea.count_by_status(IdeaStatus.UNDER_REVIEW.value),
-            "in_validation": self._repos.idea.count_by_status(IdeaStatus.IN_VALIDATION.value),
+            "validation": self._repos.idea.count_by_status(IdeaStatus.VALIDATION.value),
             "approved": self._repos.idea.count_by_status(IdeaStatus.APPROVED.value),
-            "team_forming": self._repos.idea.count_by_status(IdeaStatus.TEAM_FORMING.value),
-            "building": self._repos.idea.count_by_status(IdeaStatus.BUILDING.value),
-            "pocs": self._repos.idea.count_by_status(IdeaStatus.POC.value),
-            "adopted": self._repos.idea.count_by_status(IdeaStatus.ADOPTED.value),
+            "parked": self._repos.idea.count_by_status(IdeaStatus.PARKED.value),
+            "rejected": self._repos.idea.count_by_status(IdeaStatus.REJECTED.value),
             "users": self._repos.user.count(),
             "teams": self._repos.team.count(),
             "projects": self._repos.project.count(),
-            "open_positions": self._repos.position.count_open(),
+            "open_positions": self._repos.innovation_role.count_open(),
             "evidence": self._repos.evidence.count(),
         }
 
@@ -39,13 +39,19 @@ class DashboardService:
         ]
 
         pipeline = {
-            "idea": self._repos.innovation.count_by_stage(InnovationStage.IDEA.value),
             "validation": self._repos.innovation.count_by_stage(InnovationStage.VALIDATION.value),
-            "project": self._repos.innovation.count_by_stage(InnovationStage.PROJECT.value),
+            "open_for_team": self._repos.innovation.count_by_stage(InnovationStage.OPEN_FOR_TEAM.value),
+            "team_forming": self._repos.innovation.count_by_stage(InnovationStage.TEAM_FORMING.value),
+            "building": self._repos.innovation.count_by_stage(InnovationStage.BUILDING.value),
             "poc": self._repos.innovation.count_by_stage(InnovationStage.POC.value),
-            "adoption": self._repos.innovation.count_by_stage(InnovationStage.ADOPTION.value),
-            "completed": self._repos.innovation.count_by_stage(InnovationStage.COMPLETED.value),
-            "active_projects": self._repos.project.count_by_status(ProjectStatus.ACTIVE.value),
+            "demo": self._repos.innovation.count_by_stage(InnovationStage.DEMO.value),
+            "production_candidate": self._repos.innovation.count_by_stage(InnovationStage.PRODUCTION_CANDIDATE.value),
+            "adopted": self._repos.innovation.count_by_stage(InnovationStage.ADOPTED.value),
+            "parked": self._repos.innovation.count_by_stage(InnovationStage.PARKED.value),
+            "closed": self._repos.innovation.count_by_stage(InnovationStage.CLOSED.value),
+            "not_started_projects": self._repos.project.count_by_status(ProjectStatus.NOT_STARTED.value),
+            "planning_projects": self._repos.project.count_by_status(ProjectStatus.PLANNING.value),
+            "in_progress_projects": self._repos.project.count_by_status(ProjectStatus.IN_PROGRESS.value),
             "completed_projects": self._repos.project.count_by_status(ProjectStatus.COMPLETED.value),
         }
 

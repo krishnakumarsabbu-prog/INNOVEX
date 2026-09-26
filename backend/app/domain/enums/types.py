@@ -11,23 +11,66 @@ class UserRole(str, Enum):
 
 
 class IdeaStatus(str, Enum):
+    DRAFT = "draft"
     SUBMITTED = "submitted"
     UNDER_REVIEW = "under_review"
-    IN_VALIDATION = "in_validation"
+    VALIDATION = "validation"
     APPROVED = "approved"
+    PARKED = "parked"
     REJECTED = "rejected"
+
+
+class InnovationStage(str, Enum):
+    VALIDATION = "validation"
+    OPEN_FOR_TEAM = "open_for_team"
     TEAM_FORMING = "team_forming"
     BUILDING = "building"
     POC = "poc"
+    DEMO = "demo"
+    PRODUCTION_CANDIDATE = "production_candidate"
     ADOPTED = "adopted"
-    ARCHIVED = "archived"
+    PARKED = "parked"
+    CLOSED = "closed"
 
 
 class ReviewDecision(str, Enum):
-    PENDING = "pending"
+    REQUEST_INFORMATION = "request_information"
+    SEND_TO_VALIDATION = "send_to_validation"
     APPROVE = "approve"
+    PARK = "park"
     REJECT = "reject"
-    REQUEST_INFO = "request_info"
+    MERGE = "merge"
+
+
+class RoleStatus(str, Enum):
+    OPEN = "open"
+    FILLED = "filled"
+    CLOSED = "closed"
+
+
+class JoinRequestStatus(str, Enum):
+    REQUESTED = "requested"
+    APPROVED = "approved"
+    DECLINED = "declined"
+    CANCELLED = "cancelled"
+
+
+class ProjectStatus(str, Enum):
+    NOT_STARTED = "not_started"
+    PLANNING = "planning"
+    IN_PROGRESS = "in_progress"
+    BLOCKED = "blocked"
+    COMPLETED = "completed"
+    PAUSED = "paused"
+
+
+class WorkItemStatus(str, Enum):
+    BACKLOG = "backlog"
+    READY = "ready"
+    IN_PROGRESS = "in_progress"
+    REVIEW = "review"
+    DONE = "done"
+    BLOCKED = "blocked"
 
 
 class ValidationStatus(str, Enum):
@@ -37,31 +80,8 @@ class ValidationStatus(str, Enum):
     FAILED = "failed"
 
 
-class ProjectStatus(str, Enum):
-    PLANNING = "planning"
-    ACTIVE = "active"
-    ON_HOLD = "on_hold"
-    COMPLETED = "completed"
-    CANCELLED = "cancelled"
-
-
 class MilestoneStatus(str, Enum):
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
     DONE = "done"
     BLOCKED = "blocked"
-
-
-class PositionStatus(str, Enum):
-    OPEN = "open"
-    FILLED = "filled"
-    CLOSED = "closed"
-
-
-class InnovationStage(str, Enum):
-    IDEA = "idea"
-    VALIDATION = "validation"
-    PROJECT = "project"
-    POC = "poc"
-    ADOPTION = "adoption"
-    COMPLETED = "completed"

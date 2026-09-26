@@ -1,9 +1,9 @@
-import json
 from app.database.memory_store import DatabaseConnection
 from app.domain.models.entities import Organization
+from app.repositories.interfaces import OrganizationRepositoryInterface
 
 
-class OrganizationRepository:
+class InMemoryOrganizationRepository(OrganizationRepositoryInterface):
     def __init__(self, db: DatabaseConnection | None = None):
         self._db = db or DatabaseConnection.get_instance()
 
@@ -50,3 +50,6 @@ class OrganizationRepository:
     def count(self) -> int:
         row = self._db.query_one("SELECT COUNT(*) as cnt FROM organizations")
         return row["cnt"] if row else 0
+
+
+OrganizationRepository = InMemoryOrganizationRepository

@@ -1,8 +1,9 @@
 from app.database.memory_store import DatabaseConnection
 from app.domain.models.entities import Idea
+from app.repositories.interfaces import IdeaRepositoryInterface
 
 
-class IdeaRepository:
+class InMemoryIdeaRepository(IdeaRepositoryInterface):
     def __init__(self, db: DatabaseConnection | None = None):
         self._db = db or DatabaseConnection.get_instance()
 
@@ -67,3 +68,6 @@ class IdeaRepository:
             (pattern, pattern, pattern),
         )
         return [Idea(**dict(r)) for r in rows]
+
+
+IdeaRepository = InMemoryIdeaRepository

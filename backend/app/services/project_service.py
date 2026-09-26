@@ -1,11 +1,12 @@
 from app.core.security import generate_id, utc_now
 from app.core.exceptions import NotFoundError
 from app.database.repository_factory import RepositoryFactory
-from app.domain.models.entities import Team, Project, Milestone, Evidence, Activity
-from app.domain.enums.types import ProjectStatus, MilestoneStatus
+from app.domain.models.entities import Team, Project, Milestone, Evidence, Activity, WorkItem, AuditEvent
+from app.domain.enums.types import ProjectStatus, MilestoneStatus, WorkItemStatus
 from app.schemas.models import (
     TeamCreate, TeamUpdate, ProjectCreate, ProjectUpdate,
     MilestoneCreate, MilestoneUpdate, EvidenceCreate,
+    WorkItemCreate, WorkItemUpdate,
 )
 
 
@@ -86,7 +87,7 @@ class ProjectService:
             innovation_id=data.innovation_id,
             team_id=data.team_id,
             description=data.description,
-            status=ProjectStatus.PLANNING.value,
+            status=ProjectStatus.NOT_STARTED.value,
             created_at=now,
             updated_at=now,
         )
@@ -96,6 +97,12 @@ class ProjectService:
             id=generate_id(), entity_type="project", entity_id=project.id,
             action="created", description=f"Project '{project.name}' created",
             user_id=None, created_at=now,
+        ))
+
+        self._repos.audit.create(AuditEvent(
+            id=generate_id(), entity_type="project", entity_id=project.id,
+            action="created", user_id=None,
+            details=f"Project '{project.name}' created", created_at=now,
         ))
         return project
 
@@ -176,6 +183,45 @@ class ProjectService:
 
     def delete_milestone(self, milestone_id: str) -> bool:
         return self._repos.milestone.delete(milestone_id)
+
+    def create_work_item(self, data: WorkItemCreate) -> WorkItem:
+        self.get_by_id(data.project_id)
+        now = utc_now()
+        work_item = WorkItem(
+            id=generate_id(),
+            project_id=data.project_id,
+            milestone_id=data.milestone_id,
+            title=data.title,
+            description=data.description,
+            status=WorkItemStatus.BACKLOG.value,
+            assignee_id=data.assignee_id,
+            order_index=data.order_index,
+            created_at=now,
+            updated_at=now,
+        )
+        self._repos.work_item.create(work_item)
+
+        self._repos.activity.create(Activity(
+            id=generate_id(), entity_type="work_item", entity_id=work_item.id,
+            action="created", description=f"Work item '{work_item.title}' created",
+            user_id=None, created_at=now,
+        ))
+        return work_item
+
+    def get_work_items(self, project_id: str) -> list[WorkItem]:
+        return self._repos.work_item.get_by_project(project_id)
+
+    def update_work_item(self, work_item_id: str, data: WorkItemUpdate) -> WorkItem:
+        item = self._repos.work_item.get_by_id(work_item_id)
+        if not item:
+            raise NotFoundError("Work item not found")
+        now = utc_now()
+        update_data = data.model_dump(exclude_unset=True)
+        self._repos.work_item.update(work_item_id, **update_data, updated_at=now)
+        return self._repos.work_item.get_by_id(work_item_id)
+
+    def delete_work_item(self, work_item_id: str) -> bool:
+        return self._repos.work_item.delete(work_item_id)
 
     def create_evidence(self, data: EvidenceCreate) -> Evidence:
         self.get_by_id(data.project_id)

@@ -1,8 +1,9 @@
 from app.database.memory_store import DatabaseConnection
 from app.domain.models.entities import Project
+from app.repositories.interfaces import ProjectRepositoryInterface
 
 
-class ProjectRepository:
+class InMemoryProjectRepository(ProjectRepositoryInterface):
     def __init__(self, db: DatabaseConnection | None = None):
         self._db = db or DatabaseConnection.get_instance()
 
@@ -55,3 +56,6 @@ class ProjectRepository:
     def count_by_status(self, status: str) -> int:
         row = self._db.query_one("SELECT COUNT(*) as cnt FROM projects WHERE status = ?", (status,))
         return row["cnt"] if row else 0
+
+
+ProjectRepository = InMemoryProjectRepository

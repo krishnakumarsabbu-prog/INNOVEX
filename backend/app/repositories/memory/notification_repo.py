@@ -1,8 +1,9 @@
 from app.database.memory_store import DatabaseConnection
 from app.domain.models.entities import Notification
+from app.repositories.interfaces import NotificationRepositoryInterface
 
 
-class NotificationRepository:
+class InMemoryNotificationRepository(NotificationRepositoryInterface):
     def __init__(self, db: DatabaseConnection | None = None):
         self._db = db or DatabaseConnection.get_instance()
 
@@ -51,6 +52,12 @@ class NotificationRepository:
         cursor = self._db.execute("UPDATE notifications SET read = 1 WHERE user_id = ?", (user_id,))
         return cursor.rowcount > 0
 
+    def update(self, notif_id: str, **kwargs) -> Notification | None:
+        return None
+
     def delete(self, notif_id: str) -> bool:
         cursor = self._db.execute("DELETE FROM notifications WHERE id = ?", (notif_id,))
         return cursor.rowcount > 0
+
+
+NotificationRepository = InMemoryNotificationRepository

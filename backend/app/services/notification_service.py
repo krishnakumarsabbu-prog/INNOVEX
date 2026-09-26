@@ -1,4 +1,3 @@
-from app.core.security import generate_id, utc_now
 from app.database.repository_factory import RepositoryFactory
 from app.domain.models.entities import Notification, Activity
 
@@ -35,3 +34,14 @@ class ActivityService:
 
     def get_by_entity(self, entity_type: str, entity_id: str) -> list[Activity]:
         return self._repos.activity.get_by_entity(entity_type, entity_id)
+
+
+class AuditService:
+    def __init__(self, repos: RepositoryFactory):
+        self._repos = repos
+
+    def get_all(self):
+        return self._repos.audit.get_all()
+
+    def get_by_entity(self, entity_type: str, entity_id: str):
+        return self._repos.audit.get_by_entity(entity_type, entity_id)

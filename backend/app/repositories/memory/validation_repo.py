@@ -1,8 +1,9 @@
 from app.database.memory_store import DatabaseConnection
 from app.domain.models.entities import ValidationSprint
+from app.repositories.interfaces import BaseRepository
 
 
-class ValidationSprintRepository:
+class InMemoryValidationSprintRepository(BaseRepository):
     def __init__(self, db: DatabaseConnection | None = None):
         self._db = db or DatabaseConnection.get_instance()
 
@@ -50,3 +51,6 @@ class ValidationSprintRepository:
     def count_by_status(self, status: str) -> int:
         row = self._db.query_one("SELECT COUNT(*) as cnt FROM validation_sprints WHERE status = ?", (status,))
         return row["cnt"] if row else 0
+
+
+ValidationSprintRepository = InMemoryValidationSprintRepository

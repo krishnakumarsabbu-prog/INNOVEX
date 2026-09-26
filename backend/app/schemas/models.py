@@ -51,6 +51,19 @@ class UserResponse(BaseModel):
     updated_at: str
 
 
+class SkillCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+    category: str = ""
+
+
+class SkillResponse(BaseModel):
+    id: str
+    name: str
+    category: str
+    created_at: str
+    updated_at: str
+
+
 class IdeaCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=300)
     description: str = Field(..., min_length=1)
@@ -58,6 +71,7 @@ class IdeaCreate(BaseModel):
     problem_statement: str = ""
     proposed_solution: str = ""
     submitted_by: str
+    technologies: list[str] = []
 
 
 class IdeaUpdate(BaseModel):
@@ -82,10 +96,17 @@ class IdeaResponse(BaseModel):
     updated_at: str
 
 
+class IdeaTechnologyResponse(BaseModel):
+    id: str
+    idea_id: str
+    technology: str
+    created_at: str
+
+
 class ReviewCreate(BaseModel):
     idea_id: str
     reviewer_id: str
-    decision: str = "pending"
+    decision: str = "request_information"
     comments: str = ""
 
 
@@ -100,6 +121,20 @@ class ReviewResponse(BaseModel):
     reviewer_id: str
     decision: str
     comments: str
+    created_at: str
+    updated_at: str
+
+
+class ReviewAssignmentCreate(BaseModel):
+    idea_id: str
+    reviewer_id: str
+
+
+class ReviewAssignmentResponse(BaseModel):
+    id: str
+    idea_id: str
+    reviewer_id: str
+    status: str
     created_at: str
     updated_at: str
 
@@ -138,12 +173,17 @@ class ValidationSprintResponse(BaseModel):
 class InnovationCreate(BaseModel):
     idea_id: str
     summary: str = ""
+    founder_id: Optional[str] = None
+    principal_engineer_id: Optional[str] = None
+    manager_id: Optional[str] = None
 
 
 class InnovationUpdate(BaseModel):
     stage: Optional[str] = None
     is_open: Optional[bool] = None
     summary: Optional[str] = None
+    principal_engineer_id: Optional[str] = None
+    manager_id: Optional[str] = None
 
 
 class InnovationResponse(BaseModel):
@@ -152,6 +192,9 @@ class InnovationResponse(BaseModel):
     stage: str
     is_open: bool
     summary: str
+    founder_id: Optional[str] = None
+    principal_engineer_id: Optional[str] = None
+    manager_id: Optional[str] = None
     created_at: str
     updated_at: str
 
@@ -160,7 +203,7 @@ class PositionCreate(BaseModel):
     innovation_id: str
     title: str
     role: str
-    technology: str
+    technology: str = ""
     capacity: int = 1
 
 
@@ -196,6 +239,32 @@ class ApplicationResponse(BaseModel):
     status: str
     created_at: str
     updated_at: str
+
+
+class JoinRequestCreate(BaseModel):
+    innovation_id: str
+    user_id: str
+    role: str = ""
+    message: str = ""
+
+
+class JoinRequestResponse(BaseModel):
+    id: str
+    innovation_id: str
+    user_id: str
+    role: str
+    status: str
+    message: str
+    created_at: str
+    updated_at: str
+
+
+class TeamMembershipResponse(BaseModel):
+    id: str
+    innovation_id: str
+    user_id: str
+    role: str
+    joined_at: str
 
 
 class TeamCreate(BaseModel):
@@ -275,6 +344,37 @@ class MilestoneResponse(BaseModel):
     updated_at: str
 
 
+class WorkItemCreate(BaseModel):
+    project_id: str
+    milestone_id: Optional[str] = None
+    title: str
+    description: str = ""
+    assignee_id: Optional[str] = None
+    order_index: int = 0
+
+
+class WorkItemUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    status: Optional[str] = None
+    assignee_id: Optional[str] = None
+    milestone_id: Optional[str] = None
+    order_index: Optional[int] = None
+
+
+class WorkItemResponse(BaseModel):
+    id: str
+    project_id: str
+    milestone_id: Optional[str]
+    title: str
+    description: str
+    status: str
+    assignee_id: Optional[str]
+    order_index: int
+    created_at: str
+    updated_at: str
+
+
 class EvidenceCreate(BaseModel):
     project_id: str
     title: str
@@ -311,6 +411,23 @@ class NotificationResponse(BaseModel):
     user_id: str
     message: str
     read: bool
+    created_at: str
+
+
+class FollowResponse(BaseModel):
+    id: str
+    innovation_id: str
+    user_id: str
+    created_at: str
+
+
+class AuditEventResponse(BaseModel):
+    id: str
+    entity_type: str
+    entity_id: str
+    action: str
+    user_id: Optional[str]
+    details: str
     created_at: str
 
 

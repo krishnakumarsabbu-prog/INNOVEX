@@ -1,8 +1,9 @@
 from app.database.memory_store import DatabaseConnection
 from app.domain.models.entities import Milestone
+from app.repositories.interfaces import BaseRepository
 
 
-class MilestoneRepository:
+class InMemoryMilestoneRepository(BaseRepository):
     def __init__(self, db: DatabaseConnection | None = None):
         self._db = db or DatabaseConnection.get_instance()
 
@@ -48,3 +49,6 @@ class MilestoneRepository:
     def count_by_status(self, status: str) -> int:
         row = self._db.query_one("SELECT COUNT(*) as cnt FROM milestones WHERE status = ?", (status,))
         return row["cnt"] if row else 0
+
+
+MilestoneRepository = InMemoryMilestoneRepository

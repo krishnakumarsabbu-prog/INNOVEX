@@ -1,9 +1,15 @@
 from app.core.security import generate_id, utc_now
 from app.core.exceptions import NotFoundError, ValidationError
 from app.database.repository_factory import RepositoryFactory
-from app.domain.models.entities import Innovation, Activity, Notification, Position, PositionApplication, Team
-from app.domain.enums.types import InnovationStage, PositionStatus, IdeaStatus
-from app.schemas.models import InnovationCreate, InnovationUpdate, PositionCreate, PositionUpdate, ApplicationCreate
+from app.domain.models.entities import (
+    Innovation, Activity, Notification, InnovationRole, JoinRequest,
+    TeamMembership, AuditEvent,
+)
+from app.domain.enums.types import InnovationStage, RoleStatus, JoinRequestStatus, IdeaStatus
+from app.schemas.models import (
+    InnovationCreate, InnovationUpdate, PositionCreate, PositionUpdate,
+    ApplicationCreate, JoinRequestCreate,
+)
 
 
 class InnovationService:
@@ -21,9 +27,12 @@ class InnovationService:
         innovation = Innovation(
             id=generate_id(),
             idea_id=data.idea_id,
-            stage=InnovationStage.IDEA.value,
+            stage=InnovationStage.VALIDATION.value,
             is_open=False,
             summary=data.summary or idea.description[:200],
+            founder_id=data.founder_id or idea.submitted_by,
+            principal_engineer_id=data.principal_engineer_id,
+            manager_id=data.manager_id,
             created_at=now,
             updated_at=now,
         )
@@ -35,6 +44,12 @@ class InnovationService:
             id=generate_id(), entity_type="innovation", entity_id=innovation.id,
             action="created", description=f"Innovation created from idea '{idea.title}'",
             user_id=None, created_at=now,
+        ))
+
+        self._repos.audit.create(AuditEvent(
+            id=generate_id(), entity_type="innovation", entity_id=innovation.id,
+            action="created", user_id=None,
+            details=f"Innovation created from idea '{idea.title}'", created_at=now,
         ))
         return innovation
 
@@ -60,7 +75,7 @@ class InnovationService:
         self._repos.innovation.update(innovation_id, **update_data, updated_at=now)
 
         if data.is_open:
-            self._repos.idea.update(innovation.idea_id, status=IdeaStatus.TEAM_FORMING.value, updated_at=now)
+            self._repos.idea.update(innovation.idea_id, status=IdeaStatus.APPROVED.value, updated_at=now)
 
         self._repos.activity.create(Activity(
             id=generate_id(), entity_type="innovation", entity_id=innovation.id,
@@ -72,10 +87,10 @@ class InnovationService:
     def delete(self, innovation_id: str) -> bool:
         return self._repos.innovation.delete(innovation_id)
 
-    def create_position(self, data: PositionCreate) -> Position:
+    def create_position(self, data: PositionCreate) -> InnovationRole:
         innovation = self.get_by_id(data.innovation_id)
         now = utc_now()
-        position = Position(
+        role = InnovationRole(
             id=generate_id(),
             innovation_id=data.innovation_id,
             title=data.title,
@@ -83,65 +98,75 @@ class InnovationService:
             technology=data.technology,
             capacity=data.capacity,
             filled=0,
-            status=PositionStatus.OPEN.value,
+            status=RoleStatus.OPEN.value,
             created_at=now,
             updated_at=now,
         )
-        self._repos.position.create(position)
+        self._repos.innovation_role.create(role)
 
         self._repos.activity.create(Activity(
-            id=generate_id(), entity_type="position", entity_id=position.id,
+            id=generate_id(), entity_type="position", entity_id=role.id,
             action="created", description=f"Position '{data.title}' opened for innovation",
             user_id=None, created_at=now,
         ))
-        return position
+        return role
 
-    def get_positions(self, innovation_id: str) -> list[Position]:
-        return self._repos.position.get_by_innovation(innovation_id)
+    def get_positions(self, innovation_id: str) -> list[InnovationRole]:
+        return self._repos.innovation_role.get_by_innovation(innovation_id)
 
-    def get_open_positions(self) -> list[Position]:
-        return self._repos.position.get_open()
+    def get_open_positions(self) -> list[InnovationRole]:
+        return self._repos.innovation_role.get_open()
 
-    def update_position(self, position_id: str, data: PositionUpdate) -> Position:
-        position = self._repos.position.get_by_id(position_id)
+    def update_position(self, position_id: str, data: PositionUpdate) -> InnovationRole:
+        position = self._repos.innovation_role.get_by_id(position_id)
         if not position:
             raise NotFoundError("Position not found")
         now = utc_now()
         update_data = data.model_dump(exclude_unset=True)
-        self._repos.position.update(position_id, **update_data, updated_at=now)
-        return self._repos.position.get_by_id(position_id)
+        self._repos.innovation_role.update(position_id, **update_data, updated_at=now)
+        return self._repos.innovation_role.get_by_id(position_id)
 
     def delete_position(self, position_id: str) -> bool:
-        return self._repos.position.delete(position_id)
+        return self._repos.innovation_role.delete(position_id)
 
-    def apply_for_position(self, data: ApplicationCreate) -> PositionApplication:
-        position = self._repos.position.get_by_id(data.position_id)
+    def apply_for_position(self, data: ApplicationCreate) -> JoinRequest:
+        position = self._repos.innovation_role.get_by_id(data.position_id)
         if not position:
             raise NotFoundError("Position not found")
-        if position.status != PositionStatus.OPEN.value:
+        if position.status != RoleStatus.OPEN.value:
             raise ValidationError("Position is not open")
         user = self._repos.user.get_by_id(data.user_id)
         if not user:
             raise NotFoundError("User not found")
-        existing = self._repos.application.get_by_position_and_user(data.position_id, data.user_id)
+        existing = self._repos.join_request.get_by_innovation_and_user(position.innovation_id, data.user_id)
         if existing:
-            raise ValidationError("Already applied for this position")
+            raise ValidationError("Already applied for this innovation")
 
         now = utc_now()
-        app = PositionApplication(
+        join_req = JoinRequest(
             id=generate_id(),
-            position_id=data.position_id,
+            innovation_id=position.innovation_id,
             user_id=data.user_id,
-            status="accepted",
+            role=position.role,
+            status=JoinRequestStatus.APPROVED.value,
+            message=f"Auto-approved for position '{position.title}'",
             created_at=now,
             updated_at=now,
         )
-        self._repos.application.create(app)
+        self._repos.join_request.create(join_req)
 
         position.filled += 1
         if position.filled >= position.capacity:
-            position.status = PositionStatus.FILLED.value
-        self._repos.position.update(position.id, filled=position.filled, status=position.status, updated_at=now)
+            position.status = RoleStatus.FILLED.value
+        self._repos.innovation_role.update(position.id, filled=position.filled, status=position.status, updated_at=now)
+
+        self._repos.team_membership.create(TeamMembership(
+            id=generate_id(),
+            innovation_id=position.innovation_id,
+            user_id=data.user_id,
+            role=position.role,
+            joined_at=now,
+        ))
 
         self._repos.activity.create(Activity(
             id=generate_id(), entity_type="position", entity_id=position.id,
@@ -155,10 +180,120 @@ class InnovationService:
             read=False, created_at=now,
         ))
 
-        return app
+        return join_req
 
-    def get_applications_by_position(self, position_id: str) -> list[PositionApplication]:
-        return self._repos.application.get_by_position(position_id)
+    def get_applications_by_position(self, position_id: str) -> list[JoinRequest]:
+        position = self._repos.innovation_role.get_by_id(position_id)
+        if not position:
+            raise NotFoundError("Position not found")
+        return self._repos.join_request.get_by_innovation(position.innovation_id)
 
-    def get_applications_by_user(self, user_id: str) -> list[PositionApplication]:
-        return self._repos.application.get_by_user(user_id)
+    def get_applications_by_user(self, user_id: str) -> list[JoinRequest]:
+        return self._repos.join_request.get_by_user(user_id)
+
+    def request_to_join(self, data: JoinRequestCreate) -> JoinRequest:
+        innovation = self.get_by_id(data.innovation_id)
+        user = self._repos.user.get_by_id(data.user_id)
+        if not user:
+            raise NotFoundError("User not found")
+        existing = self._repos.join_request.get_by_innovation_and_user(data.innovation_id, data.user_id)
+        if existing:
+            raise ValidationError("Already requested to join this innovation")
+
+        now = utc_now()
+        join_req = JoinRequest(
+            id=generate_id(),
+            innovation_id=data.innovation_id,
+            user_id=data.user_id,
+            role=data.role,
+            status=JoinRequestStatus.REQUESTED.value,
+            message=data.message,
+            created_at=now,
+            updated_at=now,
+        )
+        self._repos.join_request.create(join_req)
+
+        self._repos.activity.create(Activity(
+            id=generate_id(), entity_type="join_request", entity_id=join_req.id,
+            action="requested", description=f"User requested to join innovation",
+            user_id=data.user_id, created_at=now,
+        ))
+
+        if innovation.founder_id:
+            self._repos.notification.create(Notification(
+                id=generate_id(), user_id=innovation.founder_id,
+                message=f"New join request for your innovation",
+                read=False, created_at=now,
+            ))
+        return join_req
+
+    def approve_join_request(self, request_id: str) -> JoinRequest:
+        join_req = self._repos.join_request.get_by_id(request_id)
+        if not join_req:
+            raise NotFoundError("Join request not found")
+        if join_req.status != JoinRequestStatus.REQUESTED.value:
+            raise ValidationError("Join request is not pending")
+
+        now = utc_now()
+        self._repos.join_request.update(request_id, status=JoinRequestStatus.APPROVED.value, updated_at=now)
+
+        self._repos.team_membership.create(TeamMembership(
+            id=generate_id(),
+            innovation_id=join_req.innovation_id,
+            user_id=join_req.user_id,
+            role=join_req.role,
+            joined_at=now,
+        ))
+
+        self._repos.notification.create(Notification(
+            id=generate_id(), user_id=join_req.user_id,
+            message="Your join request has been approved",
+            read=False, created_at=now,
+        ))
+        return self._repos.join_request.get_by_id(request_id)
+
+    def decline_join_request(self, request_id: str) -> JoinRequest:
+        join_req = self._repos.join_request.get_by_id(request_id)
+        if not join_req:
+            raise NotFoundError("Join request not found")
+        if join_req.status != JoinRequestStatus.REQUESTED.value:
+            raise ValidationError("Join request is not pending")
+
+        now = utc_now()
+        self._repos.join_request.update(request_id, status=JoinRequestStatus.DECLINED.value, updated_at=now)
+
+        self._repos.notification.create(Notification(
+            id=generate_id(), user_id=join_req.user_id,
+            message="Your join request has been declined",
+            read=False, created_at=now,
+        ))
+        return self._repos.join_request.get_by_id(request_id)
+
+    def get_team_members(self, innovation_id: str) -> list[TeamMembership]:
+        return self._repos.team_membership.get_by_innovation(innovation_id)
+
+    def follow(self, innovation_id: str, user_id: str) -> dict:
+        from app.domain.models.entities import Follow
+        self.get_by_id(innovation_id)
+        existing = self._repos.follow.get_by_innovation_and_user(innovation_id, user_id)
+        if existing:
+            raise ValidationError("Already following")
+        now = utc_now()
+        follow = Follow(
+            id=generate_id(),
+            innovation_id=innovation_id,
+            user_id=user_id,
+            created_at=now,
+        )
+        self._repos.follow.create(follow)
+        return {"id": follow.id, "innovation_id": follow.innovation_id, "user_id": follow.user_id, "created_at": follow.created_at}
+
+    def unfollow(self, innovation_id: str, user_id: str) -> bool:
+        return self._repos.follow.unfollow(innovation_id, user_id)
+
+    def get_followers(self, innovation_id: str) -> list[dict]:
+        follows = self._repos.follow.get_by_innovation(innovation_id)
+        return [{"id": f.id, "innovation_id": f.innovation_id, "user_id": f.user_id, "created_at": f.created_at} for f in follows]
+
+    def get_follower_count(self, innovation_id: str) -> int:
+        return self._repos.follow.count_by_innovation(innovation_id)

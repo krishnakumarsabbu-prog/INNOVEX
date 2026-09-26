@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends
 from app.api.dependencies import get_repository_factory
 from app.database.repository_factory import RepositoryFactory
-from app.services.notification_service import NotificationService, ActivityService
-from app.schemas.models import NotificationResponse, ActivityResponse
+from app.services.notification_service import NotificationService, ActivityService, AuditService
+from app.schemas.models import NotificationResponse, ActivityResponse, AuditEventResponse
 
 router = APIRouter(tags=["notifications"])
 
@@ -13,6 +13,10 @@ def get_notification_service(repos: RepositoryFactory = Depends(get_repository_f
 
 def get_activity_service(repos: RepositoryFactory = Depends(get_repository_factory)) -> ActivityService:
     return ActivityService(repos)
+
+
+def get_audit_service(repos: RepositoryFactory = Depends(get_repository_factory)) -> AuditService:
+    return AuditService(repos)
 
 
 @router.get("/notifications", response_model=list[NotificationResponse])
@@ -62,6 +66,18 @@ async def get_entity_activities(entity_type: str, entity_id: str, service: Activ
     return [ActivityResponse(**_activity_dict(a)) for a in activities]
 
 
+@router.get("/audit-events", response_model=list[AuditEventResponse])
+async def get_audit_events(service: AuditService = Depends(get_audit_service)):
+    events = service.get_all()
+    return [AuditEventResponse(**_audit_dict(a)) for a in events]
+
+
+@router.get("/audit-events/{entity_type}/{entity_id}", response_model=list[AuditEventResponse])
+async def get_entity_audit_events(entity_type: str, entity_id: str, service: AuditService = Depends(get_audit_service)):
+    events = service.get_by_entity(entity_type, entity_id)
+    return [AuditEventResponse(**_audit_dict(a)) for a in events]
+
+
 def _notif_dict(n) -> dict:
     return {"id": n.id, "user_id": n.user_id, "message": n.message, "read": n.read, "created_at": n.created_at}
 
@@ -70,4 +86,11 @@ def _activity_dict(a) -> dict:
     return {
         "id": a.id, "entity_type": a.entity_type, "entity_id": a.entity_id,
         "action": a.action, "description": a.description, "user_id": a.user_id, "created_at": a.created_at,
+    }
+
+
+def _audit_dict(a) -> dict:
+    return {
+        "id": a.id, "entity_type": a.entity_type, "entity_id": a.entity_id,
+        "action": a.action, "user_id": a.user_id, "details": a.details, "created_at": a.created_at,
     }

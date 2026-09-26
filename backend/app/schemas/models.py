@@ -565,6 +565,66 @@ class FollowResponse(BaseModel):
     created_at: str
 
 
+class MarketplaceRoleResponse(BaseModel):
+    id: str
+    innovation_id: str
+    title: str
+    role: str
+    technology: str = ""
+    capacity: int = 1
+    filled: int = 0
+    status: str = "open"
+    created_at: str = ""
+    updated_at: str = ""
+
+
+class MarketplaceTeamMemberResponse(BaseModel):
+    id: str
+    user_id: str
+    role: str = ""
+    name: str = ""
+    title: str = ""
+    department: str = ""
+    joined_at: str = ""
+
+
+class MarketplaceInnovationResponse(BaseModel):
+    id: str
+    idea_id: str
+    stage: str
+    is_open: bool
+    summary: str
+    founder_id: Optional[str] = None
+    founder_name: str = ""
+    principal_engineer_id: Optional[str] = None
+    principal_engineer_name: str = ""
+    manager_id: Optional[str] = None
+    manager_name: str = ""
+    title: str = ""
+    problem_statement: str = ""
+    business_impact: str = ""
+    business_area: str = ""
+    technologies: list[str] = []
+    team_size: int = 0
+    team_progress: int = 0
+    open_roles: list[MarketplaceRoleResponse] = []
+    followers: int = 0
+    last_activity: str = ""
+    created_at: str = ""
+    updated_at: str = ""
+
+
+class MarketplaceInnovationDetailResponse(MarketplaceInnovationResponse):
+    proposed_solution: str = ""
+    engineering_impact: str = ""
+    expected_benefits: str = ""
+    dependencies: str = ""
+    risks: str = ""
+    estimated_complexity: str = ""
+    estimated_duration: str = ""
+    team_members: list[MarketplaceTeamMemberResponse] = []
+
+
 class AuditEventResponse(BaseModel):
     id: str
     entity_type: str

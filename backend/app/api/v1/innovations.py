@@ -8,6 +8,7 @@ from app.schemas.models import (
     ApplicationCreate, ApplicationResponse,
     JoinRequestCreate, JoinRequestResponse,
     TeamMembershipResponse, FollowResponse,
+    MarketplaceInnovationResponse, MarketplaceInnovationDetailResponse,
 )
 
 router = APIRouter(prefix="/innovations", tags=["innovations"])
@@ -23,22 +24,26 @@ async def create_innovation(data: InnovationCreate, service: InnovationService =
     return InnovationResponse(**_innovation_dict(innovation))
 
 
-@router.get("", response_model=list[InnovationResponse])
+@router.get("", response_model=list[MarketplaceInnovationResponse])
 async def get_innovations(
     open_only: bool = False,
     service: InnovationService = Depends(get_innovation_service),
 ):
+    innovations = service.get_marketplace_all()
     if open_only:
-        innovations = service.get_open()
-    else:
-        innovations = service.get_all()
-    return [InnovationResponse(**_innovation_dict(i)) for i in innovations]
+        innovations = [i for i in innovations if i.is_open]
+    return innovations
 
 
-@router.get("/{innovation_id}", response_model=InnovationResponse)
+@router.get("/{innovation_id}", response_model=MarketplaceInnovationDetailResponse)
 async def get_innovation(innovation_id: str, service: InnovationService = Depends(get_innovation_service)):
-    innovation = service.get_by_id(innovation_id)
-    return InnovationResponse(**_innovation_dict(innovation))
+    return service.get_marketplace_by_id(innovation_id)
+
+
+@router.patch("/{innovation_id}", response_model=MarketplaceInnovationDetailResponse)
+async def patch_innovation(innovation_id: str, data: InnovationUpdate, service: InnovationService = Depends(get_innovation_service)):
+    service.patch_update(innovation_id, data)
+    return service.get_marketplace_by_id(innovation_id)
 
 
 @router.put("/{innovation_id}", response_model=InnovationResponse)

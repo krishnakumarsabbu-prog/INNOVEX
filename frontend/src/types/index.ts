@@ -168,6 +168,66 @@ export interface Innovation {
   updated_at: string;
 }
 
+export interface MarketplaceRole {
+  id: string;
+  innovation_id: string;
+  title: string;
+  role: string;
+  technology: string;
+  capacity: number;
+  filled: number;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MarketplaceTeamMember {
+  id: string;
+  user_id: string;
+  role: string;
+  name: string;
+  title: string;
+  department: string;
+  joined_at: string;
+}
+
+export interface MarketplaceInnovation {
+  id: string;
+  idea_id: string;
+  stage: string;
+  is_open: boolean;
+  summary: string;
+  founder_id: string | null;
+  founder_name: string;
+  principal_engineer_id: string | null;
+  principal_engineer_name: string;
+  manager_id: string | null;
+  manager_name: string;
+  title: string;
+  problem_statement: string;
+  business_impact: string;
+  business_area: string;
+  technologies: string[];
+  team_size: number;
+  team_progress: number;
+  open_roles: MarketplaceRole[];
+  followers: number;
+  last_activity: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MarketplaceInnovationDetail extends MarketplaceInnovation {
+  proposed_solution: string;
+  engineering_impact: string;
+  expected_benefits: string;
+  dependencies: string;
+  risks: string;
+  estimated_complexity: string;
+  estimated_duration: string;
+  team_members: MarketplaceTeamMember[];
+}
+
 export interface Position {
   id: string;
   innovation_id: string;

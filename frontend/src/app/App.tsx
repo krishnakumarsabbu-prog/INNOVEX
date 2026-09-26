@@ -38,8 +38,8 @@ function AppRoutes() {
         <Route path="/ideas/mine" element={<MyIdeasPage />} />
         <Route path="/ideas/:id" element={<IdeaDetailPage />} />
         <Route path="/ideas/:id/validation" element={<ValidationPage />} />
-        <Route path="/innovations" element={<InnovationsPage />} />
-        <Route path="/innovations/:id" element={<InnovationDetailPage />} />
+        <Route path="/innovation" element={<InnovationsPage />} />
+        <Route path="/innovation/:innovationId" element={<InnovationDetailPage />} />
         <Route path="/workspace" element={<MyWorkspacePage />} />
         <Route path="/teams" element={<TeamsPage />} />
         <Route path="/projects" element={<ProjectsPage />} />

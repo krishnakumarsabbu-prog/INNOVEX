@@ -9,6 +9,8 @@ from app.domain.enums.types import InnovationStage, RoleStatus, JoinRequestStatu
 from app.schemas.models import (
     InnovationCreate, InnovationUpdate, PositionCreate, PositionUpdate,
     ApplicationCreate, JoinRequestCreate,
+    MarketplaceInnovationResponse, MarketplaceInnovationDetailResponse,
+    MarketplaceRoleResponse, MarketplaceTeamMemberResponse,
 )
 
 
@@ -297,3 +299,106 @@ class InnovationService:
 
     def get_follower_count(self, innovation_id: str) -> int:
         return self._repos.follow.count_by_innovation(innovation_id)
+
+    def _user_name(self, user_id: str | None) -> str:
+        if not user_id:
+            return ""
+        user = self._repos.user.get_by_id(user_id)
+        return user.name if user else ""
+
+    def _last_activity(self, innovation_id: str) -> str:
+        activities = self._repos.activity.get_by_entity("innovation", innovation_id)
+        if activities:
+            return activities[0].created_at
+        return ""
+
+    def _enrich_roles(self, innovation_id: str) -> list[MarketplaceRoleResponse]:
+        roles = self._repos.innovation_role.get_by_innovation(innovation_id)
+        return [
+            MarketplaceRoleResponse(
+                id=r.id, innovation_id=r.innovation_id, title=r.title,
+                role=r.role, technology=r.technology, capacity=r.capacity,
+                filled=r.filled, status=r.status, created_at=r.created_at, updated_at=r.updated_at,
+            )
+            for r in roles
+        ]
+
+    def _enrich_team_members(self, innovation_id: str) -> list[MarketplaceTeamMemberResponse]:
+        memberships = self._repos.team_membership.get_by_innovation(innovation_id)
+        result: list[MarketplaceTeamMemberResponse] = []
+        for m in memberships:
+            user = self._repos.user.get_by_id(m.user_id)
+            result.append(MarketplaceTeamMemberResponse(
+                id=m.id, user_id=m.user_id, role=m.role,
+                name=user.name if user else "",
+                title=user.title if user else "",
+                department=user.department if user else "",
+                joined_at=m.joined_at,
+            ))
+        return result
+
+    def _team_progress(self, innovation_id: str) -> int:
+        roles = self._repos.innovation_role.get_by_innovation(innovation_id)
+        if not roles:
+            return 0
+        total_capacity = sum(r.capacity for r in roles)
+        total_filled = sum(r.filled for r in roles)
+        if total_capacity == 0:
+            return 0
+        return int((total_filled / total_capacity) * 100)
+
+    def _base_marketplace_dict(self, innovation: Innovation) -> dict:
+        idea = self._repos.idea.get_by_id(innovation.idea_id)
+        roles = self._enrich_roles(innovation.id)
+        team_members = self._repos.team_membership.get_by_innovation(innovation.id)
+        follower_count = self._repos.follow.count_by_innovation(innovation.id)
+        return {
+            "id": innovation.id,
+            "idea_id": innovation.idea_id,
+            "stage": innovation.stage,
+            "is_open": innovation.is_open,
+            "summary": innovation.summary,
+            "founder_id": innovation.founder_id,
+            "founder_name": self._user_name(innovation.founder_id),
+            "principal_engineer_id": innovation.principal_engineer_id,
+            "principal_engineer_name": self._user_name(innovation.principal_engineer_id),
+            "manager_id": innovation.manager_id,
+            "manager_name": self._user_name(innovation.manager_id),
+            "title": idea.title if idea else innovation.summary,
+            "problem_statement": idea.problem_statement if idea else "",
+            "business_impact": idea.business_impact if idea else "",
+            "business_area": idea.business_area if idea else "",
+            "technologies": idea.technologies if idea else [],
+            "team_size": len(team_members),
+            "team_progress": self._team_progress(innovation.id),
+            "open_roles": roles,
+            "followers": follower_count,
+            "last_activity": self._last_activity(innovation.id),
+            "created_at": innovation.created_at,
+            "updated_at": innovation.updated_at,
+        }
+
+    def get_marketplace_all(self) -> list[MarketplaceInnovationResponse]:
+        innovations = self.get_all()
+        return [MarketplaceInnovationResponse(**self._base_marketplace_dict(i)) for i in innovations]
+
+    def get_marketplace_by_id(self, innovation_id: str) -> MarketplaceInnovationDetailResponse:
+        innovation = self.get_by_id(innovation_id)
+        base = self._base_marketplace_dict(innovation)
+        idea = self._repos.idea.get_by_id(innovation.idea_id)
+        base["proposed_solution"] = idea.proposed_solution if idea else ""
+        base["engineering_impact"] = idea.engineering_impact if idea else ""
+        base["expected_benefits"] = idea.expected_benefits if idea else ""
+        base["dependencies"] = idea.dependencies if idea else ""
+        base["risks"] = idea.risks if idea else ""
+        base["estimated_complexity"] = idea.estimated_complexity if idea else ""
+        base["estimated_duration"] = idea.estimated_duration if idea else ""
+        base["team_members"] = self._enrich_team_members(innovation_id)
+        return MarketplaceInnovationDetailResponse(**base)
+
+    def create_from_idea(self, idea_id: str, data: InnovationCreate) -> Innovation:
+        data.idea_id = idea_id
+        return self.create(data)
+
+    def patch_update(self, innovation_id: str, data: InnovationUpdate) -> Innovation:
+        return self.update(innovation_id, data)

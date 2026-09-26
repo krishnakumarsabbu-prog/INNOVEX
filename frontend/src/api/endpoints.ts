@@ -4,6 +4,7 @@ import type {
   ReviewDimension, ReviewQueueItem, ReviewDecisionPayload,
   ValidationSprint, ValidationEvidence, Innovation, Position, Application, Team, Project,
   Milestone, Evidence, Activity, Notification, Dashboard,
+  MarketplaceInnovation, MarketplaceInnovationDetail,
 } from '../types';
 
 export const setupApi = {
@@ -59,10 +60,12 @@ export const validationApi = {
 };
 
 export const innovationApi = {
-  getAll: (openOnly?: boolean) => api.get<Innovation[]>('/innovations', { params: { open_only: openOnly } }).then(r => r.data),
-  getById: (id: string) => api.get<Innovation>(`/innovations/${id}`).then(r => r.data),
-  create: (data: Partial<Innovation>) => api.post<Innovation>('/innovations', data).then(r => r.data),
+  getAll: (openOnly?: boolean) => api.get<MarketplaceInnovation[]>('/innovations', { params: { open_only: openOnly } }).then(r => r.data),
+  getById: (id: string) => api.get<MarketplaceInnovationDetail>(`/innovations/${id}`).then(r => r.data),
+  create: (data: Partial<Innovation>) => api.post<MarketplaceInnovationDetail>('/innovations', data).then(r => r.data),
+  createFromIdea: (ideaId: string, data: Partial<Innovation>) => api.post<MarketplaceInnovationDetail>(`/ideas/${ideaId}/innovation`, data).then(r => r.data),
   update: (id: string, data: Partial<Innovation>) => api.put<Innovation>(`/innovations/${id}`, data).then(r => r.data),
+  patch: (id: string, data: Partial<Innovation>) => api.patch<MarketplaceInnovationDetail>(`/innovations/${id}`, data).then(r => r.data),
   delete: (id: string) => api.delete(`/innovations/${id}`).then(r => r.data),
   getPositions: (innovationId: string) => api.get<Position[]>(`/innovations/${innovationId}/positions`).then(r => r.data),
   createPosition: (innovationId: string, data: Partial<Position>) => api.post<Position>(`/innovations/${innovationId}/positions`, data).then(r => r.data),
@@ -71,6 +74,12 @@ export const innovationApi = {
   applyForPosition: (positionId: string, data: { user_id: string }) => api.post<Application>(`/innovations/positions/${positionId}/apply`, data).then(r => r.data),
   getApplications: (positionId: string) => api.get<Application[]>(`/innovations/positions/${positionId}/applications`).then(r => r.data),
   getOpenPositions: () => api.get<Position[]>('/innovations/positions/open').then(r => r.data),
+  joinInnovation: (innovationId: string, data: { user_id: string; role: string; message: string }) =>
+    api.post(`/innovations/${innovationId}/join-requests`, data).then(r => r.data),
+  follow: (innovationId: string, userId: string) => api.post(`/innovations/${innovationId}/follow?user_id=${userId}`).then(r => r.data),
+  unfollow: (innovationId: string, userId: string) => api.delete(`/innovations/${innovationId}/follow?user_id=${userId}`).then(r => r.data),
+  getFollowers: (innovationId: string) => api.get(`/innovations/${innovationId}/followers`).then(r => r.data),
+  getFollowerCount: (innovationId: string) => api.get<{ count: number }>(`/innovations/${innovationId}/followers/count`).then(r => r.data),
 };
 
 export const teamApi = {

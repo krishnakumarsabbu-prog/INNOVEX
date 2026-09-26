@@ -8,6 +8,7 @@ from app.schemas.models import (
     IdeaCreate, IdeaUpdate, IdeaResponse, ReviewCreate,
     ReviewResponse, ReviewDecisionRequest,
     IdeaEvidenceCreate, IdeaEvidenceResponse, IdeaFollowResponse, ActivityResponse,
+    InnovationCreate, MarketplaceInnovationDetailResponse,
 )
 
 router = APIRouter(prefix="/ideas", tags=["ideas"])
@@ -23,6 +24,11 @@ def get_idea_service(repos: RepositoryFactory = Depends(get_repository_factory))
 
 def get_review_service(repos: RepositoryFactory = Depends(get_repository_factory)) -> ReviewService:
     return ReviewService(repos)
+
+
+def get_innovation_service(repos: RepositoryFactory = Depends(get_repository_factory)):
+    from app.services.innovation_service import InnovationService
+    return InnovationService(repos)
 
 
 def _idea_dict(idea) -> dict:
@@ -166,3 +172,13 @@ async def create_review(idea_id: str, data: ReviewCreate, service: ReviewService
 async def get_reviews(idea_id: str, service: ReviewService = Depends(get_review_service)):
     results = service.get_reviews_by_idea(idea_id)
     return [ReviewResponse(**r) for r in results]
+
+
+@router.post("/{idea_id}/innovation", response_model=MarketplaceInnovationDetailResponse)
+async def create_innovation_from_idea(
+    idea_id: str,
+    data: InnovationCreate,
+    service=Depends(get_innovation_service),
+):
+    innovation = service.create_from_idea(idea_id, data)
+    return service.get_marketplace_by_id(innovation.id)

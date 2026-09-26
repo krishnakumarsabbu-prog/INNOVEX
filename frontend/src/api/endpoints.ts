@@ -1,6 +1,7 @@
 import { api } from './client';
 import type {
   SetupStatus, SetupRequest, SetupResponse, User, Idea, IdeaEvidence, IdeaFollow, Review,
+  ReviewDimension, ReviewQueueItem, ReviewDecisionPayload,
   ValidationSprint, Innovation, Position, Application, Team, Project,
   Milestone, Evidence, Activity, Notification, Dashboard,
 } from '../types';
@@ -35,6 +36,15 @@ export const ideaApi = {
   unfollow: (id: string, userId: string) => api.delete(`/ideas/${id}/follow`, { data: { user_id: userId } }).then(r => r.data),
   createReview: (ideaId: string, data: Partial<Review>) => api.post(`/ideas/${ideaId}/reviews`, data).then(r => r.data),
   getReviews: (ideaId: string) => api.get<Review[]>(`/ideas/${ideaId}/reviews`).then(r => r.data),
+};
+
+export const reviewApi = {
+  getQueue: () => api.get<ReviewQueueItem[]>('/reviews/queue').then(r => r.data),
+  createReview: (ideaId: string, data: Partial<Review> & { dimensions?: { dimension: string; rating: string; comment: string }[] }) =>
+    api.post<Review>(`/reviews/ideas/${ideaId}`, data).then(r => r.data),
+  getReviews: (ideaId: string) => api.get<Review[]>(`/reviews/ideas/${ideaId}`).then(r => r.data),
+  makeDecision: (ideaId: string, reviewId: string, data: ReviewDecisionPayload) =>
+    api.post<Review>(`/reviews/ideas/${ideaId}/reviews/${reviewId}/decision`, data).then(r => r.data),
 };
 
 export const validationApi = {

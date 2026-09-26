@@ -9,6 +9,7 @@ const navItems = [
   { to: '/ideas', label: 'Ideas' },
   { to: '/ideas/mine', label: 'My Ideas' },
   { to: '/innovations', label: 'Innovation' },
+  { to: '/review', label: 'Review' },
   { to: '/workspace', label: 'My Workspace' },
   { to: '/teams', label: 'Teams' },
   { to: '/projects', label: 'Projects' },

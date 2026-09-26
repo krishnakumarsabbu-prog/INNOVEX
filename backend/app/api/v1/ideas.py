@@ -3,8 +3,10 @@ from pydantic import BaseModel
 from app.api.dependencies import get_repository_factory
 from app.database.repository_factory import RepositoryFactory
 from app.services.idea_service import IdeaService
+from app.services.review_service import ReviewService
 from app.schemas.models import (
     IdeaCreate, IdeaUpdate, IdeaResponse, ReviewCreate,
+    ReviewResponse, ReviewDecisionRequest,
     IdeaEvidenceCreate, IdeaEvidenceResponse, IdeaFollowResponse, ActivityResponse,
 )
 
@@ -17,6 +19,10 @@ class UserIdBody(BaseModel):
 
 def get_idea_service(repos: RepositoryFactory = Depends(get_repository_factory)) -> IdeaService:
     return IdeaService(repos)
+
+
+def get_review_service(repos: RepositoryFactory = Depends(get_repository_factory)) -> ReviewService:
+    return ReviewService(repos)
 
 
 def _idea_dict(idea) -> dict:
@@ -149,12 +155,14 @@ async def unfollow_idea(idea_id: str, body: UserIdBody, service: IdeaService = D
     return {"unfollowed": True}
 
 
-@router.post("/{idea_id}/reviews")
-async def create_review(idea_id: str, data: ReviewCreate, service: IdeaService = Depends(get_idea_service)):
+@router.post("/{idea_id}/reviews", response_model=ReviewResponse)
+async def create_review(idea_id: str, data: ReviewCreate, service: ReviewService = Depends(get_review_service)):
     data.idea_id = idea_id
-    return service.create_review(data)
+    result = service.create_review(idea_id, data)
+    return ReviewResponse(**result)
 
 
-@router.get("/{idea_id}/reviews")
-async def get_reviews(idea_id: str, service: IdeaService = Depends(get_idea_service)):
-    return service.get_reviews(idea_id)
+@router.get("/{idea_id}/reviews", response_model=list[ReviewResponse])
+async def get_reviews(idea_id: str, service: ReviewService = Depends(get_review_service)):
+    results = service.get_reviews_by_idea(idea_id)
+    return [ReviewResponse(**r) for r in results]

@@ -164,16 +164,47 @@ class IdeaTechnologyResponse(BaseModel):
     created_at: str
 
 
+class ReviewDimensionInput(BaseModel):
+    dimension: str
+    rating: str = ""
+    comment: str = ""
+
+
+class ReviewDimensionResponse(BaseModel):
+    id: str
+    review_id: str
+    dimension: str
+    rating: str
+    comment: str
+    created_at: str
+
+
 class ReviewCreate(BaseModel):
     idea_id: str
     reviewer_id: str
     decision: str = "request_information"
     comments: str = ""
+    reason: str = ""
+    evidence: str = ""
+    dimensions: list[ReviewDimensionInput] = []
 
 
 class ReviewUpdate(BaseModel):
     decision: Optional[str] = None
     comments: Optional[str] = None
+    reason: Optional[str] = None
+    evidence: Optional[str] = None
+
+
+class ReviewDecisionRequest(BaseModel):
+    decision: str
+    reviewer_id: str
+    reason: str = ""
+    evidence: str = ""
+    comments: str = ""
+    dimensions: list[ReviewDimensionInput] = []
+    principal_engineer_id: Optional[str] = None
+    manager_id: Optional[str] = None
 
 
 class ReviewResponse(BaseModel):
@@ -182,8 +213,25 @@ class ReviewResponse(BaseModel):
     reviewer_id: str
     decision: str
     comments: str
+    reason: str = ""
+    evidence: str = ""
+    dimensions: list[ReviewDimensionResponse] = []
     created_at: str
     updated_at: str
+
+
+class ReviewQueueItemResponse(BaseModel):
+    idea_id: str
+    title: str
+    founder_id: Optional[str] = None
+    founder_name: str = ""
+    business_area: str = ""
+    technologies: list[str] = []
+    status: str
+    submitted_at: str = ""
+    assigned_reviewer_id: Optional[str] = None
+    assigned_reviewer_name: str = ""
+    review_count: int = 0
 
 
 class ReviewAssignmentCreate(BaseModel):

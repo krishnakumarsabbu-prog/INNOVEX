@@ -96,8 +96,20 @@ class Review:
     reviewer_id: str
     decision: str
     comments: str
-    created_at: str
-    updated_at: str
+    reason: str = ""
+    evidence: str = ""
+    created_at: str = ""
+    updated_at: str = ""
+
+
+@dataclass
+class ReviewDimension:
+    id: str
+    review_id: str
+    dimension: str
+    rating: str = ""
+    comment: str = ""
+    created_at: str = ""
 
 
 @dataclass

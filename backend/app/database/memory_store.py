@@ -130,10 +130,22 @@ CREATE TABLE IF NOT EXISTS reviews (
     reviewer_id TEXT NOT NULL,
     decision TEXT NOT NULL DEFAULT 'pending',
     comments TEXT DEFAULT '',
+    reason TEXT DEFAULT '',
+    evidence TEXT DEFAULT '',
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
     FOREIGN KEY (idea_id) REFERENCES ideas(id),
     FOREIGN KEY (reviewer_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS review_dimensions (
+    id TEXT PRIMARY KEY,
+    review_id TEXT NOT NULL,
+    dimension TEXT NOT NULL,
+    rating TEXT DEFAULT '',
+    comment TEXT DEFAULT '',
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (review_id) REFERENCES reviews(id)
 );
 
 CREATE TABLE IF NOT EXISTS review_assignments (

@@ -18,6 +18,7 @@ import { ProjectsPage } from '../pages/ProjectsPage';
 import { ProjectDetailPage } from '../pages/ProjectDetailPage';
 import { InsightsPage } from '../pages/InsightsPage';
 import { AdministrationPage } from '../pages/AdministrationPage';
+import { ReviewPage } from '../pages/ReviewPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -41,6 +42,7 @@ function AppRoutes() {
         <Route path="/teams" element={<TeamsPage />} />
         <Route path="/projects" element={<ProjectsPage />} />
         <Route path="/projects/:id" element={<ProjectDetailPage />} />
+        <Route path="/review" element={<ReviewPage />} />
         <Route path="/insights" element={<InsightsPage />} />
         <Route path="/administration" element={<AdministrationPage />} />
       </Route>

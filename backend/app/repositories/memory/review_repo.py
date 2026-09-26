@@ -9,9 +9,11 @@ class InMemoryReviewRepository(ReviewRepositoryInterface):
 
     def create(self, review: Review) -> Review:
         self._db.execute(
-            """INSERT INTO reviews (id, idea_id, reviewer_id, decision, comments, created_at, updated_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?)""",
-            (review.id, review.idea_id, review.reviewer_id, review.decision, review.comments, review.created_at, review.updated_at),
+            """INSERT INTO reviews (id, idea_id, reviewer_id, decision, comments, reason, evidence, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (review.id, review.idea_id, review.reviewer_id, review.decision,
+             review.comments, review.reason, review.evidence,
+             review.created_at, review.updated_at),
         )
         return review
 
@@ -39,8 +41,8 @@ class InMemoryReviewRepository(ReviewRepositoryInterface):
             if hasattr(review, k):
                 setattr(review, k, v)
         self._db.execute(
-            "UPDATE reviews SET decision = ?, comments = ?, updated_at = ? WHERE id = ?",
-            (review.decision, review.comments, review.updated_at, review.id),
+            "UPDATE reviews SET decision = ?, comments = ?, reason = ?, evidence = ?, updated_at = ? WHERE id = ?",
+            (review.decision, review.comments, review.reason, review.evidence, review.updated_at, review.id),
         )
         return review
 

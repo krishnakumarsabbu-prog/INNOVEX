@@ -80,14 +80,51 @@ export interface IdeaFollow {
   created_at: string;
 }
 
+export interface ReviewDimension {
+  id: string;
+  review_id: string;
+  dimension: string;
+  rating: string;
+  comment: string;
+  created_at: string;
+}
+
 export interface Review {
   id: string;
   idea_id: string;
   reviewer_id: string;
   decision: string;
   comments: string;
+  reason: string;
+  evidence: string;
+  dimensions: ReviewDimension[];
   created_at: string;
   updated_at: string;
+}
+
+export interface ReviewQueueItem {
+  idea_id: string;
+  title: string;
+  founder_id: string | null;
+  founder_name: string;
+  business_area: string;
+  technologies: string[];
+  status: string;
+  submitted_at: string;
+  assigned_reviewer_id: string | null;
+  assigned_reviewer_name: string;
+  review_count: number;
+}
+
+export interface ReviewDecisionPayload {
+  decision: string;
+  reviewer_id: string;
+  reason: string;
+  evidence: string;
+  comments: string;
+  dimensions: { dimension: string; rating: string; comment: string }[];
+  principal_engineer_id?: string | null;
+  manager_id?: string | null;
 }
 
 export interface ValidationSprint {

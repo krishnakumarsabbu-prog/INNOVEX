@@ -42,6 +42,16 @@ class ReviewDecision(str, Enum):
     MERGE = "merge"
 
 
+class ReviewDimensionType(str, Enum):
+    BUSINESS_VALUE = "business_value"
+    TECHNICAL_FEASIBILITY = "technical_feasibility"
+    INNOVATION = "innovation"
+    REUSABILITY = "reusability"
+    COMPLEXITY = "complexity"
+    SECURITY_CONSIDERATIONS = "security_considerations"
+    DEPENDENCIES = "dependencies"
+
+
 class RoleStatus(str, Enum):
     OPEN = "open"
     FILLED = "filled"

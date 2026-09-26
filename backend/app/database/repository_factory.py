@@ -15,6 +15,7 @@ from app.repositories.memory.notification_repo import InMemoryNotificationReposi
 from app.repositories.memory.organization_repo import InMemoryOrganizationRepository
 from app.repositories.memory.project_repo import InMemoryProjectRepository
 from app.repositories.memory.review_assignment_repo import InMemoryReviewAssignmentRepository
+from app.repositories.memory.review_dimension_repo import InMemoryReviewDimensionRepository
 from app.repositories.memory.review_repo import InMemoryReviewRepository
 from app.repositories.memory.skill_repo import InMemorySkillRepository
 from app.repositories.memory.team_membership_repo import InMemoryTeamMembershipRepository
@@ -52,6 +53,7 @@ class RepositoryFactory:
         self._idea_follow = InMemoryIdeaFollowRepository(self._db)
         self._review = InMemoryReviewRepository(self._db)
         self._review_assignment = InMemoryReviewAssignmentRepository(self._db)
+        self._review_dimension = InMemoryReviewDimensionRepository(self._db)
         self._validation = InMemoryValidationSprintRepository(self._db)
         self._innovation = InMemoryInnovationRepository(self._db)
         self._innovation_role = InMemoryInnovationRoleRepository(self._db)
@@ -102,6 +104,10 @@ class RepositoryFactory:
     @property
     def review_assignment(self) -> BaseRepository:
         return self._review_assignment
+
+    @property
+    def review_dimension(self) -> BaseRepository:
+        return self._review_dimension
 
     @property
     def validation(self) -> BaseRepository:

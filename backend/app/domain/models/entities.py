@@ -40,15 +40,45 @@ class Skill:
 class Idea:
     id: str
     title: str
-    description: str
-    category: str
-    problem_statement: str
-    proposed_solution: str
-    status: str
-    submitted_by: str
-    created_at: str
-    updated_at: str
+    problem_statement: str = ""
+    proposed_solution: str = ""
+    business_impact: str = ""
+    engineering_impact: str = ""
+    expected_benefits: str = ""
+    business_area: str = ""
+    technologies: list[str] = field(default_factory=list)
+    dependencies: str = ""
+    risks: str = ""
+    estimated_complexity: str = ""
+    estimated_duration: str = ""
+    founder_id: str | None = None
+    status: str = "draft"
+    created_at: str = ""
+    updated_at: str = ""
+    created_by: str | None = None
     updated_by: str | None = None
+    organization_id: str | None = None
+
+
+@dataclass
+class IdeaEvidence:
+    id: str
+    idea_id: str
+    title: str
+    description: str = ""
+    evidence_type: str = "document"
+    url: str = ""
+    created_by: str = ""
+    created_at: str = ""
+    updated_at: str = ""
+
+
+@dataclass
+class IdeaFollow:
+    id: str
+    idea_id: str
+    user_id: str
+    created_at: str = ""
 
 
 @dataclass

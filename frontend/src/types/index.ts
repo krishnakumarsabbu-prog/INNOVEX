@@ -41,14 +41,43 @@ export interface User {
 export interface Idea {
   id: string;
   title: string;
-  description: string;
-  category: string;
   problem_statement: string;
   proposed_solution: string;
+  business_impact: string;
+  engineering_impact: string;
+  expected_benefits: string;
+  business_area: string;
+  technologies: string[];
+  dependencies: string;
+  risks: string;
+  estimated_complexity: string;
+  estimated_duration: string;
+  founder_id: string | null;
   status: string;
-  submitted_by: string;
   created_at: string;
   updated_at: string;
+  created_by: string | null;
+  updated_by: string | null;
+  organization_id: string | null;
+}
+
+export interface IdeaEvidence {
+  id: string;
+  idea_id: string;
+  title: string;
+  description: string;
+  evidence_type: string;
+  url: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IdeaFollow {
+  id: string;
+  idea_id: string;
+  user_id: string;
+  created_at: string;
 }
 
 export interface Review {

@@ -35,7 +35,7 @@ export function MyWorkspacePage() {
                   <div key={idea.id} className="flex items-center justify-between border border-enterprise-gray-border rounded-md p-3">
                     <div>
                       <p className="text-sm font-medium">{idea.title}</p>
-                      <p className="text-xs text-enterprise-charcoal/50">{idea.category}</p>
+                      <p className="text-xs text-enterprise-charcoal/50">{idea.business_area || 'No area'}</p>
                     </div>
                     <StatusBadge status={idea.status} />
                   </div>

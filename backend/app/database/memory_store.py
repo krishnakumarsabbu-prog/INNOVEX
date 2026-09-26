@@ -94,17 +94,26 @@ CREATE TABLE IF NOT EXISTS skills (
 
 CREATE TABLE IF NOT EXISTS ideas (
     id TEXT PRIMARY KEY,
+    organization_id TEXT,
     title TEXT NOT NULL,
-    description TEXT NOT NULL,
-    category TEXT NOT NULL,
     problem_statement TEXT DEFAULT '',
     proposed_solution TEXT DEFAULT '',
-    status TEXT NOT NULL DEFAULT 'submitted',
-    submitted_by TEXT NOT NULL,
+    business_impact TEXT DEFAULT '',
+    engineering_impact TEXT DEFAULT '',
+    expected_benefits TEXT DEFAULT '',
+    business_area TEXT DEFAULT '',
+    technologies TEXT DEFAULT '[]',
+    dependencies TEXT DEFAULT '',
+    risks TEXT DEFAULT '',
+    estimated_complexity TEXT DEFAULT '',
+    estimated_duration TEXT DEFAULT '',
+    founder_id TEXT,
+    status TEXT NOT NULL DEFAULT 'draft',
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
+    created_by TEXT,
     updated_by TEXT,
-    FOREIGN KEY (submitted_by) REFERENCES users(id)
+    FOREIGN KEY (founder_id) REFERENCES users(id)
 );
 
 CREATE TABLE IF NOT EXISTS idea_technologies (
@@ -304,6 +313,30 @@ CREATE TABLE IF NOT EXISTS audit_events (
     user_id TEXT,
     details TEXT DEFAULT '',
     created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS idea_follows (
+    id TEXT PRIMARY KEY,
+    idea_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    UNIQUE(idea_id, user_id),
+    FOREIGN KEY (idea_id) REFERENCES ideas(id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS idea_evidence (
+    id TEXT PRIMARY KEY,
+    idea_id TEXT NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT DEFAULT '',
+    evidence_type TEXT DEFAULT 'document',
+    url TEXT DEFAULT '',
+    created_by TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (idea_id) REFERENCES ideas(id),
+    FOREIGN KEY (created_by) REFERENCES users(id)
 );
 """
 

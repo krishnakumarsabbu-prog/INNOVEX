@@ -66,34 +66,95 @@ class SkillResponse(BaseModel):
 
 class IdeaCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=300)
-    description: str = Field(..., min_length=1)
-    category: str = Field(..., min_length=1, max_length=100)
     problem_statement: str = ""
     proposed_solution: str = ""
-    submitted_by: str
+    business_impact: str = ""
+    engineering_impact: str = ""
+    expected_benefits: str = ""
+    business_area: str = ""
     technologies: list[str] = []
+    dependencies: str = ""
+    risks: str = ""
+    estimated_complexity: str = ""
+    estimated_duration: str = ""
+    founder_id: str
+    organization_id: str | None = None
 
 
 class IdeaUpdate(BaseModel):
     title: Optional[str] = None
-    description: Optional[str] = None
-    category: Optional[str] = None
     problem_statement: Optional[str] = None
     proposed_solution: Optional[str] = None
+    business_impact: Optional[str] = None
+    engineering_impact: Optional[str] = None
+    expected_benefits: Optional[str] = None
+    business_area: Optional[str] = None
+    technologies: Optional[list[str]] = None
+    dependencies: Optional[str] = None
+    risks: Optional[str] = None
+    estimated_complexity: Optional[str] = None
+    estimated_duration: Optional[str] = None
     status: Optional[str] = None
 
 
 class IdeaResponse(BaseModel):
     id: str
     title: str
+    problem_statement: str = ""
+    proposed_solution: str = ""
+    business_impact: str = ""
+    engineering_impact: str = ""
+    expected_benefits: str = ""
+    business_area: str = ""
+    technologies: list[str] = []
+    dependencies: str = ""
+    risks: str = ""
+    estimated_complexity: str = ""
+    estimated_duration: str = ""
+    founder_id: Optional[str] = None
+    status: str = "draft"
+    created_at: str = ""
+    updated_at: str = ""
+    created_by: Optional[str] = None
+    updated_by: Optional[str] = None
+    organization_id: Optional[str] = None
+
+
+class IdeaEvidenceCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=200)
+    description: str = ""
+    evidence_type: str = "document"
+    url: str = ""
+    created_by: str
+
+
+class IdeaEvidenceResponse(BaseModel):
+    id: str
+    idea_id: str
+    title: str
     description: str
-    category: str
-    problem_statement: str
-    proposed_solution: str
-    status: str
-    submitted_by: str
+    evidence_type: str
+    url: str
+    created_by: str
     created_at: str
     updated_at: str
+
+
+class IdeaFollowResponse(BaseModel):
+    id: str
+    idea_id: str
+    user_id: str
+    created_at: str
+
+
+class ActivityResponse(BaseModel):
+    id: str
+    entity_type: str
+    entity_id: str
+    action: str
+    description: str
+    user_id: Optional[str]
+    created_at: str
 
 
 class IdeaTechnologyResponse(BaseModel):
@@ -394,16 +455,6 @@ class EvidenceResponse(BaseModel):
     created_by: str
     created_at: str
     updated_at: str
-
-
-class ActivityResponse(BaseModel):
-    id: str
-    entity_type: str
-    entity_id: str
-    action: str
-    description: str
-    user_id: Optional[str]
-    created_at: str
 
 
 class NotificationResponse(BaseModel):

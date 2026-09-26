@@ -8,6 +8,8 @@ import { SetupPage } from '../pages/SetupPage';
 import { HomePage } from '../pages/HomePage';
 import { IdeasPage } from '../pages/IdeasPage';
 import { IdeaDetailPage } from '../pages/IdeaDetailPage';
+import { NewIdeaPage } from '../pages/NewIdeaPage';
+import { MyIdeasPage } from '../pages/MyIdeasPage';
 import { InnovationsPage } from '../pages/InnovationsPage';
 import { InnovationDetailPage } from '../pages/InnovationDetailPage';
 import { MyWorkspacePage } from '../pages/MyWorkspacePage';
@@ -30,6 +32,8 @@ function AppRoutes() {
       <Route element={<AppLayout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/ideas" element={<IdeasPage />} />
+        <Route path="/ideas/new" element={<NewIdeaPage />} />
+        <Route path="/ideas/mine" element={<MyIdeasPage />} />
         <Route path="/ideas/:id" element={<IdeaDetailPage />} />
         <Route path="/innovations" element={<InnovationsPage />} />
         <Route path="/innovations/:id" element={<InnovationDetailPage />} />

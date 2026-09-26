@@ -1,21 +1,46 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Lightbulb, Plus, Search, ArrowRight } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { Lightbulb, Plus, Search, ArrowRight, ChevronLeft, ChevronRight, Filter, X } from 'lucide-react';
 import { ideaApi, userApi } from '../api/endpoints';
-import { useForm } from 'react-hook-form';
-import { PageHeader, EmptyState, Loading, ErrorState, StatusBadge, Modal } from '../components/ui';
+import { PageHeader, EmptyState, Loading, ErrorState, StatusBadge } from '../components/ui';
 import type { Idea, User } from '../types';
 
+const STATUS_OPTIONS = ['draft', 'submitted', 'under_review', 'validation', 'approved', 'parked', 'rejected'];
+const COMPLEXITY_OPTIONS = ['Low', 'Medium', 'High', 'Critical'];
+const SORT_OPTIONS = [
+  { value: 'created_at:desc', label: 'Newest First' },
+  { value: 'created_at:asc', label: 'Oldest First' },
+  { value: 'title:asc', label: 'Title A-Z' },
+  { value: 'title:desc', label: 'Title Z-A' },
+  { value: 'status:asc', label: 'Status A-Z' },
+];
+
+const PAGE_SIZE = 9;
+
 export function IdeasPage() {
-  const [searchParams] = useSearchParams();
-  const search = searchParams.get('search') || undefined;
-  const [showCreate, setShowCreate] = useState(false);
-  const [error, setError] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  const search = searchParams.get('search') || '';
+  const statusFilter = searchParams.get('status') || '';
+  const techFilter = searchParams.get('technology') || '';
+  const areaFilter = searchParams.get('business_area') || '';
+  const founderFilter = searchParams.get('founder_id') || '';
+  const sortBy = searchParams.get('sort') || 'created_at:desc';
+  const page = parseInt(searchParams.get('page') || '1', 10);
+
+  const [searchInput, setSearchInput] = useState(search);
 
   const { data: ideas, isLoading, isError } = useQuery({
-    queryKey: ['ideas', search],
-    queryFn: () => ideaApi.getAll({ search }),
+    queryKey: ['ideas', search, statusFilter, techFilter, areaFilter, founderFilter],
+    queryFn: () => ideaApi.getAll({
+      search: search || undefined,
+      status: statusFilter || undefined,
+      technology: techFilter || undefined,
+      business_area: areaFilter || undefined,
+      founder_id: founderFilter || undefined,
+    }),
   });
 
   const { data: users } = useQuery({
@@ -23,8 +48,62 @@ export function IdeasPage() {
     queryFn: () => userApi.getAll(),
   });
 
-  const userMap = new Map<string, User>();
-  users?.forEach((u) => userMap.set(u.id, u));
+  const userMap = useMemo(() => {
+    const m = new Map<string, User>();
+    users?.forEach((u) => m.set(u.id, u));
+    return m;
+  }, [users]);
+
+  const allTechnologies = useMemo(() => {
+    const set = new Set<string>();
+    ideas?.forEach((i) => i.technologies?.forEach((t) => set.add(t)));
+    return Array.from(set).sort();
+  }, [ideas]);
+
+  const allBusinessAreas = useMemo(() => {
+    const set = new Set<string>();
+    ideas?.forEach((i) => { if (i.business_area) set.add(i.business_area); });
+    return Array.from(set).sort();
+  }, [ideas]);
+
+  const sortedIdeas = useMemo(() => {
+    if (!ideas) return [];
+    const [field, dir] = sortBy.split(':');
+    const sorted = [...ideas];
+    sorted.sort((a, b) => {
+      let av: string | number = a[field as keyof Idea] as string || '';
+      let bv: string | number = b[field as keyof Idea] as string || '';
+      if (field === 'title') { av = av.toLowerCase(); bv = bv.toLowerCase(); }
+      if (av < bv) return dir === 'asc' ? -1 : 1;
+      if (av > bv) return dir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return sorted;
+  }, [ideas, sortBy]);
+
+  const totalPages = Math.max(1, Math.ceil(sortedIdeas.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pagedIdeas = sortedIdeas.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  const hasFilters = search || statusFilter || techFilter || areaFilter || founderFilter;
+
+  const updateParam = (key: string, value: string) => {
+    const next = new URLSearchParams(searchParams);
+    if (value) next.set(key, value);
+    else next.delete(key);
+    if (key !== 'page') next.delete('page');
+    setSearchParams(next);
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateParam('search', searchInput);
+  };
+
+  const clearFilters = () => {
+    setSearchParams(new URLSearchParams());
+    setSearchInput('');
+  };
 
   return (
     <div>
@@ -32,138 +111,171 @@ export function IdeasPage() {
         title="Ideas"
         subtitle="Submit and track engineering and business innovation ideas"
         action={
-          <button className="btn-primary" onClick={() => setShowCreate(true)}>
-            <Plus className="w-4 h-4" /> New Idea
-          </button>
+          <Link to="/ideas/new" className="btn-primary">
+            <Plus className="w-4 h-4" /> Submit an Idea
+          </Link>
         }
       />
+
+      <div className="card p-4 mb-4">
+        <form onSubmit={handleSearch} className="flex gap-2 mb-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-enterprise-charcoal/40" />
+            <input
+              type="text"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="Search ideas by title, problem, solution, or business area..."
+              className="input pl-9"
+            />
+          </div>
+          <button type="submit" className="btn-primary">Search</button>
+        </form>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1 text-sm text-enterprise-charcoal/50">
+            <Filter className="w-4 h-4" /> Filters:
+          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => updateParam('status', e.target.value)}
+            className="input max-w-[150px] py-1.5 text-sm"
+          >
+            <option value="">All Statuses</option>
+            {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
+          </select>
+          <select
+            value={techFilter}
+            onChange={(e) => updateParam('technology', e.target.value)}
+            className="input max-w-[150px] py-1.5 text-sm"
+          >
+            <option value="">All Technologies</option>
+            {allTechnologies.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
+          <select
+            value={areaFilter}
+            onChange={(e) => updateParam('business_area', e.target.value)}
+            className="input max-w-[150px] py-1.5 text-sm"
+          >
+            <option value="">All Business Areas</option>
+            {allBusinessAreas.map((a) => <option key={a} value={a}>{a}</option>)}
+          </select>
+          <select
+            value={founderFilter}
+            onChange={(e) => updateParam('founder_id', e.target.value)}
+            className="input max-w-[180px] py-1.5 text-sm"
+          >
+            <option value="">All Founders</option>
+            {users?.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
+          </select>
+          <select
+            value={sortBy}
+            onChange={(e) => updateParam('sort', e.target.value)}
+            className="input max-w-[160px] py-1.5 text-sm"
+          >
+            {SORT_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+          </select>
+          {hasFilters && (
+            <button onClick={clearFilters} className="btn-secondary py-1.5 text-sm">
+              <X className="w-3 h-3" /> Clear
+            </button>
+          )}
+        </div>
+      </div>
 
       {isLoading && <Loading />}
       {isError && <ErrorState message="Failed to load ideas" />}
 
-      {ideas && ideas.length === 0 && (
+      {ideas && ideas.length === 0 && !hasFilters && (
         <EmptyState
           icon={<Lightbulb className="w-8 h-8" />}
-          title="No ideas yet"
-          message="Submit your first idea to kick off the innovation pipeline."
+          title="No ideas have been submitted yet."
+          message="Be the first to submit an idea and kick off the innovation pipeline."
           action={
-            <button className="btn-primary" onClick={() => setShowCreate(true)}>
+            <Link to="/ideas/new" className="btn-primary">
               <Plus className="w-4 h-4" /> Submit an Idea
-            </button>
+            </Link>
           }
         />
       )}
 
-      {ideas && ideas.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {ideas.map((idea) => {
-            const submitter = userMap.get(idea.submitted_by);
-            return <IdeaCard key={idea.id} idea={idea} submitterName={submitter?.name || 'Unknown'} />;
-          })}
-        </div>
-      )}
-
-      {showCreate && users && (
-        <CreateIdeaModal
-          users={users}
-          onClose={() => setShowCreate(false)}
-          onError={setError}
+      {ideas && ideas.length === 0 && hasFilters && (
+        <EmptyState
+          icon={<Search className="w-8 h-8" />}
+          title="No ideas match your filters"
+          message="Try adjusting or clearing your filters to see more ideas."
+          action={<button onClick={clearFilters} className="btn-secondary">Clear Filters</button>}
         />
       )}
 
-      {error && (
-        <div className="fixed bottom-4 right-4 p-4 bg-red-50 border border-red-200 rounded-md text-sm text-red-700 shadow-lg">
-          {error}
-        </div>
+      {pagedIdeas.length > 0 && (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {pagedIdeas.map((idea) => {
+              const founder = userMap.get(idea.founder_id || '');
+              return (
+                <div
+                  key={idea.id}
+                  className="card p-4 cursor-pointer hover:shadow-md transition-shadow"
+                  onClick={() => navigate(`/ideas/${idea.id}`)}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="font-semibold text-enterprise-charcoal line-clamp-1">{idea.title}</h3>
+                    <StatusBadge status={idea.status} />
+                  </div>
+                  <p className="text-sm text-enterprise-charcoal/60 line-clamp-2 mb-3">
+                    {idea.problem_statement || idea.proposed_solution || 'No description provided'}
+                  </p>
+                  {idea.technologies && idea.technologies.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      {idea.technologies.slice(0, 3).map((t) => (
+                        <span key={t} className="badge bg-blue-50 text-blue-700 text-xs">{t}</span>
+                      ))}
+                      {idea.technologies.length > 3 && (
+                        <span className="badge bg-gray-100 text-gray-600 text-xs">+{idea.technologies.length - 3}</span>
+                      )}
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between text-xs text-enterprise-charcoal/50">
+                    <span>{idea.business_area || 'No area'}</span>
+                    <span>by {founder?.name || 'Unknown'}</span>
+                  </div>
+                  <div className="mt-3 flex items-center text-xs text-enterprise-red font-medium">
+                    View details <ArrowRight className="w-3 h-3 ml-1" />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-6">
+              <p className="text-sm text-enterprise-charcoal/50">
+                Showing {(currentPage - 1) * PAGE_SIZE + 1}-{Math.min(currentPage * PAGE_SIZE, sortedIdeas.length)} of {sortedIdeas.length}
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => updateParam('page', String(currentPage - 1))}
+                  disabled={currentPage <= 1}
+                  className="btn-secondary py-1.5 disabled:opacity-40"
+                >
+                  <ChevronLeft className="w-4 h-4" /> Prev
+                </button>
+                <span className="text-sm text-enterprise-charcoal/70">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  onClick={() => updateParam('page', String(currentPage + 1))}
+                  disabled={currentPage >= totalPages}
+                  className="btn-secondary py-1.5 disabled:opacity-40"
+                >
+                  Next <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
-  );
-}
-
-function IdeaCard({ idea, submitterName }: { idea: Idea; submitterName: string }) {
-  const navigate = useNavigate();
-  return (
-    <div
-      className="card p-4 cursor-pointer hover:shadow-md transition-shadow"
-      onClick={() => navigate(`/ideas/${idea.id}`)}
-    >
-      <div className="flex items-start justify-between mb-2">
-        <h3 className="font-semibold text-enterprise-charcoal line-clamp-1">{idea.title}</h3>
-        <StatusBadge status={idea.status} />
-      </div>
-      <p className="text-sm text-enterprise-charcoal/60 line-clamp-2 mb-3">{idea.description}</p>
-      <div className="flex items-center justify-between text-xs text-enterprise-charcoal/50">
-        <span>{idea.category}</span>
-        <span>by {submitterName}</span>
-      </div>
-      <div className="mt-3 flex items-center text-xs text-enterprise-red font-medium">
-        View details <ArrowRight className="w-3 h-3 ml-1" />
-      </div>
-    </div>
-  );
-}
-
-function CreateIdeaModal({ users, onClose, onError }: { users: User[]; onClose: () => void; onError: (e: string) => void }) {
-  const queryClient = useQueryClient();
-  const { register, handleSubmit, formState: { errors } } = useForm({
-    defaultValues: { title: '', description: '', category: '', problem_statement: '', proposed_solution: '', submitted_by: '' },
-  });
-
-  const mutation = useMutation({
-    mutationFn: ideaApi.create,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ideas'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-      onClose();
-    },
-    onError: (e) => onError(e instanceof Error ? e.message : 'Failed to create idea'),
-  });
-
-  const onSubmit = (data: any) => mutation.mutate(data);
-
-  return (
-    <Modal open={true} onClose={onClose} title="Submit New Idea">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div>
-          <label className="label">Title</label>
-          <input {...register('title', { required: 'Title is required' })} className="input" placeholder="Enter idea title" />
-          {errors.title && <p className="text-xs text-red-600 mt-1">{errors.title.message as string}</p>}
-        </div>
-        <div>
-          <label className="label">Description</label>
-          <textarea {...register('description', { required: 'Description is required' })} className="input min-h-[80px]" placeholder="Describe the idea" />
-          {errors.description && <p className="text-xs text-red-600 mt-1">{errors.description.message as string}</p>}
-        </div>
-        <div>
-          <label className="label">Category</label>
-          <input {...register('category', { required: 'Category is required' })} className="input" placeholder="e.g. Engineering, Operations, AI" />
-          {errors.category && <p className="text-xs text-red-600 mt-1">{errors.category.message as string}</p>}
-        </div>
-        <div>
-          <label className="label">Problem Statement</label>
-          <textarea {...register('problem_statement')} className="input min-h-[60px]" placeholder="What problem does this solve?" />
-        </div>
-        <div>
-          <label className="label">Proposed Solution</label>
-          <textarea {...register('proposed_solution')} className="input min-h-[60px]" placeholder="How do you propose to solve it?" />
-        </div>
-        <div>
-          <label className="label">Submitter</label>
-          <select {...register('submitted_by', { required: 'Submitter is required' })} className="input">
-            <option value="">Select a user...</option>
-            {users.map((u) => (
-              <option key={u.id} value={u.id}>{u.name} - {u.email}</option>
-            ))}
-          </select>
-          {errors.submitted_by && <p className="text-xs text-red-600 mt-1">{errors.submitted_by.message as string}</p>}
-        </div>
-        <div className="flex gap-2 justify-end">
-          <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
-          <button type="submit" className="btn-primary" disabled={mutation.isPending}>
-            {mutation.isPending ? 'Submitting...' : 'Submit Idea'}
-          </button>
-        </div>
-      </form>
-    </Modal>
   );
 }

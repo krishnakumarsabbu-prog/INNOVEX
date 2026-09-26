@@ -5,6 +5,8 @@ from app.repositories.memory.evidence_repo import InMemoryEvidenceRepository
 from app.repositories.memory.follow_repo import InMemoryFollowRepository
 from app.repositories.memory.idea_repo import InMemoryIdeaRepository
 from app.repositories.memory.idea_technology_repo import InMemoryIdeaTechnologyRepository
+from app.repositories.memory.idea_evidence_repo import InMemoryIdeaEvidenceRepository
+from app.repositories.memory.idea_follow_repo import InMemoryIdeaFollowRepository
 from app.repositories.memory.innovation_repo import InMemoryInnovationRepository
 from app.repositories.memory.innovation_role_repo import InMemoryInnovationRoleRepository
 from app.repositories.memory.join_request_repo import InMemoryJoinRequestRepository
@@ -46,6 +48,8 @@ class RepositoryFactory:
         self._skill = InMemorySkillRepository(self._db)
         self._idea = InMemoryIdeaRepository(self._db)
         self._idea_technology = InMemoryIdeaTechnologyRepository(self._db)
+        self._idea_evidence = InMemoryIdeaEvidenceRepository(self._db)
+        self._idea_follow = InMemoryIdeaFollowRepository(self._db)
         self._review = InMemoryReviewRepository(self._db)
         self._review_assignment = InMemoryReviewAssignmentRepository(self._db)
         self._validation = InMemoryValidationSprintRepository(self._db)
@@ -82,6 +86,14 @@ class RepositoryFactory:
     @property
     def idea_technology(self) -> BaseRepository:
         return self._idea_technology
+
+    @property
+    def idea_evidence(self) -> BaseRepository:
+        return self._idea_evidence
+
+    @property
+    def idea_follow(self) -> BaseRepository:
+        return self._idea_follow
 
     @property
     def review(self) -> BaseRepository:

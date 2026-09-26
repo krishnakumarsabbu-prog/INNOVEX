@@ -5,11 +5,14 @@ interface StatusBadgeProps {
 }
 
 const statusColors: Record<string, string> = {
+  draft: 'bg-gray-100 text-gray-600',
   submitted: 'bg-blue-100 text-blue-800',
   under_review: 'bg-amber-100 text-amber-800',
   in_validation: 'bg-purple-100 text-purple-800',
+  validation: 'bg-purple-100 text-purple-800',
   approved: 'bg-green-100 text-green-800',
   rejected: 'bg-red-100 text-red-800',
+  parked: 'bg-orange-100 text-orange-800',
   team_forming: 'bg-cyan-100 text-cyan-800',
   building: 'bg-indigo-100 text-indigo-800',
   poc: 'bg-orange-100 text-orange-800',
@@ -31,9 +34,13 @@ const statusColors: Record<string, string> = {
   closed: 'bg-gray-100 text-gray-800',
   accepted: 'bg-green-100 text-green-800',
   idea: 'bg-blue-100 text-blue-800',
-  validation: 'bg-purple-100 text-purple-800',
   project: 'bg-indigo-100 text-indigo-800',
   adoption: 'bg-emerald-100 text-emerald-800',
+  approve: 'bg-green-100 text-green-800',
+  reject: 'bg-red-100 text-red-800',
+  park: 'bg-orange-100 text-orange-800',
+  send_to_validation: 'bg-purple-100 text-purple-800',
+  request_information: 'bg-amber-100 text-amber-800',
 };
 
 export function StatusBadge({ status }: StatusBadgeProps) {

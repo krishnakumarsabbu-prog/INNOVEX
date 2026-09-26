@@ -1,6 +1,6 @@
 import { api } from './client';
 import type {
-  SetupStatus, SetupRequest, SetupResponse, User, Idea, Review,
+  SetupStatus, SetupRequest, SetupResponse, User, Idea, IdeaEvidence, IdeaFollow, Review,
   ValidationSprint, Innovation, Position, Application, Team, Project,
   Milestone, Evidence, Activity, Notification, Dashboard,
 } from '../types';
@@ -19,11 +19,20 @@ export const userApi = {
 };
 
 export const ideaApi = {
-  getAll: (params?: { search?: string; submitted_by?: string }) => api.get<Idea[]>('/ideas', { params }).then(r => r.data),
+  getAll: (params?: { search?: string; status?: string; technology?: string; business_area?: string; founder_id?: string }) =>
+    api.get<Idea[]>('/ideas', { params }).then(r => r.data),
   getById: (id: string) => api.get<Idea>(`/ideas/${id}`).then(r => r.data),
   create: (data: Partial<Idea>) => api.post<Idea>('/ideas', data).then(r => r.data),
-  update: (id: string, data: Partial<Idea>) => api.put<Idea>(`/ideas/${id}`, data).then(r => r.data),
+  update: (id: string, data: Partial<Idea>) => api.patch<Idea>(`/ideas/${id}`, data).then(r => r.data),
   delete: (id: string) => api.delete(`/ideas/${id}`).then(r => r.data),
+  submit: (id: string, userId: string) => api.post<Idea>(`/ideas/${id}/submit`, { user_id: userId }).then(r => r.data),
+  park: (id: string, userId: string) => api.post<Idea>(`/ideas/${id}/park`, { user_id: userId }).then(r => r.data),
+  reopen: (id: string, userId: string) => api.post<Idea>(`/ideas/${id}/reopen`, { user_id: userId }).then(r => r.data),
+  getActivity: (id: string) => api.get<Activity[]>(`/ideas/${id}/activity`).then(r => r.data),
+  getEvidence: (id: string) => api.get<IdeaEvidence[]>(`/ideas/${id}/evidence`).then(r => r.data),
+  addEvidence: (id: string, data: Partial<IdeaEvidence>) => api.post<IdeaEvidence>(`/ideas/${id}/evidence`, data).then(r => r.data),
+  follow: (id: string, userId: string) => api.post<IdeaFollow>(`/ideas/${id}/follow`, { user_id: userId }).then(r => r.data),
+  unfollow: (id: string, userId: string) => api.delete(`/ideas/${id}/follow`, { data: { user_id: userId } }).then(r => r.data),
   createReview: (ideaId: string, data: Partial<Review>) => api.post(`/ideas/${ideaId}/reviews`, data).then(r => r.data),
   getReviews: (ideaId: string) => api.get<Review[]>(`/ideas/${ideaId}/reviews`).then(r => r.data),
 };

@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { Navigate } from 'react-router-dom';
 import { Lightbulb, Building2, User, Mail, ArrowRight } from 'lucide-react';
 import { setupApi } from '../api/endpoints';
 
@@ -34,7 +35,7 @@ export function SetupPage() {
     try {
       await setupApi.createOrganization(data);
       await queryClient.invalidateQueries({ queryKey: ['setup-status'] });
-      window.location.reload();
+      window.location.href = '/';
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Setup failed');
     } finally {
@@ -43,7 +44,7 @@ export function SetupPage() {
   };
 
   if (!status?.setup_required) {
-    window.location.href = '/';
+    return <Navigate to="/" replace />;
   }
 
   return (

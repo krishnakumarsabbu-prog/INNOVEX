@@ -18,6 +18,8 @@ export function InnovationDetailPage() {
   const [showCreateRole, setShowCreateRole] = useState(false);
   const [showJoinRole, setShowJoinRole] = useState<Position | null>(null);
   const [showJoinRequests, setShowJoinRequests] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState('');
+  const [actionError, setActionError] = useState('');
 
   const { data: innovation, isLoading, isError } = useQuery({
     queryKey: ['innovation', id],
@@ -40,15 +42,19 @@ export function InnovationDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['innovation', id] });
       queryClient.invalidateQueries({ queryKey: ['innovations'] });
+      setActionError('');
     },
+    onError: (e) => setActionError(e instanceof Error ? e.message : 'Failed to update innovation'),
   });
 
   const followMutation = useMutation({
-    mutationFn: () => innovationApi.follow(id!, 'current-user'),
+    mutationFn: () => innovationApi.follow(id!, currentUserId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['innovation', id] });
       queryClient.invalidateQueries({ queryKey: ['innovations'] });
+      setActionError('');
     },
+    onError: (e) => setActionError(e instanceof Error ? e.message : 'Failed to follow'),
   });
 
   if (isLoading) return <Loading />;
@@ -61,6 +67,13 @@ export function InnovationDetailPage() {
       <button onClick={() => navigate('/innovation')} className="flex items-center gap-1 text-sm text-enterprise-charcoal-500 hover:text-enterprise-red-700 mb-4 transition-colors">
         <ArrowLeft className="w-4 h-4" /> Back to Marketplace
       </button>
+
+      {actionError && (
+        <div className="mb-4 p-3 bg-enterprise-error-50 border border-enterprise-error-200 rounded-enterprise text-sm text-enterprise-error-700 flex items-center justify-between">
+          {actionError}
+          <button onClick={() => setActionError('')} className="text-enterprise-error-400 hover:text-enterprise-error-600">&times;</button>
+        </div>
+      )}
 
       {/* Hero Section */}
       <div className="card p-6 mb-4 animate-fade-in">
@@ -95,6 +108,14 @@ export function InnovationDetailPage() {
             </div>
           </div>
           <div className="flex flex-col gap-2 flex-shrink-0">
+            <select
+              value={currentUserId}
+              onChange={(e) => setCurrentUserId(e.target.value)}
+              className="input max-w-[200px] py-1.5 text-sm"
+            >
+              <option value="">Acting as...</option>
+              {users?.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
+            </select>
             <button
               className={`btn-secondary text-sm ${innovation.is_open ? 'text-enterprise-success-700' : ''}`}
               onClick={() => toggleOpen.mutate(!innovation.is_open)}
@@ -105,7 +126,7 @@ export function InnovationDetailPage() {
             <button
               className="btn-secondary text-sm"
               onClick={() => followMutation.mutate()}
-              disabled={followMutation.isPending}
+              disabled={!currentUserId || followMutation.isPending}
             >
               <Star className="w-4 h-4" /> Follow
             </button>

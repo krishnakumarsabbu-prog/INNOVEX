@@ -7,7 +7,7 @@ import {
   GitMerge, MessageSquare, ChevronRight, UserCircle, Cpu, TrendingUp,
 } from 'lucide-react';
 import { reviewApi, ideaApi, userApi } from '../api/endpoints';
-import { Loading, ErrorState, StatusBadge, EmptyState } from '../components/ui';
+import { PageHeader, Loading, ErrorState, StatusBadge, EmptyState } from '../components/ui';
 import type { ReviewQueueItem, Review, User, Idea, IdeaEvidence, ReviewDecisionPayload } from '../types';
 
 const REVIEW_DIMENSIONS = [
@@ -21,12 +21,12 @@ const REVIEW_DIMENSIONS = [
 ];
 
 const DECISIONS = [
-  { value: 'request_information', label: 'Request Information', icon: MessageSquare, color: 'text-amber-600' },
-  { value: 'send_to_validation', label: 'Send to Validation', icon: Send, color: 'text-purple-600' },
-  { value: 'approve', label: 'Approve', icon: CheckCircle, color: 'text-green-600' },
-  { value: 'park', label: 'Park', icon: Pause, color: 'text-orange-600' },
-  { value: 'reject', label: 'Reject', icon: XCircle, color: 'text-red-600' },
-  { value: 'merge', label: 'Merge', icon: GitMerge, color: 'text-blue-600' },
+  { value: 'request_information', label: 'Request Information', icon: MessageSquare, color: 'text-enterprise-warning-600' },
+  { value: 'send_to_validation', label: 'Send to Validation', icon: Send, color: 'text-enterprise-blue-600' },
+  { value: 'approve', label: 'Approve', icon: CheckCircle, color: 'text-enterprise-success-600' },
+  { value: 'park', label: 'Park', icon: Pause, color: 'text-enterprise-warning-600' },
+  { value: 'reject', label: 'Reject', icon: XCircle, color: 'text-enterprise-error-600' },
+  { value: 'merge', label: 'Merge', icon: GitMerge, color: 'text-enterprise-blue-600' },
 ];
 
 const DECISIONS_REQUIRING_REASON = ['park', 'reject'];
@@ -67,13 +67,8 @@ export function ReviewPage() {
   if (queueError) return <ErrorState message="Failed to load review queue" />;
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-enterprise-charcoal">Innovation Review Center</h1>
-        <p className="text-sm text-enterprise-charcoal/60 mt-1">
-          Expert engineering review console for evaluating submitted ideas across seven dimensions
-        </p>
-      </div>
+    <div className="animate-fade-in">
+      <PageHeader title="Innovation Review Center" subtitle="Expert engineering review console for evaluating submitted ideas across seven dimensions" />
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
         {/* LEFT: Review Queue */}
@@ -118,9 +113,9 @@ function ReviewQueue({
   return (
     <div className="card overflow-hidden">
       <div className="px-4 py-3 border-b border-enterprise-gray-border bg-enterprise-gray-warm/50">
-        <h2 className="text-sm font-semibold text-enterprise-charcoal flex items-center gap-2">
+        <h2 className="text-sm font-semibold text-enterprise-charcoal-800 flex items-center gap-2">
           <ClipboardList className="w-4 h-4" /> Review Queue
-          <span className="badge bg-enterprise-red/10 text-enterprise-red ml-1">{queue.length}</span>
+          <span className="badge bg-enterprise-red-50 text-enterprise-red-600 ml-1">{queue.length}</span>
         </h2>
       </div>
 
@@ -136,7 +131,7 @@ function ReviewQueue({
         <div className="overflow-x-auto max-h-[calc(100vh-220px)] overflow-y-auto">
           <table className="w-full text-sm">
             <thead className="sticky top-0 bg-white border-b border-enterprise-gray-border z-10">
-              <tr className="text-left text-xs text-enterprise-charcoal/50 uppercase tracking-wide">
+              <tr className="text-left text-xs text-enterprise-charcoal-500 uppercase tracking-wide">
                 <th className="px-3 py-2 font-medium">Idea</th>
                 <th className="px-3 py-2 font-medium">Founder</th>
                 <th className="px-3 py-2 font-medium hidden md:table-cell">Business Area</th>
@@ -153,46 +148,46 @@ function ReviewQueue({
                   onClick={() => onSelect(item.idea_id)}
                   className={`border-b border-enterprise-gray-border/50 cursor-pointer transition-colors ${
                     selectedId === item.idea_id
-                      ? 'bg-enterprise-red/5 border-l-4 border-l-enterprise-red'
+                      ? 'bg-enterprise-red-50 border-l-4 border-l-enterprise-red-600'
                       : 'hover:bg-enterprise-gray-warm/50'
                   }`}
                 >
                   <td className="px-3 py-2.5">
                     <div className="flex items-center gap-1.5">
-                      <ChevronRight className="w-3 h-3 text-enterprise-charcoal/30 flex-shrink-0" />
+                      <ChevronRight className="w-3 h-3 text-enterprise-charcoal-400 flex-shrink-0" />
                       <div className="min-w-0">
-                        <p className="font-medium text-enterprise-charcoal truncate max-w-[180px]">{item.title}</p>
+                        <p className="font-medium text-enterprise-charcoal-800 truncate max-w-[180px]">{item.title}</p>
                         {item.review_count > 0 && (
-                          <span className="text-xs text-enterprise-charcoal/40">{item.review_count} review{item.review_count > 1 ? 's' : ''}</span>
+                          <span className="text-xs text-enterprise-charcoal-400">{item.review_count} review{item.review_count > 1 ? 's' : ''}</span>
                         )}
                       </div>
                     </div>
                   </td>
-                  <td className="px-3 py-2.5 text-enterprise-charcoal/70 whitespace-nowrap">{item.founder_name || '—'}</td>
+                  <td className="px-3 py-2.5 text-enterprise-charcoal-600 whitespace-nowrap">{item.founder_name || '—'}</td>
                   <td className="px-3 py-2.5 hidden md:table-cell">
                     {item.business_area ? (
-                      <span className="badge bg-blue-50 text-blue-700 text-xs">{item.business_area}</span>
+                      <span className="badge bg-enterprise-blue-50 text-enterprise-blue-700 text-xs">{item.business_area}</span>
                     ) : '—'}
                   </td>
                   <td className="px-3 py-2.5 hidden lg:table-cell">
                     <div className="flex flex-wrap gap-1 max-w-[120px]">
                       {item.technologies.slice(0, 2).map((t) => (
-                        <span key={t} className="badge bg-gray-100 text-gray-600 text-xs">{t}</span>
+                        <span key={t} className="badge bg-enterprise-charcoal-100 text-enterprise-charcoal-600 text-xs">{t}</span>
                       ))}
                       {item.technologies.length > 2 && (
-                        <span className="text-xs text-enterprise-charcoal/40">+{item.technologies.length - 2}</span>
+                        <span className="text-xs text-enterprise-charcoal-400">+{item.technologies.length - 2}</span>
                       )}
                     </div>
                   </td>
-                  <td className="px-3 py-2.5 text-xs text-enterprise-charcoal/50 whitespace-nowrap">
+                  <td className="px-3 py-2.5 text-xs text-enterprise-charcoal-500 whitespace-nowrap">
                     {new Date(item.submitted_at).toLocaleDateString()}
                   </td>
                   <td className="px-3 py-2.5">
                     <StatusBadge status={item.status} />
                   </td>
-                  <td className="px-3 py-2.5 hidden md:table-cell text-enterprise-charcoal/70 whitespace-nowrap">
+                  <td className="px-3 py-2.5 hidden md:table-cell text-enterprise-charcoal-600 whitespace-nowrap">
                     {item.assigned_reviewer_name || (
-                      <span className="text-xs text-enterprise-charcoal/30">Unassigned</span>
+                      <span className="text-xs text-enterprise-charcoal-400">Unassigned</span>
                     )}
                   </td>
                 </tr>
@@ -259,8 +254,8 @@ function ReviewWorkspace({ ideaId, userMap }: { ideaId: string; userMap: Map<str
       <div className="card p-4">
         <div className="flex items-start justify-between gap-3 mb-2">
           <div className="min-w-0">
-            <h2 className="text-lg font-bold text-enterprise-charcoal">{idea.title}</h2>
-            <p className="text-xs text-enterprise-charcoal/50 mt-0.5">
+            <h2 className="text-lg font-bold text-enterprise-charcoal-800">{idea.title}</h2>
+            <p className="text-xs text-enterprise-charcoal-500 mt-0.5">
               by {founder?.name || 'Unknown'} {idea.business_area ? `· ${idea.business_area}` : ''}
             </p>
           </div>
@@ -269,7 +264,7 @@ function ReviewWorkspace({ ideaId, userMap }: { ideaId: string; userMap: Map<str
         {idea.technologies.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-2">
             {idea.technologies.map((t) => (
-              <span key={t} className="badge bg-blue-50 text-blue-700 text-xs">{t}</span>
+              <span key={t} className="badge bg-enterprise-blue-50 text-enterprise-blue-700 text-xs">{t}</span>
             ))}
           </div>
         )}
@@ -277,21 +272,21 @@ function ReviewWorkspace({ ideaId, userMap }: { ideaId: string; userMap: Map<str
 
       {/* Problem */}
       <WorkspaceSection icon={<AlertTriangle className="w-4 h-4" />} title="Problem">
-        <p className="text-sm text-enterprise-charcoal whitespace-pre-wrap">{idea.problem_statement || 'No problem statement provided.'}</p>
+        <p className="text-sm text-enterprise-charcoal-800 whitespace-pre-wrap">{idea.problem_statement || 'No problem statement provided.'}</p>
       </WorkspaceSection>
 
       {/* Solution */}
       <WorkspaceSection icon={<Lightbulb className="w-4 h-4" />} title="Solution">
-        <p className="text-sm text-enterprise-charcoal whitespace-pre-wrap">{idea.proposed_solution || 'No solution provided.'}</p>
+        <p className="text-sm text-enterprise-charcoal-800 whitespace-pre-wrap">{idea.proposed_solution || 'No solution provided.'}</p>
       </WorkspaceSection>
 
       {/* Impact */}
       <WorkspaceSection icon={<TrendingUp className="w-4 h-4" />} title="Impact">
         <div className="space-y-2">
-          {idea.business_impact && <p className="text-sm text-enterprise-charcoal"><span className="font-medium text-enterprise-charcoal/60">Business: </span>{idea.business_impact}</p>}
-          {idea.engineering_impact && <p className="text-sm text-enterprise-charcoal"><span className="font-medium text-enterprise-charcoal/60">Engineering: </span>{idea.engineering_impact}</p>}
-          {idea.expected_benefits && <p className="text-sm text-enterprise-charcoal"><span className="font-medium text-enterprise-charcoal/60">Benefits: </span>{idea.expected_benefits}</p>}
-          {!idea.business_impact && !idea.engineering_impact && !idea.expected_benefits && <p className="text-sm text-enterprise-charcoal/40">No impact information provided.</p>}
+          {idea.business_impact && <p className="text-sm text-enterprise-charcoal-800"><span className="font-medium text-enterprise-charcoal-500">Business: </span>{idea.business_impact}</p>}
+          {idea.engineering_impact && <p className="text-sm text-enterprise-charcoal-800"><span className="font-medium text-enterprise-charcoal-500">Engineering: </span>{idea.engineering_impact}</p>}
+          {idea.expected_benefits && <p className="text-sm text-enterprise-charcoal-800"><span className="font-medium text-enterprise-charcoal-500">Benefits: </span>{idea.expected_benefits}</p>}
+          {!idea.business_impact && !idea.engineering_impact && !idea.expected_benefits && <p className="text-sm text-enterprise-charcoal-400">No impact information provided.</p>}
         </div>
       </WorkspaceSection>
 
@@ -301,27 +296,27 @@ function ReviewWorkspace({ ideaId, userMap }: { ideaId: string; userMap: Map<str
           {idea.technologies.length > 0 ? (
             <div className="flex flex-wrap gap-1">
               {idea.technologies.map((t) => (
-                <span key={t} className="badge bg-blue-50 text-blue-700 text-xs">{t}</span>
+                <span key={t} className="badge bg-enterprise-blue-50 text-enterprise-blue-700 text-xs">{t}</span>
               ))}
             </div>
-          ) : <p className="text-sm text-enterprise-charcoal/40">No technologies specified.</p>}
+          ) : <p className="text-sm text-enterprise-charcoal-400">No technologies specified.</p>}
           {idea.estimated_complexity && (
-            <p className="text-sm text-enterprise-charcoal"><span className="font-medium text-enterprise-charcoal/60">Complexity: </span>{idea.estimated_complexity}</p>
+            <p className="text-sm text-enterprise-charcoal-800"><span className="font-medium text-enterprise-charcoal-500">Complexity: </span>{idea.estimated_complexity}</p>
           )}
           {idea.estimated_duration && (
-            <p className="text-sm text-enterprise-charcoal"><span className="font-medium text-enterprise-charcoal/60">Duration: </span>{idea.estimated_duration}</p>
+            <p className="text-sm text-enterprise-charcoal-800"><span className="font-medium text-enterprise-charcoal-500">Duration: </span>{idea.estimated_duration}</p>
           )}
         </div>
       </WorkspaceSection>
 
       {/* Risks */}
       <WorkspaceSection icon={<AlertTriangle className="w-4 h-4" />} title="Risks">
-        <p className="text-sm text-enterprise-charcoal whitespace-pre-wrap">{idea.risks || 'No risks identified.'}</p>
+        <p className="text-sm text-enterprise-charcoal-800 whitespace-pre-wrap">{idea.risks || 'No risks identified.'}</p>
       </WorkspaceSection>
 
       {/* Dependencies */}
       <WorkspaceSection icon={<Link2 className="w-4 h-4" />} title="Dependencies">
-        <p className="text-sm text-enterprise-charcoal whitespace-pre-wrap">{idea.dependencies || 'No dependencies identified.'}</p>
+        <p className="text-sm text-enterprise-charcoal-800 whitespace-pre-wrap">{idea.dependencies || 'No dependencies identified.'}</p>
       </WorkspaceSection>
 
       {/* Evidence */}
@@ -329,18 +324,18 @@ function ReviewWorkspace({ ideaId, userMap }: { ideaId: string; userMap: Map<str
         {evidence && evidence.length > 0 ? (
           <div className="space-y-2">
             {evidence.map((e) => (
-              <div key={e.id} className="border border-enterprise-gray-border rounded-md p-2.5">
+              <div key={e.id} className="border border-enterprise-gray-border rounded-enterprise p-2.5">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-sm font-medium">{e.title}</span>
-                  <span className="badge bg-gray-100 text-gray-600 text-xs">{e.evidence_type}</span>
+                  <span className="badge bg-enterprise-charcoal-100 text-enterprise-charcoal-600 text-xs">{e.evidence_type}</span>
                 </div>
-                {e.description && <p className="text-xs text-enterprise-charcoal/70">{e.description}</p>}
-                {e.url && <a href={e.url} target="_blank" rel="noopener noreferrer" className="text-xs text-enterprise-red hover:underline mt-1 inline-block">{e.url}</a>}
+                {e.description && <p className="text-xs text-enterprise-charcoal-600">{e.description}</p>}
+                {e.url && <a href={e.url} target="_blank" rel="noopener noreferrer" className="text-xs text-enterprise-red-600 hover:underline mt-1 inline-block">{e.url}</a>}
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-sm text-enterprise-charcoal/40">No evidence provided.</p>
+          <p className="text-sm text-enterprise-charcoal-400">No evidence provided.</p>
         )}
       </WorkspaceSection>
 
@@ -351,51 +346,51 @@ function ReviewWorkspace({ ideaId, userMap }: { ideaId: string; userMap: Map<str
             {reviews.map((review) => {
               const reviewer = userMap.get(review.reviewer_id);
               return (
-                <div key={review.id} className="border border-enterprise-gray-border rounded-md p-3">
+                <div key={review.id} className="border border-enterprise-gray-border rounded-enterprise p-3">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <UserCircle className="w-4 h-4 text-enterprise-charcoal/40" />
+                      <UserCircle className="w-4 h-4 text-enterprise-charcoal-400" />
                       <span className="text-sm font-medium">{reviewer?.name || 'Unknown'}</span>
                     </div>
                     <StatusBadge status={review.decision} />
                   </div>
-                  {review.comments && <p className="text-sm text-enterprise-charcoal/80 mb-1">{review.comments}</p>}
+                  {review.comments && <p className="text-sm text-enterprise-charcoal-700 mb-1">{review.comments}</p>}
                   {review.reason && (
-                    <p className="text-xs text-red-600 bg-red-50 px-2 py-1 rounded mt-1">Reason: {review.reason}</p>
+                    <p className="text-xs text-enterprise-error-600 bg-enterprise-error-50 px-2 py-1 rounded-enterprise mt-1">Reason: {review.reason}</p>
                   )}
                   {review.evidence && (
-                    <p className="text-xs text-enterprise-charcoal/60 mt-1">Evidence: {review.evidence}</p>
+                    <p className="text-xs text-enterprise-charcoal-500 mt-1">Evidence: {review.evidence}</p>
                   )}
                   {review.dimensions && review.dimensions.length > 0 && (
                     <div className="mt-2 space-y-1">
                       {review.dimensions.map((dim) => (
                         <div key={dim.id} className="flex items-start gap-2 text-xs">
-                          <span className="font-medium text-enterprise-charcoal/60 min-w-[140px]">
+                          <span className="font-medium text-enterprise-charcoal-500 min-w-[140px]">
                             {dim.dimension.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}:
                           </span>
-                          {dim.rating && <span className="badge bg-gray-100 text-gray-600 text-xs">{dim.rating}</span>}
-                          {dim.comment && <span className="text-enterprise-charcoal/70">{dim.comment}</span>}
+                          {dim.rating && <span className="badge bg-enterprise-charcoal-100 text-enterprise-charcoal-600 text-xs">{dim.rating}</span>}
+                          {dim.comment && <span className="text-enterprise-charcoal-600">{dim.comment}</span>}
                         </div>
                       ))}
                     </div>
                   )}
-                  <p className="text-xs text-enterprise-charcoal/40 mt-1">{new Date(review.created_at).toLocaleString()}</p>
+                  <p className="text-xs text-enterprise-charcoal-400 mt-1">{new Date(review.created_at).toLocaleString()}</p>
                 </div>
               );
             })}
           </div>
         ) : (
-          <p className="text-sm text-enterprise-charcoal/40">No reviews yet. Be the first to review this idea.</p>
+          <p className="text-sm text-enterprise-charcoal-400">No reviews yet. Be the first to review this idea.</p>
         )}
       </WorkspaceSection>
 
       {/* Decision */}
       <div className="card p-4">
-        <h3 className="text-sm font-semibold text-enterprise-charcoal mb-3 flex items-center gap-2">
+        <h3 className="text-sm font-semibold text-enterprise-charcoal-800 mb-3 flex items-center gap-2">
           <ClipboardList className="w-4 h-4" /> Decision
         </h3>
         {decisionError && (
-          <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded-md text-xs text-red-700">{decisionError}</div>
+          <div className="mb-3 p-2 bg-enterprise-error-50 border border-enterprise-error-200 rounded-enterprise text-xs text-enterprise-error-700">{decisionError}</div>
         )}
         {showDecision ? (
           <DecisionForm
@@ -419,8 +414,8 @@ function ReviewWorkspace({ ideaId, userMap }: { ideaId: string; userMap: Map<str
 function WorkspaceSection({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
   return (
     <div className="card p-4">
-      <h3 className="text-sm font-semibold text-enterprise-charcoal mb-2 flex items-center gap-2">
-        <span className="text-enterprise-charcoal/50">{icon}</span> {title}
+      <h3 className="text-sm font-semibold text-enterprise-charcoal-800 mb-2 flex items-center gap-2">
+        <span className="text-enterprise-charcoal-500">{icon}</span> {title}
       </h3>
       {children}
     </div>
@@ -499,13 +494,13 @@ function DecisionForm({
                 key={d.value}
                 type="button"
                 onClick={() => setDecision(d.value)}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-xs font-medium border transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-enterprise text-xs font-medium border transition-all ${
                   decision === d.value
-                    ? 'border-enterprise-red bg-enterprise-red/5 text-enterprise-red'
-                    : 'border-enterprise-gray-border bg-white text-enterprise-charcoal/70 hover:bg-gray-50'
+                    ? 'border-enterprise-red-600 bg-enterprise-red-50 text-enterprise-red-600'
+                    : 'border-enterprise-gray-border bg-white text-enterprise-charcoal-600 hover:bg-enterprise-gray-warm'
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 ${decision === d.value ? 'text-enterprise-red' : d.color}`} />
+                <Icon className={`w-3.5 h-3.5 ${decision === d.value ? 'text-enterprise-red-600' : d.color}`} />
                 {d.label}
               </button>
             );
@@ -516,7 +511,7 @@ function DecisionForm({
       {/* Reason (required for park/reject) */}
       {requiresReason && (
         <div>
-          <label className="label">Reason <span className="text-red-500">*</span></label>
+          <label className="label">Reason <span className="text-enterprise-error-500">*</span></label>
           <textarea
             value={reason}
             onChange={(e) => setReason(e.target.value)}
@@ -551,16 +546,16 @@ function DecisionForm({
       {/* Review Dimensions */}
       <div>
         <label className="label">Review Dimensions</label>
-        <p className="text-xs text-enterprise-charcoal/40 mb-2">Rate each dimension independently. No aggregate score.</p>
+        <p className="text-xs text-enterprise-charcoal-400 mb-2">Rate each dimension independently. No aggregate score.</p>
         <div className="space-y-2">
           {REVIEW_DIMENSIONS.map((dim) => {
             const Icon = dim.icon;
             const d = dimensions[dim.key];
             return (
-              <div key={dim.key} className="border border-enterprise-gray-border rounded-md p-2.5">
+              <div key={dim.key} className="border border-enterprise-gray-border rounded-enterprise p-2.5">
                 <div className="flex items-center gap-2 mb-1.5">
-                  <Icon className="w-3.5 h-3.5 text-enterprise-charcoal/40 flex-shrink-0" />
-                  <span className="text-xs font-medium text-enterprise-charcoal flex-1">{dim.label}</span>
+                  <Icon className="w-3.5 h-3.5 text-enterprise-charcoal-400 flex-shrink-0" />
+                  <span className="text-xs font-medium text-enterprise-charcoal-800 flex-1">{dim.label}</span>
                   <select
                     value={d.rating}
                     onChange={(e) => setDimensions({ ...dimensions, [dim.key]: { ...d, rating: e.target.value } })}
@@ -587,12 +582,12 @@ function DecisionForm({
 
       {/* Validation assignment */}
       {isValidation && (
-        <div className="border border-purple-200 bg-purple-50/50 rounded-md p-3 space-y-3">
-          <p className="text-xs font-medium text-purple-800">Validation Team Assignment</p>
-          <p className="text-xs text-enterprise-charcoal/50">Search and assign real users. AI recommendations are suggestions only — you confirm.</p>
+        <div className="border border-enterprise-blue-200 bg-enterprise-blue-50/50 rounded-enterprise p-3 space-y-3">
+          <p className="text-xs font-medium text-enterprise-blue-700">Validation Team Assignment</p>
+          <p className="text-xs text-enterprise-charcoal-500">Search and assign real users. AI recommendations are suggestions only — you confirm.</p>
           <div>
             <label className="label text-xs">Founder (auto-detected)</label>
-            <p className="text-xs text-enterprise-charcoal/60">The idea's founder is automatically notified.</p>
+            <p className="text-xs text-enterprise-charcoal-500">The idea's founder is automatically notified.</p>
           </div>
           <div>
             <label className="label text-xs">Principal Engineer</label>
@@ -612,7 +607,7 @@ function DecisionForm({
       )}
 
       {formError && (
-        <div className="p-2 bg-red-50 border border-red-200 rounded-md text-xs text-red-700">{formError}</div>
+        <div className="p-2 bg-enterprise-error-50 border border-enterprise-error-200 rounded-enterprise text-xs text-enterprise-error-700">{formError}</div>
       )}
 
       <div className="flex gap-2 justify-end">

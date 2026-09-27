@@ -47,32 +47,32 @@ export function SetupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-enterprise-gray-warm flex flex-col">
-      <div className="bg-enterprise-red h-2" />
-      <div className="bg-enterprise-gold h-1" />
+    <div className="min-h-screen bg-enterprise-gray-warm flex flex-col animate-fade-in">
+      <div className="bg-enterprise-red-600 h-2" />
+      <div className="bg-enterprise-gold-400 h-1" />
       <div className="flex-1 flex items-center justify-center px-4">
         <div className="max-w-md w-full">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-enterprise-red rounded-lg mb-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-enterprise-red-600 rounded-enterprise mb-4">
               <Lightbulb className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-enterprise-charcoal">Welcome to INNOVEX</h1>
-            <p className="text-enterprise-charcoal/60 mt-2">
+            <h1 className="text-3xl font-bold text-enterprise-charcoal-900">Welcome to INNOVEX</h1>
+            <p className="text-enterprise-charcoal-500 mt-2">
               Enterprise Innovation & Engineering Exchange
             </p>
-            <p className="text-sm text-enterprise-charcoal/50 mt-1">From Ideas to Impact</p>
+            <p className="text-sm text-enterprise-charcoal-400 mt-1">From Ideas to Impact</p>
           </div>
 
           <div className="card p-6">
-            <h2 className="text-lg font-semibold text-enterprise-charcoal mb-1">
+            <h2 className="text-lg font-semibold text-enterprise-charcoal-900 mb-1">
               Create your organization workspace
             </h2>
-            <p className="text-sm text-enterprise-charcoal/60 mb-4">
+            <p className="text-sm text-enterprise-charcoal-500 mb-4">
               Set up your organization and administrator account to get started.
             </p>
 
             {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
+              <div className="mb-4 p-3 bg-enterprise-error-50 border border-enterprise-error-200 rounded-enterprise text-sm text-enterprise-error-700">
                 {error}
               </div>
             )}
@@ -87,7 +87,7 @@ export function SetupPage() {
                   className="input"
                   placeholder="Enter organization name"
                 />
-                {errors.name && <p className="text-xs text-red-600 mt-1">{errors.name.message}</p>}
+                {errors.name && <p className="text-xs text-enterprise-error-600 mt-1">{errors.name.message}</p>}
               </div>
 
               <div>
@@ -99,7 +99,7 @@ export function SetupPage() {
                   className="input"
                   placeholder="Enter administrator name"
                 />
-                {errors.admin_name && <p className="text-xs text-red-600 mt-1">{errors.admin_name.message}</p>}
+                {errors.admin_name && <p className="text-xs text-enterprise-error-600 mt-1">{errors.admin_name.message}</p>}
               </div>
 
               <div>
@@ -112,7 +112,7 @@ export function SetupPage() {
                   className="input"
                   placeholder="admin@company.com"
                 />
-                {errors.admin_email && <p className="text-xs text-red-600 mt-1">{errors.admin_email.message}</p>}
+                {errors.admin_email && <p className="text-xs text-enterprise-error-600 mt-1">{errors.admin_email.message}</p>}
               </div>
 
               <button

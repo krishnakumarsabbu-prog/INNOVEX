@@ -58,45 +58,45 @@ export function InnovationDetailPage() {
 
   return (
     <div>
-      <button onClick={() => navigate('/innovation')} className="flex items-center gap-1 text-sm text-enterprise-charcoal/60 hover:text-enterprise-charcoal mb-4 transition-colors">
+      <button onClick={() => navigate('/innovation')} className="flex items-center gap-1 text-sm text-enterprise-charcoal-500 hover:text-enterprise-red-700 mb-4 transition-colors">
         <ArrowLeft className="w-4 h-4" /> Back to Marketplace
       </button>
 
       {/* Hero Section */}
-      <div className="card p-6 mb-4">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex-1">
+      <div className="card p-6 mb-4 animate-fade-in">
+        <div className="flex items-start justify-between mb-4 gap-4">
+          <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2">
               <StatusBadge status={innovation.stage} />
               {innovation.is_open ? (
-                <span className="badge bg-green-100 text-green-800">Open for Contributors</span>
+                <span className="badge bg-enterprise-success-100 text-enterprise-success-700">Open for Contributors</span>
               ) : (
-                <span className="badge bg-gray-100 text-gray-800">Closed</span>
+                <span className="badge bg-enterprise-charcoal-100 text-enterprise-charcoal-500">Closed</span>
               )}
             </div>
-            <h1 className="text-2xl font-bold text-enterprise-charcoal mb-2">{innovation.title}</h1>
-            <p className="text-sm text-enterprise-charcoal/60 mb-4 max-w-3xl">
+            <h1 className="text-xl font-bold text-enterprise-charcoal-900 mb-2">{innovation.title}</h1>
+            <p className="text-sm text-enterprise-charcoal-500 mb-4 max-w-3xl">
               {innovation.problem_statement || innovation.summary}
             </p>
 
-            <div className="flex flex-wrap gap-4 text-sm text-enterprise-charcoal/70">
+            <div className="flex flex-wrap gap-4 text-sm text-enterprise-charcoal-600">
               <div className="flex items-center gap-1.5">
-                <UserCircle className="w-4 h-4 text-enterprise-charcoal/40" />
-                <span><span className="text-enterprise-charcoal/50">Founder:</span> {innovation.founder_name || 'Unassigned'}</span>
+                <UserCircle className="w-4 h-4 text-enterprise-charcoal-400" />
+                <span><span className="text-enterprise-charcoal-400">Founder:</span> {innovation.founder_name || 'Unassigned'}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Wrench className="w-4 h-4 text-enterprise-charcoal/40" />
-                <span><span className="text-enterprise-charcoal/50">Principal Engineer:</span> {innovation.principal_engineer_name || 'Unassigned'}</span>
+                <Wrench className="w-4 h-4 text-enterprise-charcoal-400" />
+                <span><span className="text-enterprise-charcoal-400">Principal Engineer:</span> {innovation.principal_engineer_name || 'Unassigned'}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Users className="w-4 h-4 text-enterprise-charcoal/40" />
-                <span><span className="text-enterprise-charcoal/50">Manager:</span> {innovation.manager_name || 'Unassigned'}</span>
+                <Users className="w-4 h-4 text-enterprise-charcoal-400" />
+                <span><span className="text-enterprise-charcoal-400">Manager:</span> {innovation.manager_name || 'Unassigned'}</span>
               </div>
             </div>
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 flex-shrink-0">
             <button
-              className={`btn-secondary text-sm ${innovation.is_open ? 'text-green-700' : ''}`}
+              className={`btn-secondary text-sm ${innovation.is_open ? 'text-enterprise-success-700' : ''}`}
               onClick={() => toggleOpen.mutate(!innovation.is_open)}
             >
               {innovation.is_open ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
@@ -134,27 +134,27 @@ export function InnovationDetailPage() {
           {/* Business Impact */}
           {innovation.business_impact && (
             <div className="card p-5">
-              <h2 className="section-title mb-3 flex items-center gap-2 text-lg">
-                <TrendingUp className="w-5 h-5 text-enterprise-red" /> Business Impact
+              <h2 className="section-title mb-3 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-enterprise-red-600" /> Business Impact
               </h2>
-              <p className="text-sm text-enterprise-charcoal/70 leading-relaxed">{innovation.business_impact}</p>
+              <p className="text-sm text-enterprise-charcoal-600 leading-relaxed">{innovation.business_impact}</p>
             </div>
           )}
 
           {/* Problem & Solution */}
           <div className="card p-5">
-            <h2 className="section-title mb-3 flex items-center gap-2 text-lg">
-              <Target className="w-5 h-5 text-enterprise-red" /> Problem & Solution
+            <h2 className="section-title mb-3 flex items-center gap-2">
+              <Target className="w-5 h-5 text-enterprise-red-600" /> Problem & Solution
             </h2>
             <div className="space-y-3">
               <div>
-                <p className="text-xs font-medium text-enterprise-charcoal/50 uppercase tracking-wide mb-1">Problem Statement</p>
-                <p className="text-sm text-enterprise-charcoal/70 leading-relaxed">{innovation.problem_statement || innovation.summary}</p>
+                <p className="text-xs font-medium text-enterprise-charcoal-400 uppercase tracking-wide mb-1">Problem Statement</p>
+                <p className="text-sm text-enterprise-charcoal-700 leading-relaxed">{innovation.problem_statement || innovation.summary}</p>
               </div>
               {innovation.proposed_solution && (
                 <div>
-                  <p className="text-xs font-medium text-enterprise-charcoal/50 uppercase tracking-wide mb-1">Proposed Solution</p>
-                  <p className="text-sm text-enterprise-charcoal/70 leading-relaxed">{innovation.proposed_solution}</p>
+                  <p className="text-xs font-medium text-enterprise-charcoal-400 uppercase tracking-wide mb-1">Proposed Solution</p>
+                  <p className="text-sm text-enterprise-charcoal-700 leading-relaxed">{innovation.proposed_solution}</p>
                 </div>
               )}
             </div>
@@ -163,8 +163,8 @@ export function InnovationDetailPage() {
           {/* Engineering Details */}
           {(innovation.engineering_impact || innovation.expected_benefits || innovation.dependencies || innovation.risks) && (
             <div className="card p-5">
-              <h2 className="section-title mb-3 flex items-center gap-2 text-lg">
-                <Zap className="w-5 h-5 text-enterprise-red" /> Engineering Details
+              <h2 className="section-title mb-3 flex items-center gap-2">
+                <Zap className="w-5 h-5 text-enterprise-red-600" /> Engineering Details
               </h2>
               <div className="space-y-3">
                 {innovation.engineering_impact && (
@@ -177,7 +177,7 @@ export function InnovationDetailPage() {
                   <DetailRow label="Dependencies" value={innovation.dependencies} />
                 )}
                 {innovation.risks && (
-                  <DetailRow label="Risks" value={innovation.risks} icon={<AlertCircle className="w-3.5 h-3.5 text-amber-600" />} />
+                  <DetailRow label="Risks" value={innovation.risks} icon={<AlertCircle className="w-3.5 h-3.5 text-enterprise-warning-600" />} />
                 )}
                 {innovation.estimated_complexity && (
                   <DetailRow label="Estimated Complexity" value={innovation.estimated_complexity} />
@@ -192,8 +192,8 @@ export function InnovationDetailPage() {
           {/* Team Formation - Roles with Capacity */}
           <div className="card p-5">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="section-title flex items-center gap-2 text-lg">
-                <Briefcase className="w-5 h-5 text-enterprise-red" /> Team Formation
+              <h2 className="section-title flex items-center gap-2">
+                <Briefcase className="w-5 h-5 text-enterprise-red-600" /> Team Formation
               </h2>
               <button className="btn-secondary text-sm" onClick={() => setShowCreateRole(true)}>
                 <Plus className="w-4 h-4" /> Add Role
@@ -220,27 +220,27 @@ export function InnovationDetailPage() {
 
           {/* Innovation Team */}
           <div className="card p-5">
-            <h2 className="section-title mb-4 flex items-center gap-2 text-lg">
-              <Users className="w-5 h-5 text-enterprise-red" /> Innovation Team
+            <h2 className="section-title mb-4 flex items-center gap-2">
+              <Users className="w-5 h-5 text-enterprise-red-600" /> Innovation Team
             </h2>
             {innovation.team_members.length > 0 ? (
               <div className="space-y-2">
                 {innovation.team_members.map((member) => (
-                  <div key={member.id} className="flex items-center gap-3 border border-enterprise-gray-border rounded-md p-3">
-                    <div className="w-9 h-9 rounded-full bg-enterprise-red/10 flex items-center justify-center text-enterprise-red font-medium text-sm">
+                  <div key={member.id} className="flex items-center gap-3 border border-enterprise-gray-border rounded-enterprise p-3">
+                    <div className="w-9 h-9 rounded-full bg-enterprise-red-100 flex items-center justify-center text-enterprise-red-700 font-medium text-sm">
                       {member.name.charAt(0).toUpperCase() || '?'}
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-enterprise-charcoal">{member.name || 'Unknown'}</p>
-                      <p className="text-xs text-enterprise-charcoal/50">
+                      <p className="text-sm font-medium text-enterprise-charcoal-800">{member.name || 'Unknown'}</p>
+                      <p className="text-xs text-enterprise-charcoal-400">
                         {member.role && <span>{member.role}</span>}
-                        {member.role && member.title && <span className="text-enterprise-charcoal/30"> · </span>}
+                        {member.role && member.title && <span className="text-enterprise-charcoal-300"> · </span>}
                         {member.title && <span>{member.title}</span>}
-                        {member.department && <span className="text-enterprise-charcoal/30"> · </span>}
+                        {member.department && <span className="text-enterprise-charcoal-300"> · </span>}
                         {member.department && <span>{member.department}</span>}
                       </p>
                     </div>
-                    <div className="text-xs text-enterprise-charcoal/40">
+                    <div className="text-xs text-enterprise-charcoal-400">
                       Joined {formatDate(member.joined_at)}
                     </div>
                   </div>
@@ -261,12 +261,12 @@ export function InnovationDetailPage() {
           {/* Technologies */}
           {innovation.technologies.length > 0 && (
             <div className="card p-5">
-              <h3 className="font-semibold text-enterprise-charcoal mb-3 flex items-center gap-2">
-                <Cpu className="w-4 h-4 text-enterprise-red" /> Technologies
+              <h3 className="font-semibold text-enterprise-charcoal-800 mb-3 flex items-center gap-2">
+                <Cpu className="w-4 h-4 text-enterprise-red-600" /> Technologies
               </h3>
               <div className="flex flex-wrap gap-2">
                 {innovation.technologies.map((tech) => (
-                  <span key={tech} className="badge bg-enterprise-gray-warm text-enterprise-charcoal/70">
+                  <span key={tech} className="badge bg-enterprise-gray-warm text-enterprise-charcoal-600">
                     {tech}
                   </span>
                 ))}
@@ -277,37 +277,34 @@ export function InnovationDetailPage() {
           {/* Business Area */}
           {innovation.business_area && (
             <div className="card p-5">
-              <h3 className="font-semibold text-enterprise-charcoal mb-3 flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-enterprise-red" /> Business Area
+              <h3 className="font-semibold text-enterprise-charcoal-800 mb-3 flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-enterprise-red-600" /> Business Area
               </h3>
-              <p className="text-sm text-enterprise-charcoal/70">{innovation.business_area}</p>
+              <p className="text-sm text-enterprise-charcoal-600">{innovation.business_area}</p>
             </div>
           )}
 
           {/* Team Progress */}
           <div className="card p-5">
-            <h3 className="font-semibold text-enterprise-charcoal mb-3 flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-enterprise-red" /> Team Progress
+            <h3 className="font-semibold text-enterprise-charcoal-800 mb-3 flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-enterprise-red-600" /> Team Progress
             </h3>
-            <div className="mb-2 flex items-center justify-between text-sm text-enterprise-charcoal/60">
+            <div className="mb-2 flex items-center justify-between text-sm text-enterprise-charcoal-500">
               <span>Roles filled</span>
               <span>{innovation.team_progress}%</span>
             </div>
-            <div className="h-2 bg-enterprise-gray-warm rounded-full overflow-hidden">
-              <div
-                className="h-full bg-enterprise-red rounded-full transition-all duration-300"
-                style={{ width: `${innovation.team_progress}%` }}
-              />
+            <div className="progress-track">
+              <div className="progress-fill" style={{ width: `${innovation.team_progress}%` }} />
             </div>
-            <div className="mt-3 text-xs text-enterprise-charcoal/50">
+            <div className="mt-3 text-xs text-enterprise-charcoal-400">
               {innovation.team_size} team member{innovation.team_size !== 1 ? 's' : ''} · {openRoles.length} open role{openRoles.length !== 1 ? 's' : ''}
             </div>
           </div>
 
           {/* Metadata */}
           <div className="card p-5">
-            <h3 className="font-semibold text-enterprise-charcoal mb-3 flex items-center gap-2">
-              <FileText className="w-4 h-4 text-enterprise-red" /> Details
+            <h3 className="font-semibold text-enterprise-charcoal-800 mb-3 flex items-center gap-2">
+              <FileText className="w-4 h-4 text-enterprise-red-600" /> Details
             </h3>
             <div className="space-y-2 text-sm">
               <MetaRow label="Created" value={formatDate(innovation.created_at)} />
@@ -345,18 +342,18 @@ function RoleCard({ role, onJoin }: { role: Position; onJoin: () => void }) {
   const capacityPct = role.capacity > 0 ? (role.filled / role.capacity) * 100 : 0;
 
   return (
-    <div className={`border rounded-md p-4 transition-colors ${isFilled ? 'border-enterprise-gray-border bg-gray-50' : 'border-enterprise-gray-border hover:border-enterprise-red/20'}`}>
+    <div className={`border rounded-enterprise p-4 transition-colors ${isFilled ? 'border-enterprise-gray-border bg-enterprise-gray-warm' : 'border-enterprise-gray-border hover:border-enterprise-red-300'}`}>
       <div className="flex items-start justify-between mb-2">
         <div className="flex-1">
-          <p className="font-medium text-sm text-enterprise-charcoal">{role.title}</p>
+          <p className="font-medium text-sm text-enterprise-charcoal-800">{role.title}</p>
           {role.description && (
-            <p className="text-xs text-enterprise-charcoal/60 mt-1">{role.description}</p>
+            <p className="text-xs text-enterprise-charcoal-500 mt-1">{role.description}</p>
           )}
-          <div className="flex items-center gap-2 mt-1.5 text-xs text-enterprise-charcoal/60">
+          <div className="flex items-center gap-2 mt-1.5 text-xs text-enterprise-charcoal-500">
             <span>{role.role}</span>
             {role.technology && (
               <>
-                <span className="text-enterprise-charcoal/30">·</span>
+                <span className="text-enterprise-charcoal-300">·</span>
                 <span className="flex items-center gap-1">
                   <Cpu className="w-3 h-3" /> {role.technology}
                 </span>
@@ -364,14 +361,14 @@ function RoleCard({ role, onJoin }: { role: Position; onJoin: () => void }) {
             )}
             {role.commitment && (
               <>
-                <span className="text-enterprise-charcoal/30">·</span>
+                <span className="text-enterprise-charcoal-300">·</span>
                 <span>{role.commitment}</span>
               </>
             )}
           </div>
         </div>
         {isFilled ? (
-          <span className="badge bg-blue-100 text-blue-800 font-semibold whitespace-nowrap">
+          <span className="badge bg-enterprise-blue-100 text-enterprise-blue-700 font-semibold whitespace-nowrap">
             <Check className="w-3 h-3 inline mr-1" /> POSITION FILLED
           </span>
         ) : (
@@ -382,20 +379,20 @@ function RoleCard({ role, onJoin }: { role: Position; onJoin: () => void }) {
       {/* Capacity Indicator */}
       <div className="mt-3">
         <div className="flex items-center justify-between text-xs mb-1">
-          <span className="text-enterprise-charcoal/60">
-            <span className="font-semibold text-enterprise-charcoal">{role.filled}</span>
+          <span className="text-enterprise-charcoal-500">
+            <span className="font-semibold text-enterprise-charcoal-800">{role.filled}</span>
             {' / '}
-            <span className="font-semibold text-enterprise-charcoal">{role.capacity}</span>
+            <span className="font-semibold text-enterprise-charcoal-800">{role.capacity}</span>
             {isFilled ? (
-              <span className="ml-2 text-blue-700 font-medium">FILLED</span>
+              <span className="ml-2 text-enterprise-blue-700 font-medium">FILLED</span>
             ) : (
-              <span className="ml-2 text-green-700 font-medium">{openSlots} OPEN</span>
+              <span className="ml-2 text-enterprise-success-700 font-medium">{openSlots} OPEN</span>
             )}
           </span>
         </div>
-        <div className="h-2 bg-enterprise-gray-warm rounded-full overflow-hidden">
+        <div className="progress-track">
           <div
-            className={`h-full rounded-full transition-all duration-300 ${isFilled ? 'bg-blue-500' : 'bg-enterprise-red'}`}
+            className={`h-full rounded-full transition-all duration-300 ${isFilled ? 'bg-enterprise-blue-500' : 'bg-enterprise-red-600'}`}
             style={{ width: `${capacityPct}%` }}
           />
         </div>
@@ -406,17 +403,17 @@ function RoleCard({ role, onJoin }: { role: Position; onJoin: () => void }) {
         <div className="mt-3 space-y-1.5">
           {role.required_skills.length > 0 && (
             <div className="flex flex-wrap gap-1 items-center">
-              <span className="text-xs font-medium text-enterprise-charcoal/50">Required:</span>
+              <span className="text-xs font-medium text-enterprise-charcoal-400">Required:</span>
               {role.required_skills.map((s) => (
-                <span key={s} className="badge bg-red-50 text-red-700 text-xs">{s}</span>
+                <span key={s} className="badge bg-enterprise-error-50 text-enterprise-error-700 text-xs">{s}</span>
               ))}
             </div>
           )}
           {role.preferred_skills.length > 0 && (
             <div className="flex flex-wrap gap-1 items-center">
-              <span className="text-xs font-medium text-enterprise-charcoal/50">Preferred:</span>
+              <span className="text-xs font-medium text-enterprise-charcoal-400">Preferred:</span>
               {role.preferred_skills.map((s) => (
-                <span key={s} className="badge bg-amber-50 text-amber-700 text-xs">{s}</span>
+                <span key={s} className="badge bg-enterprise-warning-50 text-enterprise-warning-700 text-xs">{s}</span>
               ))}
             </div>
           )}
@@ -426,12 +423,12 @@ function RoleCard({ role, onJoin }: { role: Position; onJoin: () => void }) {
       {/* Join Button */}
       <div className="mt-3 flex justify-end">
         {isFilled ? (
-          <span className="text-xs text-enterprise-charcoal/40 font-medium flex items-center gap-1">
+          <span className="text-xs text-enterprise-charcoal-400 font-medium flex items-center gap-1">
             <Check className="w-3 h-3" /> Position Filled
           </span>
         ) : (
           <button
-            className="text-enterprise-red font-medium hover:underline flex items-center gap-1 text-sm"
+            className="text-enterprise-red-600 font-medium hover:underline flex items-center gap-1 text-sm"
             onClick={onJoin}
           >
             <UserPlus className="w-3.5 h-3.5" /> Request to Join
@@ -474,12 +471,12 @@ function CreateRoleModal({ innovationId, onClose }: { innovationId: string; onCl
         <div>
           <label className="label">Role Title</label>
           <input {...register('title', { required: 'Required' })} className="input" placeholder="e.g. AI Engineer" />
-          {errors.title && <p className="text-xs text-red-600 mt-1">{errors.title.message as string}</p>}
+          {errors.title && <p className="text-xs text-enterprise-error-600 mt-1">{errors.title.message as string}</p>}
         </div>
         <div>
           <label className="label">Role Category</label>
           <input {...register('role', { required: 'Required' })} className="input" placeholder="e.g. Engineer, Architect, DevOps" />
-          {errors.role && <p className="text-xs text-red-600 mt-1">{errors.role.message as string}</p>}
+          {errors.role && <p className="text-xs text-enterprise-error-600 mt-1">{errors.role.message as string}</p>}
         </div>
         <div>
           <label className="label">Description</label>
@@ -557,50 +554,50 @@ function JoinRoleModal({ innovationId, role, users, onClose }: { innovationId: s
               <option key={u.id} value={u.id}>{u.name} - {u.department || 'No department'}</option>
             ))}
           </select>
-          {errors.user_id && <p className="text-xs text-red-600 mt-1">{errors.user_id.message as string}</p>}
+          {errors.user_id && <p className="text-xs text-enterprise-error-600 mt-1">{errors.user_id.message as string}</p>}
         </div>
 
         {/* Skill Match Display */}
         {showMatch && selectedUserId && (
-          <div className="border border-enterprise-gray-border rounded-md p-3 bg-gray-50">
+          <div className="border border-enterprise-gray-border rounded-enterprise p-3 bg-enterprise-gray-warm">
             {matchLoading ? (
-              <p className="text-xs text-enterprise-charcoal/50">Calculating skill match...</p>
+              <p className="text-xs text-enterprise-charcoal-400">Calculating skill match...</p>
             ) : skillMatch ? (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-enterprise-charcoal/60">Skill Match</span>
-                  <span className={`text-sm font-bold ${skillMatch.match_percentage >= 75 ? 'text-green-600' : skillMatch.match_percentage >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
+                  <span className="text-xs font-medium text-enterprise-charcoal-500">Skill Match</span>
+                  <span className={`text-sm font-bold ${skillMatch.match_percentage >= 75 ? 'text-enterprise-success-600' : skillMatch.match_percentage >= 50 ? 'text-enterprise-warning-600' : 'text-enterprise-error-600'}`}>
                     {skillMatch.match_percentage}%
                   </span>
                 </div>
-                <div className="h-2 bg-enterprise-gray-warm rounded-full overflow-hidden">
+                <div className="progress-track">
                   <div
-                    className={`h-full rounded-full transition-all duration-300 ${skillMatch.match_percentage >= 75 ? 'bg-green-500' : skillMatch.match_percentage >= 50 ? 'bg-amber-500' : 'bg-red-500'}`}
+                    className={`h-full rounded-full transition-all duration-300 ${skillMatch.match_percentage >= 75 ? 'bg-enterprise-success-500' : skillMatch.match_percentage >= 50 ? 'bg-enterprise-warning-500' : 'bg-enterprise-error-500'}`}
                     style={{ width: `${skillMatch.match_percentage}%` }}
                   />
                 </div>
                 {skillMatch.matched_skills.length > 0 && (
                   <div>
-                    <p className="text-xs font-medium text-green-700 mb-1">Matched Skills</p>
+                    <p className="text-xs font-medium text-enterprise-success-700 mb-1">Matched Skills</p>
                     <div className="flex flex-wrap gap-1">
                       {skillMatch.matched_skills.map((s) => (
-                        <span key={s} className="badge bg-green-50 text-green-700 text-xs">{s}</span>
+                        <span key={s} className="badge bg-enterprise-success-50 text-enterprise-success-700 text-xs">{s}</span>
                       ))}
                     </div>
                   </div>
                 )}
                 {skillMatch.missing_skills.length > 0 && (
                   <div>
-                    <p className="text-xs font-medium text-red-700 mb-1">Missing Skills</p>
+                    <p className="text-xs font-medium text-enterprise-error-700 mb-1">Missing Skills</p>
                     <div className="flex flex-wrap gap-1">
                       {skillMatch.missing_skills.map((s) => (
-                        <span key={s} className="badge bg-red-50 text-red-700 text-xs">{s}</span>
+                        <span key={s} className="badge bg-enterprise-error-50 text-enterprise-error-700 text-xs">{s}</span>
                       ))}
                     </div>
                   </div>
                 )}
                 {skillMatch.required_skills.length === 0 && (
-                  <p className="text-xs text-enterprise-charcoal/50">No specific skills required for this role.</p>
+                  <p className="text-xs text-enterprise-charcoal-400">No specific skills required for this role.</p>
                 )}
               </div>
             ) : null}
@@ -609,7 +606,7 @@ function JoinRoleModal({ innovationId, role, users, onClose }: { innovationId: s
 
         {/* Role Info */}
         {role.description && (
-          <div className="text-xs text-enterprise-charcoal/60 bg-enterprise-gray-warm/50 rounded-md p-2">
+          <div className="text-xs text-enterprise-charcoal-500 bg-enterprise-gray-warm/50 rounded-enterprise p-2">
             {role.description}
           </div>
         )}
@@ -675,20 +672,20 @@ function JoinRequestsModal({ innovationId, users, onClose }: { innovationId: str
             <>
               {pendingRequests.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-xs font-medium text-enterprise-charcoal/50 uppercase tracking-wide">Pending ({pendingRequests.length})</p>
+                  <p className="text-xs font-medium text-enterprise-charcoal-400 uppercase tracking-wide">Pending ({pendingRequests.length})</p>
                   {pendingRequests.map((req) => {
                     const user = userMap.get(req.user_id);
                     return (
-                      <div key={req.id} className="border border-enterprise-gray-border rounded-md p-3">
+                      <div key={req.id} className="border border-enterprise-gray-border rounded-enterprise p-3">
                         <div className="flex items-start justify-between mb-2">
                           <div>
-                            <p className="text-sm font-medium text-enterprise-charcoal">{user?.name || 'Unknown'}</p>
-                            <p className="text-xs text-enterprise-charcoal/50">
+                            <p className="text-sm font-medium text-enterprise-charcoal-800">{user?.name || 'Unknown'}</p>
+                            <p className="text-xs text-enterprise-charcoal-400">
                               {user?.department || 'No department'}
                               {req.role && <span> · Role: {req.role}</span>}
                             </p>
                             {req.message && (
-                              <p className="text-xs text-enterprise-charcoal/60 mt-1 italic">"{req.message}"</p>
+                              <p className="text-xs text-enterprise-charcoal-500 mt-1 italic">"{req.message}"</p>
                             )}
                           </div>
                           <div className="flex gap-1">
@@ -716,15 +713,15 @@ function JoinRequestsModal({ innovationId, users, onClose }: { innovationId: str
 
               {processedRequests.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-xs font-medium text-enterprise-charcoal/50 uppercase tracking-wide">Processed ({processedRequests.length})</p>
+                  <p className="text-xs font-medium text-enterprise-charcoal-400 uppercase tracking-wide">Processed ({processedRequests.length})</p>
                   {processedRequests.slice(0, 10).map((req) => {
                     const user = userMap.get(req.user_id);
                     return (
-                      <div key={req.id} className="border border-enterprise-gray-border rounded-md p-3 opacity-60">
+                      <div key={req.id} className="border border-enterprise-gray-border rounded-enterprise p-3 opacity-60">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-sm font-medium text-enterprise-charcoal">{user?.name || 'Unknown'}</p>
-                            <p className="text-xs text-enterprise-charcoal/50">
+                            <p className="text-sm font-medium text-enterprise-charcoal-800">{user?.name || 'Unknown'}</p>
+                            <p className="text-xs text-enterprise-charcoal-400">
                               {req.role && <span>{req.role}</span>}
                             </p>
                           </div>
@@ -748,9 +745,9 @@ function JoinRequestsModal({ innovationId, users, onClose }: { innovationId: str
 function StatBlock({ icon, label, value }: { icon: React.ReactNode; label: string; value: number | string }) {
   return (
     <div className="flex flex-col items-center text-center">
-      <div className="text-enterprise-charcoal/40 mb-1">{icon}</div>
-      <div className="text-lg font-bold text-enterprise-charcoal">{value}</div>
-      <div className="text-xs text-enterprise-charcoal/50">{label}</div>
+      <div className="text-enterprise-charcoal-400 mb-1">{icon}</div>
+      <div className="text-lg font-bold text-enterprise-charcoal-900">{value}</div>
+      <div className="text-xs text-enterprise-charcoal-400">{label}</div>
     </div>
   );
 }
@@ -758,10 +755,10 @@ function StatBlock({ icon, label, value }: { icon: React.ReactNode; label: strin
 function DetailRow({ label, value, icon }: { label: string; value: string; icon?: React.ReactNode }) {
   return (
     <div>
-      <p className="text-xs font-medium text-enterprise-charcoal/50 uppercase tracking-wide mb-1 flex items-center gap-1">
+      <p className="text-xs font-medium text-enterprise-charcoal-400 uppercase tracking-wide mb-1 flex items-center gap-1">
         {icon} {label}
       </p>
-      <p className="text-sm text-enterprise-charcoal/70 leading-relaxed">{value}</p>
+      <p className="text-sm text-enterprise-charcoal-700 leading-relaxed">{value}</p>
     </div>
   );
 }
@@ -769,8 +766,8 @@ function DetailRow({ label, value, icon }: { label: string; value: string; icon?
 function MetaRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-enterprise-charcoal/50">{label}</span>
-      <span className="text-enterprise-charcoal font-medium capitalize">{value}</span>
+      <span className="text-enterprise-charcoal-400">{label}</span>
+      <span className="text-enterprise-charcoal-800 font-medium capitalize">{value}</span>
     </div>
   );
 }

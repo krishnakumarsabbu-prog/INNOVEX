@@ -145,12 +145,12 @@ export function NewIdeaPage() {
 
   return (
     <div>
-      <Link to="/ideas" className="flex items-center gap-1 text-sm text-enterprise-charcoal/60 hover:text-enterprise-charcoal mb-4">
+      <Link to="/ideas" className="flex items-center gap-1 text-sm text-enterprise-charcoal-500 hover:text-enterprise-red-700 mb-4 transition-colors">
         <ArrowLeft className="w-4 h-4" /> Back to Ideas
       </Link>
 
-      <h1 className="text-2xl font-bold text-enterprise-charcoal mb-1">Submit a New Idea</h1>
-      <p className="text-sm text-enterprise-charcoal/60 mb-6">Complete each step to submit your idea for review.</p>
+      <h1 className="text-xl font-bold text-enterprise-charcoal-900 mb-1">Submit a New Idea</h1>
+      <p className="text-sm text-enterprise-charcoal-500 mb-6">Complete each step to submit your idea for review.</p>
 
       {/* Step indicator */}
       <div className="flex items-center justify-between mb-8 max-w-3xl">
@@ -163,18 +163,18 @@ export function NewIdeaPage() {
               <div className="flex flex-col items-center">
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-                    isActive ? 'bg-enterprise-red text-white shadow-md' :
-                    isDone ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'
+                    isActive ? 'bg-enterprise-red-600 text-white shadow-enterprise-md' :
+                    isDone ? 'bg-enterprise-success-100 text-enterprise-success-700' : 'bg-enterprise-charcoal-100 text-enterprise-charcoal-400'
                   }`}
                 >
                   {isDone ? <Check className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
                 </div>
-                <span className={`text-xs mt-1 ${isActive ? 'text-enterprise-red font-medium' : 'text-gray-400'}`}>
+                <span className={`text-xs mt-1 ${isActive ? 'text-enterprise-red-700 font-medium' : 'text-enterprise-charcoal-400'}`}>
                   {s.label}
                 </span>
               </div>
               {idx < STEPS.length - 1 && (
-                <div className={`h-0.5 w-8 sm:w-16 mx-1 sm:mx-2 ${step > s.id ? 'bg-green-300' : 'bg-gray-200'}`} />
+                <div className={`h-0.5 w-8 sm:w-16 mx-1 sm:mx-2 ${step > s.id ? 'bg-enterprise-success-200' : 'bg-enterprise-gray-border'}`} />
               )}
             </div>
           );
@@ -183,7 +183,7 @@ export function NewIdeaPage() {
 
       <div className="card p-6 max-w-3xl">
         {submitError && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
+          <div className="mb-4 p-3 bg-enterprise-error-50 border border-enterprise-error-200 rounded-enterprise text-sm text-enterprise-error-700">
             {submitError}
           </div>
         )}
@@ -193,14 +193,14 @@ export function NewIdeaPage() {
           <div className="space-y-4">
             <h2 className="section-title">Step 1: Problem</h2>
             <div>
-              <label className="label">Title <span className="text-red-500">*</span></label>
+              <label className="label">Title <span className="text-enterprise-error-500">*</span></label>
               <input {...register('title')} className="input" placeholder="Enter a clear, concise title" />
-              {errors.title && <p className="text-xs text-red-600 mt-1">{errors.title.message}</p>}
+              {errors.title && <p className="text-xs text-enterprise-error-600 mt-1">{errors.title.message}</p>}
             </div>
             <div>
-              <label className="label">Problem Statement <span className="text-red-500">*</span></label>
+              <label className="label">Problem Statement <span className="text-enterprise-error-500">*</span></label>
               <textarea {...register('problem_statement')} className="input min-h-[120px]" placeholder="What problem does this idea solve? Who is affected?" />
-              {errors.problem_statement && <p className="text-xs text-red-600 mt-1">{errors.problem_statement.message}</p>}
+              {errors.problem_statement && <p className="text-xs text-enterprise-error-600 mt-1">{errors.problem_statement.message}</p>}
             </div>
             <div>
               <label className="label">Business Area</label>
@@ -214,9 +214,9 @@ export function NewIdeaPage() {
           <div className="space-y-4">
             <h2 className="section-title">Step 2: Solution</h2>
             <div>
-              <label className="label">Proposed Solution <span className="text-red-500">*</span></label>
+              <label className="label">Proposed Solution <span className="text-enterprise-error-500">*</span></label>
               <textarea {...register('proposed_solution')} className="input min-h-[120px]" placeholder="How do you propose to solve this problem?" />
-              {errors.proposed_solution && <p className="text-xs text-red-600 mt-1">{errors.proposed_solution.message}</p>}
+              {errors.proposed_solution && <p className="text-xs text-enterprise-error-600 mt-1">{errors.proposed_solution.message}</p>}
             </div>
             <div>
               <label className="label">Business Impact</label>
@@ -255,9 +255,9 @@ export function NewIdeaPage() {
               {technologies.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-3">
                   {technologies.map((t) => (
-                    <span key={t} className="badge bg-blue-100 text-blue-800 flex items-center gap-1">
+                    <span key={t} className="badge bg-enterprise-blue-100 text-enterprise-blue-700 flex items-center gap-1">
                       {t}
-                      <button type="button" onClick={() => removeTechnology(t)} className="ml-1 hover:text-red-600">
+                      <button type="button" onClick={() => removeTechnology(t)} className="ml-1 hover:text-enterprise-error-600">
                         <X className="w-3 h-3" />
                       </button>
                     </span>
@@ -292,12 +292,12 @@ export function NewIdeaPage() {
               <input {...register('estimated_duration')} className="input" placeholder="e.g. 3 months, 2 weeks" />
             </div>
             <div>
-              <label className="label">Founder <span className="text-red-500">*</span></label>
+              <label className="label">Founder <span className="text-enterprise-error-500">*</span></label>
               <select {...register('founder_id')} className="input">
                 <option value="">Select founder...</option>
                 {users?.map((u: User) => <option key={u.id} value={u.id}>{u.name} - {u.email}</option>)}
               </select>
-              {errors.founder_id && <p className="text-xs text-red-600 mt-1">{errors.founder_id.message}</p>}
+              {errors.founder_id && <p className="text-xs text-enterprise-error-600 mt-1">{errors.founder_id.message}</p>}
             </div>
           </div>
         )}
@@ -306,11 +306,11 @@ export function NewIdeaPage() {
         {step === 5 && (
           <div className="space-y-4">
             <h2 className="section-title">Step 5: Supporting Material</h2>
-            <p className="text-sm text-enterprise-charcoal/60">
+            <p className="text-sm text-enterprise-charcoal-500">
               Supporting evidence and documents can be added after the idea is created.
               Review your idea details on the next step before submitting.
             </p>
-            <div className="bg-enterprise-gray-warm rounded-md p-4 text-sm text-enterprise-charcoal/70">
+            <div className="bg-enterprise-gray-warm rounded-enterprise p-4 text-sm text-enterprise-charcoal-600">
               <p className="font-medium mb-1">What you can add later:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Links to documents, diagrams, or prototypes</li>
@@ -334,15 +334,15 @@ export function NewIdeaPage() {
               <ReviewField label="Expected Benefits" value={formValues.expected_benefits} multiline />
               <ReviewField label="Business Area" value={formValues.business_area} />
               <div>
-                <span className="text-sm font-medium text-enterprise-charcoal/70">Technologies</span>
+                <span className="text-sm font-medium text-enterprise-charcoal-600">Technologies</span>
                 {formValues.technologies.length > 0 ? (
                   <div className="flex flex-wrap gap-1 mt-1">
                     {formValues.technologies.map((t) => (
-                      <span key={t} className="badge bg-blue-100 text-blue-800">{t}</span>
+                      <span key={t} className="badge bg-enterprise-blue-100 text-enterprise-blue-700">{t}</span>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-enterprise-charcoal/40 mt-1">None specified</p>
+                  <p className="text-sm text-enterprise-charcoal-400 mt-1">None specified</p>
                 )}
               </div>
               <ReviewField label="Dependencies" value={formValues.dependencies} multiline />
@@ -360,7 +360,7 @@ export function NewIdeaPage() {
             <h2 className="section-title">Step 7: Submit</h2>
             {!createdIdeaId && (
               <>
-                <p className="text-sm text-enterprise-charcoal/70">
+                <p className="text-sm text-enterprise-charcoal-600">
                   Click "Create Draft" to save your idea as a draft. You can submit it for review after.
                 </p>
                 <button
@@ -374,11 +374,11 @@ export function NewIdeaPage() {
             )}
             {createdIdeaId && (
               <>
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-3">
-                  <Check className="w-8 h-8 text-green-600" />
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-enterprise-success-100 mb-3">
+                  <Check className="w-8 h-8 text-enterprise-success-600" />
                 </div>
-                <p className="text-lg font-semibold text-enterprise-charcoal">Draft Created Successfully</p>
-                <p className="text-sm text-enterprise-charcoal/60">
+                <p className="text-lg font-semibold text-enterprise-charcoal-900">Draft Created Successfully</p>
+                <p className="text-sm text-enterprise-charcoal-500">
                   Your idea has been saved as a draft. Submit it now for review, or keep it as a draft.
                 </p>
                 <div className="flex gap-2 justify-center mt-4">
@@ -421,11 +421,11 @@ export function NewIdeaPage() {
 function ReviewField({ label, value, multiline }: { label: string; value: string; multiline?: boolean }) {
   return (
     <div>
-      <span className="text-sm font-medium text-enterprise-charcoal/70">{label}</span>
+      <span className="text-sm font-medium text-enterprise-charcoal-600">{label}</span>
       {value ? (
-        <p className={`text-sm text-enterprise-charcoal mt-0.5 ${multiline ? 'whitespace-pre-wrap' : ''}`}>{value}</p>
+        <p className={`text-sm text-enterprise-charcoal-800 mt-0.5 ${multiline ? 'whitespace-pre-wrap' : ''}`}>{value}</p>
       ) : (
-        <p className="text-sm text-enterprise-charcoal/40 mt-0.5">Not specified</p>
+        <p className="text-sm text-enterprise-charcoal-400 mt-0.5">Not specified</p>
       )}
     </div>
   );

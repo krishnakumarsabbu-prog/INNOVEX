@@ -13,9 +13,9 @@ interface RecommendationState {
 }
 
 function confidenceColor(confidence: number): string {
-  if (confidence >= 0.8) return 'text-green-600 bg-green-50';
-  if (confidence >= 0.6) return 'text-amber-600 bg-amber-50';
-  return 'text-gray-500 bg-gray-50';
+  if (confidence >= 0.8) return 'text-enterprise-success-700 bg-enterprise-success-50';
+  if (confidence >= 0.6) return 'text-enterprise-warning-700 bg-enterprise-warning-50';
+  return 'text-enterprise-charcoal-500 bg-enterprise-gray-warm';
 }
 
 function confidenceLabel(confidence: number): string {
@@ -110,7 +110,7 @@ export function IntelligencePanel() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed right-0 top-1/2 -translate-y-1/2 z-40 bg-enterprise-charcoal text-white px-2 py-4 rounded-l-lg shadow-lg hover:bg-enterprise-charcoal/90 transition-colors flex flex-col items-center gap-1"
+          className="fixed right-0 top-1/2 -translate-y-1/2 z-40 bg-enterprise-charcoal-900 text-white px-2 py-4 rounded-l-enterprise shadow-enterprise-lg hover:bg-enterprise-charcoal-800 transition-colors flex flex-col items-center gap-1"
           aria-label="Open INNOVEX Intelligence"
         >
           <Sparkles className="w-4 h-4" />
@@ -123,11 +123,11 @@ export function IntelligencePanel() {
 
       {/* Panel */}
       {isOpen && (
-        <aside className="hidden lg:flex flex-col w-80 bg-white border-l border-enterprise-gray-border sticky top-14 self-start h-[calc(100vh-3.5rem)] overflow-hidden">
+        <aside className="hidden lg:flex flex-col w-80 bg-white border-l border-enterprise-gray-border sticky top-[3.5rem] self-start h-[calc(100vh-3.5rem)] overflow-hidden animate-slide-in-right">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 bg-enterprise-charcoal text-white">
+          <div className="flex items-center justify-between px-4 py-3 bg-enterprise-charcoal-900 text-white">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-enterprise-gold" />
+              <Sparkles className="w-4 h-4 text-enterprise-gold-400" />
               <div>
                 <h2 className="text-sm font-semibold tracking-wide">INNOVEX Intelligence</h2>
                 <p className="text-[10px] text-white/60">AI-assisted recommendations</p>
@@ -143,9 +143,9 @@ export function IntelligencePanel() {
           </div>
 
           {/* Governance notice */}
-          <div className="px-3 py-2 bg-amber-50 border-b border-amber-100 flex items-start gap-1.5">
-            <Info className="w-3 h-3 text-amber-600 mt-0.5 flex-shrink-0" />
-            <p className="text-[10px] text-amber-700 leading-snug">
+          <div className="px-3 py-2 bg-enterprise-warning-50 border-b border-enterprise-warning-100 flex items-start gap-1.5">
+            <Info className="w-3 h-3 text-enterprise-warning-600 mt-0.5 flex-shrink-0" />
+            <p className="text-[10px] text-enterprise-warning-700 leading-snug">
               Recommendations are advisory. All decisions require human approval.
             </p>
           </div>
@@ -157,11 +157,11 @@ export function IntelligencePanel() {
               <div className="p-3">
                 {capsLoading ? (
                   <div className="flex items-center justify-center py-8">
-                    <Loader2 className="w-5 h-5 text-enterprise-charcoal/30 animate-spin" />
+                    <Loader2 className="w-5 h-5 text-enterprise-charcoal-300 animate-spin" />
                   </div>
                 ) : capabilities && capabilities.length > 0 ? (
                   <>
-                    <p className="text-xs text-enterprise-charcoal/60 mb-3 px-1">
+                    <p className="text-xs text-enterprise-charcoal-500 mb-3 px-1">
                       Select an analysis to run for this {entityType}:
                     </p>
                     <div className="space-y-1.5">
@@ -169,23 +169,23 @@ export function IntelligencePanel() {
                         <button
                           key={cap.capability}
                           onClick={() => handleAnalyze(cap.capability)}
-                          className="w-full flex items-center justify-between px-3 py-2.5 rounded-md border border-enterprise-gray-border bg-white hover:border-enterprise-red/30 hover:bg-enterprise-gray-warm transition-all group"
+                          className="w-full flex items-center justify-between px-3 py-2.5 rounded-enterprise border border-enterprise-gray-border bg-white hover:border-enterprise-red-300 hover:bg-enterprise-gray-warm transition-all group"
                         >
                           <div className="flex items-center gap-2.5">
-                            <div className="w-7 h-7 rounded-md bg-enterprise-red/5 flex items-center justify-center group-hover:bg-enterprise-red/10 transition-colors">
-                              <Lightbulb className="w-3.5 h-3.5 text-enterprise-red" />
+                            <div className="w-7 h-7 rounded-enterprise bg-enterprise-red-50 flex items-center justify-center group-hover:bg-enterprise-red-100 transition-colors">
+                              <Lightbulb className="w-3.5 h-3.5 text-enterprise-red-600" />
                             </div>
-                            <span className="text-sm font-medium text-enterprise-charcoal">{cap.label}</span>
+                            <span className="text-sm font-medium text-enterprise-charcoal-800">{cap.label}</span>
                           </div>
-                          <ChevronRight className="w-4 h-4 text-enterprise-charcoal/30 group-hover:text-enterprise-red/50 transition-colors" />
+                          <ChevronRight className="w-4 h-4 text-enterprise-charcoal-300 group-hover:text-enterprise-red-400 transition-colors" />
                         </button>
                       ))}
                     </div>
                   </>
                 ) : (
                   <div className="text-center py-8 px-4">
-                    <Info className="w-6 h-6 text-enterprise-charcoal/20 mx-auto mb-2" />
-                    <p className="text-xs text-enterprise-charcoal/50">
+                    <Info className="w-6 h-6 text-enterprise-charcoal-300 mx-auto mb-2" />
+                    <p className="text-xs text-enterprise-charcoal-400">
                       No AI analysis available for this page.
                     </p>
                   </div>
@@ -198,20 +198,20 @@ export function IntelligencePanel() {
               <div className="p-3">
                 <button
                   onClick={() => setActiveCapability(null)}
-                  className="flex items-center gap-1 text-xs text-enterprise-charcoal/60 hover:text-enterprise-charcoal mb-3 transition-colors"
+                  className="flex items-center gap-1 text-xs text-enterprise-charcoal-500 hover:text-enterprise-charcoal-800 mb-3 transition-colors"
                 >
                   <ChevronRight className="w-3 h-3 rotate-180" />
                   Back to actions
                 </button>
 
-                <h3 className="text-sm font-semibold text-enterprise-charcoal mb-3 capitalize">
+                <h3 className="text-sm font-semibold text-enterprise-charcoal-800 mb-3 capitalize">
                   {activeCapability.replace(/_/g, ' ')}
                 </h3>
 
                 {isLoading ? (
                   <div className="flex flex-col items-center justify-center py-12">
-                    <Loader2 className="w-6 h-6 text-enterprise-red animate-spin mb-2" />
-                    <p className="text-xs text-enterprise-charcoal/50">Analyzing...</p>
+                    <Loader2 className="w-6 h-6 text-enterprise-red-600 animate-spin mb-2" />
+                    <p className="text-xs text-enterprise-charcoal-400">Analyzing...</p>
                   </div>
                 ) : recommendations.length > 0 ? (
                   <div className="space-y-3">
@@ -232,8 +232,8 @@ export function IntelligencePanel() {
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <AlertTriangle className="w-6 h-6 text-enterprise-charcoal/20 mx-auto mb-2" />
-                    <p className="text-xs text-enterprise-charcoal/50">No recommendations returned.</p>
+                    <AlertTriangle className="w-6 h-6 text-enterprise-charcoal-300 mx-auto mb-2" />
+                    <p className="text-xs text-enterprise-charcoal-400">No recommendations returned.</p>
                   </div>
                 )}
               </div>
@@ -242,7 +242,7 @@ export function IntelligencePanel() {
 
           {/* Footer */}
           <div className="px-3 py-2 border-t border-enterprise-gray-border bg-enterprise-gray-warm">
-            <p className="text-[10px] text-enterprise-charcoal/40 text-center">
+            <p className="text-[10px] text-enterprise-charcoal-400 text-center">
               INNOVEX Intelligence does not make decisions.
             </p>
           </div>
@@ -267,22 +267,22 @@ function RecommendationCard({
 }) {
   const stateStyles: Record<string, string> = {
     pending: '',
-    accepted: 'border-green-200 bg-green-50/50',
-    modified: 'border-blue-200 bg-blue-50/50',
-    dismissed: 'border-gray-200 bg-gray-50 opacity-60',
+    accepted: 'border-enterprise-success-200 bg-enterprise-success-50/50',
+    modified: 'border-enterprise-blue-200 bg-enterprise-blue-50/50',
+    dismissed: 'border-enterprise-gray-border bg-enterprise-gray-warm opacity-60',
   };
 
   const stateBadge: Record<string, { label: string; class: string }> = {
-    pending: { label: 'Pending', class: 'bg-gray-100 text-gray-500' },
-    accepted: { label: 'Accepted', class: 'bg-green-100 text-green-700' },
-    modified: { label: 'Modified', class: 'bg-blue-100 text-blue-700' },
-    dismissed: { label: 'Dismissed', class: 'bg-gray-100 text-gray-400' },
+    pending: { label: 'Pending', class: 'bg-enterprise-charcoal-100 text-enterprise-charcoal-500' },
+    accepted: { label: 'Accepted', class: 'bg-enterprise-success-100 text-enterprise-success-700' },
+    modified: { label: 'Modified', class: 'bg-enterprise-blue-100 text-enterprise-blue-700' },
+    dismissed: { label: 'Dismissed', class: 'bg-enterprise-charcoal-100 text-enterprise-charcoal-400' },
   };
 
   const badge = stateBadge[state] || stateBadge.pending;
 
   return (
-    <div className={`rounded-md border border-enterprise-gray-border p-3 transition-all ${stateStyles[state] || ''}`}>
+    <div className={`rounded-enterprise border border-enterprise-gray-border p-3 transition-all ${stateStyles[state] || ''}`}>
       {/* Confidence badge */}
       <div className="flex items-center justify-between mb-2">
         <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${confidenceColor(rec.confidence)}`}>
@@ -294,20 +294,20 @@ function RecommendationCard({
       </div>
 
       {/* Recommendation */}
-      <p className="text-sm text-enterprise-charcoal font-medium leading-snug mb-2">
+      <p className="text-sm text-enterprise-charcoal-800 font-medium leading-snug mb-2">
         {rec.recommendation}
       </p>
 
       {/* Reason */}
       <div className="mb-2">
-        <p className="text-[10px] font-semibold text-enterprise-charcoal/50 uppercase tracking-wide mb-0.5">Reason</p>
-        <p className="text-xs text-enterprise-charcoal/70 leading-relaxed">{rec.reason}</p>
+        <p className="text-[10px] font-semibold text-enterprise-charcoal-400 uppercase tracking-wide mb-0.5">Reason</p>
+        <p className="text-xs text-enterprise-charcoal-600 leading-relaxed">{rec.reason}</p>
       </div>
 
       {/* Evidence */}
       <div className="mb-2">
-        <p className="text-[10px] font-semibold text-enterprise-charcoal/50 uppercase tracking-wide mb-0.5">Evidence</p>
-        <p className="text-xs text-enterprise-charcoal/70 leading-relaxed">{rec.evidence}</p>
+        <p className="text-[10px] font-semibold text-enterprise-charcoal-400 uppercase tracking-wide mb-0.5">Evidence</p>
+        <p className="text-xs text-enterprise-charcoal-600 leading-relaxed">{rec.evidence}</p>
       </div>
 
       {/* Items */}
@@ -315,13 +315,13 @@ function RecommendationCard({
         <div className="mb-3 mt-2 pt-2 border-t border-enterprise-gray-border">
           <ul className="space-y-1">
             {rec.items.slice(0, 5).map((item, i) => (
-              <li key={i} className="text-xs text-enterprise-charcoal/60 flex items-start gap-1.5">
-                <span className="w-1 h-1 rounded-full bg-enterprise-red mt-1.5 flex-shrink-0" />
+              <li key={i} className="text-xs text-enterprise-charcoal-500 flex items-start gap-1.5">
+                <span className="w-1 h-1 rounded-full bg-enterprise-red-600 mt-1.5 flex-shrink-0" />
                 <span>{formatItem(item)}</span>
               </li>
             ))}
             {rec.items.length > 5 && (
-              <li className="text-[10px] text-enterprise-charcoal/40 pl-2.5">
+              <li className="text-[10px] text-enterprise-charcoal-400 pl-2.5">
                 +{rec.items.length - 5} more
               </li>
             )}
@@ -334,19 +334,19 @@ function RecommendationCard({
         <div className="flex items-center gap-1.5 mt-3 pt-2 border-t border-enterprise-gray-border">
           <button
             onClick={onAccept}
-            className="flex items-center gap-1 px-2 py-1 text-[11px] font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded transition-colors"
+            className="flex items-center gap-1 px-2 py-1 text-[11px] font-medium text-enterprise-success-700 bg-enterprise-success-50 hover:bg-enterprise-success-100 rounded-enterprise transition-colors"
           >
             <Check className="w-3 h-3" /> Accept
           </button>
           <button
             onClick={onModify}
-            className="flex items-center gap-1 px-2 py-1 text-[11px] font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded transition-colors"
+            className="flex items-center gap-1 px-2 py-1 text-[11px] font-medium text-enterprise-blue-700 bg-enterprise-blue-50 hover:bg-enterprise-blue-100 rounded-enterprise transition-colors"
           >
             <Edit3 className="w-3 h-3" /> Modify
           </button>
           <button
             onClick={onDismiss}
-            className="flex items-center gap-1 px-2 py-1 text-[11px] font-medium text-gray-500 bg-gray-50 hover:bg-gray-100 rounded transition-colors ml-auto"
+            className="flex items-center gap-1 px-2 py-1 text-[11px] font-medium text-enterprise-charcoal-500 bg-enterprise-gray-warm hover:bg-enterprise-gray-border rounded-enterprise transition-colors ml-auto"
           >
             <X className="w-3 h-3" /> Dismiss
           </button>
@@ -355,21 +355,21 @@ function RecommendationCard({
 
       {/* Accepted/Modified indicator */}
       {state === 'accepted' && (
-        <div className="flex items-center gap-1.5 mt-3 pt-2 border-t border-green-100">
-          <Check className="w-3 h-3 text-green-600" />
-          <span className="text-[11px] text-green-700 font-medium">Recommendation accepted</span>
+        <div className="flex items-center gap-1.5 mt-3 pt-2 border-t border-enterprise-success-100">
+          <Check className="w-3 h-3 text-enterprise-success-600" />
+          <span className="text-[11px] text-enterprise-success-700 font-medium">Recommendation accepted</span>
         </div>
       )}
       {state === 'modified' && (
-        <div className="flex items-center gap-1.5 mt-3 pt-2 border-t border-blue-100">
-          <Edit3 className="w-3 h-3 text-blue-600" />
-          <span className="text-[11px] text-blue-700 font-medium">Marked for modification</span>
+        <div className="flex items-center gap-1.5 mt-3 pt-2 border-t border-enterprise-blue-100">
+          <Edit3 className="w-3 h-3 text-enterprise-blue-600" />
+          <span className="text-[11px] text-enterprise-blue-700 font-medium">Marked for modification</span>
         </div>
       )}
       {state === 'dismissed' && (
-        <div className="flex items-center gap-1.5 mt-3 pt-2 border-t border-gray-100">
-          <X className="w-3 h-3 text-gray-400" />
-          <span className="text-[11px] text-gray-500 font-medium">Dismissed</span>
+        <div className="flex items-center gap-1.5 mt-3 pt-2 border-t border-enterprise-gray-border">
+          <X className="w-3 h-3 text-enterprise-charcoal-400" />
+          <span className="text-[11px] text-enterprise-charcoal-500 font-medium">Dismissed</span>
         </div>
       )}
     </div>

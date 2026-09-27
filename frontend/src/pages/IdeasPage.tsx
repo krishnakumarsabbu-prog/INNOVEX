@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { Lightbulb, Plus, Search, ArrowRight, ChevronLeft, ChevronRight, Filter, X } from 'lucide-react';
 import { ideaApi, userApi } from '../api/endpoints';
-import { PageHeader, EmptyState, Loading, ErrorState, StatusBadge } from '../components/ui';
+import { PageHeader, EmptyState, Loading, ErrorState, StatusBadge, SearchBar, FilterBar } from '../components/ui';
 import type { Idea, User } from '../types';
 
 const STATUS_OPTIONS = ['draft', 'submitted', 'under_review', 'validation', 'approved', 'parked', 'rejected'];
@@ -119,21 +119,14 @@ export function IdeasPage() {
 
       <div className="card p-4 mb-4">
         <form onSubmit={handleSearch} className="flex gap-2 mb-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-enterprise-charcoal/40" />
-            <input
-              type="text"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Search ideas by title, problem, solution, or business area..."
-              className="input pl-9"
-            />
+          <div className="flex-1">
+            <SearchBar value={searchInput} onChange={setSearchInput} placeholder="Search ideas by title, problem, solution, or business area..." />
           </div>
           <button type="submit" className="btn-primary">Search</button>
         </form>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-1 text-sm text-enterprise-charcoal/50">
+        <FilterBar>
+          <div className="flex items-center gap-1 text-sm text-enterprise-charcoal-500">
             <Filter className="w-4 h-4" /> Filters:
           </div>
           <select
@@ -180,7 +173,7 @@ export function IdeasPage() {
               <X className="w-3 h-3" /> Clear
             </button>
           )}
-        </div>
+        </FilterBar>
       </div>
 
       {isLoading && <Loading />}
@@ -188,9 +181,9 @@ export function IdeasPage() {
 
       {ideas && ideas.length === 0 && !hasFilters && (
         <EmptyState
-          icon={<Lightbulb className="w-8 h-8" />}
-          title="No ideas have been submitted yet."
-          message="Be the first to submit an idea and kick off the innovation pipeline."
+          icon={<Lightbulb className="w-7 h-7" />}
+          title="No Ideas Yet"
+          message="Turn an engineering problem into an innovation opportunity."
           action={
             <Link to="/ideas/new" className="btn-primary">
               <Plus className="w-4 h-4" /> Submit an Idea
@@ -201,7 +194,7 @@ export function IdeasPage() {
 
       {ideas && ideas.length === 0 && hasFilters && (
         <EmptyState
-          icon={<Search className="w-8 h-8" />}
+          icon={<Search className="w-7 h-7" />}
           title="No ideas match your filters"
           message="Try adjusting or clearing your filters to see more ideas."
           action={<button onClick={clearFilters} className="btn-secondary">Clear Filters</button>}
@@ -216,31 +209,31 @@ export function IdeasPage() {
               return (
                 <div
                   key={idea.id}
-                  className="card p-4 cursor-pointer hover:shadow-md transition-shadow"
+                  className="card-hover p-4 cursor-pointer animate-fade-in-up"
                   onClick={() => navigate(`/ideas/${idea.id}`)}
                 >
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-semibold text-enterprise-charcoal line-clamp-1">{idea.title}</h3>
+                  <div className="flex items-start justify-between mb-2 gap-2">
+                    <h3 className="font-semibold text-enterprise-charcoal-900 line-clamp-1 text-sm">{idea.title}</h3>
                     <StatusBadge status={idea.status} />
                   </div>
-                  <p className="text-sm text-enterprise-charcoal/60 line-clamp-2 mb-3">
+                  <p className="text-sm text-enterprise-charcoal-500 line-clamp-2 mb-3">
                     {idea.problem_statement || idea.proposed_solution || 'No description provided'}
                   </p>
                   {idea.technologies && idea.technologies.length > 0 && (
                     <div className="flex flex-wrap gap-1 mb-2">
                       {idea.technologies.slice(0, 3).map((t) => (
-                        <span key={t} className="badge bg-blue-50 text-blue-700 text-xs">{t}</span>
+                        <span key={t} className="badge bg-enterprise-blue-50 text-enterprise-blue-700 text-xs">{t}</span>
                       ))}
                       {idea.technologies.length > 3 && (
-                        <span className="badge bg-gray-100 text-gray-600 text-xs">+{idea.technologies.length - 3}</span>
+                        <span className="badge bg-enterprise-charcoal-100 text-enterprise-charcoal-500 text-xs">+{idea.technologies.length - 3}</span>
                       )}
                     </div>
                   )}
-                  <div className="flex items-center justify-between text-xs text-enterprise-charcoal/50">
+                  <div className="flex items-center justify-between text-xs text-enterprise-charcoal-400">
                     <span>{idea.business_area || 'No area'}</span>
                     <span>by {founder?.name || 'Unknown'}</span>
                   </div>
-                  <div className="mt-3 flex items-center text-xs text-enterprise-red font-medium">
+                  <div className="mt-3 pt-3 border-t border-enterprise-gray-border flex items-center text-xs text-enterprise-red-600 font-medium">
                     View details <ArrowRight className="w-3 h-3 ml-1" />
                   </div>
                 </div>
@@ -250,7 +243,7 @@ export function IdeasPage() {
 
           {totalPages > 1 && (
             <div className="flex items-center justify-between mt-6">
-              <p className="text-sm text-enterprise-charcoal/50">
+              <p className="text-sm text-enterprise-charcoal-400">
                 Showing {(currentPage - 1) * PAGE_SIZE + 1}-{Math.min(currentPage * PAGE_SIZE, sortedIdeas.length)} of {sortedIdeas.length}
               </p>
               <div className="flex items-center gap-2">
@@ -261,7 +254,7 @@ export function IdeasPage() {
                 >
                   <ChevronLeft className="w-4 h-4" /> Prev
                 </button>
-                <span className="text-sm text-enterprise-charcoal/70">
+                <span className="text-sm text-enterprise-charcoal-600">
                   Page {currentPage} of {totalPages}
                 </span>
                 <button

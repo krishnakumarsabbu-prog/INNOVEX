@@ -37,7 +37,7 @@ export function AdministrationPage() {
   const [activeSection, setActiveSection] = useState<SectionKey>('organizations');
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <PageHeader title="Administration & Governance" subtitle="Manage organizations, people, roles, taxonomy, policies, and audit trails" />
       <div className="flex gap-6">
         <nav className="w-56 flex-shrink-0">
@@ -46,10 +46,10 @@ export function AdministrationPage() {
               <button
                 key={s.key}
                 onClick={() => setActiveSection(s.key)}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium transition-colors text-left ${
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-enterprise text-sm font-medium transition-colors text-left ${
                   activeSection === s.key
-                    ? 'bg-enterprise-red text-white'
-                    : 'text-enterprise-charcoal/70 hover:bg-enterprise-gray-warm hover:text-enterprise-charcoal'
+                    ? 'bg-enterprise-red-600 text-white'
+                    : 'text-enterprise-charcoal-600 hover:bg-enterprise-gray-warm hover:text-enterprise-charcoal-800'
                 }`}
               >
                 {s.icon}
@@ -95,11 +95,11 @@ function OrganizationsSection() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold text-enterprise-charcoal">Organization Details</h2>
+      <h2 className="text-lg font-semibold text-enterprise-charcoal-800">Organization Details</h2>
       <div className="card p-5">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-sm text-enterprise-charcoal/50">Name</p>
+            <p className="text-sm text-enterprise-charcoal-500">Name</p>
             {editing ? (
               <div className="flex items-center gap-2 mt-1">
                 <input value={name} onChange={(e) => setName(e.target.value)} className="input-base" />
@@ -107,9 +107,9 @@ function OrganizationsSection() {
                 <button onClick={() => setEditing(false)} className="btn-ghost"><X className="w-4 h-4" /></button>
               </div>
             ) : (
-              <p className="text-lg font-semibold text-enterprise-charcoal mt-1">{org.name}</p>
+              <p className="text-lg font-semibold text-enterprise-charcoal-800 mt-1">{org.name}</p>
             )}
-            <p className="text-xs text-enterprise-charcoal/40 mt-2">Created: {new Date(org.created_at).toLocaleDateString()}</p>
+            <p className="text-xs text-enterprise-charcoal-400 mt-2">Created: {new Date(org.created_at).toLocaleDateString()}</p>
           </div>
           {!editing && (
             <button onClick={() => { setName(org.name); setEditing(true); }} className="btn-ghost text-sm">Edit</button>
@@ -131,27 +131,27 @@ function PeopleSection() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-enterprise-charcoal">People ({users.length})</h2>
+        <h2 className="text-lg font-semibold text-enterprise-charcoal-800">People ({users.length})</h2>
       </div>
       <div className="card overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-enterprise-gray-warm border-b border-enterprise-gray-border">
             <tr>
-              <th className="text-left px-4 py-2 font-semibold text-enterprise-charcoal/70">Name</th>
-              <th className="text-left px-4 py-2 font-semibold text-enterprise-charcoal/70">Email</th>
-              <th className="text-left px-4 py-2 font-semibold text-enterprise-charcoal/70">Role</th>
-              <th className="text-left px-4 py-2 font-semibold text-enterprise-charcoal/70">Title</th>
-              <th className="text-left px-4 py-2 font-semibold text-enterprise-charcoal/70">Department</th>
+              <th className="text-left px-4 py-2 font-semibold text-enterprise-charcoal-600">Name</th>
+              <th className="text-left px-4 py-2 font-semibold text-enterprise-charcoal-600">Email</th>
+              <th className="text-left px-4 py-2 font-semibold text-enterprise-charcoal-600">Role</th>
+              <th className="text-left px-4 py-2 font-semibold text-enterprise-charcoal-600">Title</th>
+              <th className="text-left px-4 py-2 font-semibold text-enterprise-charcoal-600">Department</th>
             </tr>
           </thead>
           <tbody>
             {users.map((u: User) => (
               <tr key={u.id} className="border-b border-enterprise-gray-border last:border-0 hover:bg-enterprise-gray-warm/50">
-                <td className="px-4 py-2.5 font-medium text-enterprise-charcoal">{u.name}</td>
-                <td className="px-4 py-2.5 text-enterprise-charcoal/60">{u.email}</td>
+                <td className="px-4 py-2.5 font-medium text-enterprise-charcoal-800">{u.name}</td>
+                <td className="px-4 py-2.5 text-enterprise-charcoal-500">{u.email}</td>
                 <td className="px-4 py-2.5"><StatusBadge status={u.role} /></td>
-                <td className="px-4 py-2.5 text-enterprise-charcoal/60">{u.title || '—'}</td>
-                <td className="px-4 py-2.5 text-enterprise-charcoal/60">{u.department || '—'}</td>
+                <td className="px-4 py-2.5 text-enterprise-charcoal-500">{u.title || '—'}</td>
+                <td className="px-4 py-2.5 text-enterprise-charcoal-500">{u.department || '—'}</td>
               </tr>
             ))}
           </tbody>
@@ -179,15 +179,15 @@ function RolesSection() {
 
   return (
     <div className="space-y-3">
-      <h2 className="text-lg font-semibold text-enterprise-charcoal">Platform Roles</h2>
+      <h2 className="text-lg font-semibold text-enterprise-charcoal-800">Platform Roles</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {roles.map((r: RoleDefinition) => (
           <div key={r.key} className="card p-4">
             <div className="flex items-center gap-2 mb-1">
-              <Shield className="w-4 h-4 text-enterprise-red" />
-              <span className="font-semibold text-enterprise-charcoal">{r.label}</span>
+              <Shield className="w-4 h-4 text-enterprise-red-600" />
+              <span className="font-semibold text-enterprise-charcoal-800">{r.label}</span>
             </div>
-            <p className="text-sm text-enterprise-charcoal/60">{roleDescriptions[r.key] || 'System role.'}</p>
+            <p className="text-sm text-enterprise-charcoal-500">{roleDescriptions[r.key] || 'System role.'}</p>
           </div>
         ))}
       </div>
@@ -210,13 +210,13 @@ function SkillsSection() {
 
   return (
     <div className="space-y-3">
-      <h2 className="text-lg font-semibold text-enterprise-charcoal">Skills Registry ({skills.length})</h2>
+      <h2 className="text-lg font-semibold text-enterprise-charcoal-800">Skills Registry ({skills.length})</h2>
       <div className="card p-4">
         <div className="flex flex-wrap gap-2">
           {skills.map(([skill, count]) => (
-            <div key={skill} className="flex items-center gap-2 bg-enterprise-gray-warm rounded-lg px-3 py-1.5">
-              <span className="text-sm font-medium text-enterprise-charcoal">{skill}</span>
-              <span className="text-xs text-enterprise-charcoal/50 bg-white rounded-full px-2 py-0.5">{count}</span>
+            <div key={skill} className="flex items-center gap-2 bg-enterprise-gray-warm rounded-enterprise px-3 py-1.5">
+              <span className="text-sm font-medium text-enterprise-charcoal-800">{skill}</span>
+              <span className="text-xs text-enterprise-charcoal-500 bg-white rounded-full px-2 py-0.5">{count}</span>
             </div>
           ))}
         </div>
@@ -255,18 +255,18 @@ function TechnologiesSection() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-enterprise-charcoal">Technology Taxonomy ({techs?.length || 0})</h2>
+        <h2 className="text-lg font-semibold text-enterprise-charcoal-800">Technology Taxonomy ({techs?.length || 0})</h2>
         <button onClick={() => setShowAdd(true)} className="btn-primary text-sm flex items-center gap-1.5"><Plus className="w-4 h-4" /> Add</button>
       </div>
       {Array.from(grouped.entries()).map(([category, items]) => (
         <div key={category} className="card p-4">
-          <h3 className="text-sm font-semibold text-enterprise-charcoal/70 mb-2">{category}</h3>
+          <h3 className="text-sm font-semibold text-enterprise-charcoal-600 mb-2">{category}</h3>
           <div className="flex flex-wrap gap-2">
             {items.map((t) => (
-              <div key={t.id} className="flex items-center gap-2 bg-enterprise-gray-warm rounded-lg px-3 py-1.5 group">
-                <span className="text-sm font-medium text-enterprise-charcoal">{t.name}</span>
-                {t.description && <span className="text-xs text-enterprise-charcoal/40">{t.description}</span>}
-                <button onClick={() => deleteMut.mutate(t.id)} className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 transition-opacity">
+              <div key={t.id} className="flex items-center gap-2 bg-enterprise-gray-warm rounded-enterprise px-3 py-1.5 group">
+                <span className="text-sm font-medium text-enterprise-charcoal-800">{t.name}</span>
+                {t.description && <span className="text-xs text-enterprise-charcoal-400">{t.description}</span>}
+                <button onClick={() => deleteMut.mutate(t.id)} className="opacity-0 group-hover:opacity-100 text-enterprise-error-500 hover:text-enterprise-error-700 transition-opacity">
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -312,7 +312,7 @@ function BusinessAreasSection() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-enterprise-charcoal">Business Areas ({areas?.length || 0})</h2>
+        <h2 className="text-lg font-semibold text-enterprise-charcoal-800">Business Areas ({areas?.length || 0})</h2>
         <button onClick={() => setShowAdd(true)} className="btn-primary text-sm flex items-center gap-1.5"><Plus className="w-4 h-4" /> Add</button>
       </div>
       {(areas || []).length === 0 ? (
@@ -323,10 +323,10 @@ function BusinessAreasSection() {
             <div key={a.id} className="card p-4 group">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="font-semibold text-enterprise-charcoal">{a.name}</p>
-                  {a.description && <p className="text-sm text-enterprise-charcoal/60 mt-1">{a.description}</p>}
+                  <p className="font-semibold text-enterprise-charcoal-800">{a.name}</p>
+                  {a.description && <p className="text-sm text-enterprise-charcoal-500 mt-1">{a.description}</p>}
                 </div>
-                <button onClick={() => deleteMut.mutate(a.id)} className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 transition-opacity">
+                <button onClick={() => deleteMut.mutate(a.id)} className="opacity-0 group-hover:opacity-100 text-enterprise-error-500 hover:text-enterprise-error-700 transition-opacity">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
@@ -374,7 +374,7 @@ function ReviewPanelsSection() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-enterprise-charcoal">Review Panels ({panels?.length || 0})</h2>
+        <h2 className="text-lg font-semibold text-enterprise-charcoal-800">Review Panels ({panels?.length || 0})</h2>
         <button onClick={() => setShowAdd(true)} className="btn-primary text-sm flex items-center gap-1.5"><Plus className="w-4 h-4" /> Add</button>
       </div>
       {(panels || []).length === 0 ? (
@@ -385,17 +385,17 @@ function ReviewPanelsSection() {
             <div key={p.id} className="card p-4 group">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <p className="font-semibold text-enterprise-charcoal">{p.name}</p>
-                  {p.description && <p className="text-sm text-enterprise-charcoal/60 mt-1">{p.description}</p>}
+                  <p className="font-semibold text-enterprise-charcoal-800">{p.name}</p>
+                  {p.description && <p className="text-sm text-enterprise-charcoal-500 mt-1">{p.description}</p>}
                   {p.member_ids.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       {p.member_ids.map((id) => (
-                        <span key={id} className="text-xs bg-enterprise-gray-warm rounded-full px-2.5 py-0.5 text-enterprise-charcoal/70">{userName(id)}</span>
+                        <span key={id} className="text-xs bg-enterprise-gray-warm rounded-full px-2.5 py-0.5 text-enterprise-charcoal-600">{userName(id)}</span>
                       ))}
                     </div>
                   )}
                 </div>
-                <button onClick={() => deleteMut.mutate(p.id)} className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 transition-opacity">
+                <button onClick={() => deleteMut.mutate(p.id)} className="opacity-0 group-hover:opacity-100 text-enterprise-error-500 hover:text-enterprise-error-700 transition-opacity">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
@@ -408,8 +408,8 @@ function ReviewPanelsSection() {
           <input placeholder="Panel name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input-base" />
           <input placeholder="Description (optional)" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="input-base" />
           <div>
-            <p className="text-sm font-medium text-enterprise-charcoal/70 mb-1.5">Members</p>
-            <div className="max-h-40 overflow-y-auto space-y-1.5 border border-enterprise-gray-border rounded-lg p-2">
+            <p className="text-sm font-medium text-enterprise-charcoal-600 mb-1.5">Members</p>
+            <div className="max-h-40 overflow-y-auto space-y-1.5 border border-enterprise-gray-border rounded-enterprise p-2">
               {(users || []).map((u) => (
                 <label key={u.id} className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -421,7 +421,7 @@ function ReviewPanelsSection() {
                     }}
                     className="rounded"
                   />
-                  <span className="text-sm text-enterprise-charcoal">{u.name} — {u.role}</span>
+                  <span className="text-sm text-enterprise-charcoal-800">{u.name} — {u.role}</span>
                 </label>
               ))}
             </div>
@@ -459,7 +459,7 @@ function WorkflowsSection() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-enterprise-charcoal">Workflows ({workflows?.length || 0})</h2>
+        <h2 className="text-lg font-semibold text-enterprise-charcoal-800">Workflows ({workflows?.length || 0})</h2>
         <button onClick={() => setShowAdd(true)} className="btn-primary text-sm flex items-center gap-1.5"><Plus className="w-4 h-4" /> Add</button>
       </div>
       {(workflows || []).length === 0 ? (
@@ -471,22 +471,22 @@ function WorkflowsSection() {
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="font-semibold text-enterprise-charcoal">{w.name}</p>
+                    <p className="font-semibold text-enterprise-charcoal-800">{w.name}</p>
                     {w.is_active && <StatusBadge status="active" />}
                   </div>
-                  {w.description && <p className="text-sm text-enterprise-charcoal/60 mt-1">{w.description}</p>}
+                  {w.description && <p className="text-sm text-enterprise-charcoal-500 mt-1">{w.description}</p>}
                   {w.stages.length > 0 && (
                     <div className="flex flex-wrap items-center gap-1 mt-2">
                       {w.stages.map((s, i) => (
                         <span key={i} className="flex items-center gap-1">
-                          <span className="text-xs bg-enterprise-gray-warm rounded px-2 py-0.5 text-enterprise-charcoal/70">{s}</span>
-                          {i < w.stages.length - 1 && <ChevronRight className="w-3 h-3 text-enterprise-charcoal/30" />}
+                          <span className="text-xs bg-enterprise-gray-warm rounded px-2 py-0.5 text-enterprise-charcoal-600">{s}</span>
+                          {i < w.stages.length - 1 && <ChevronRight className="w-3 h-3 text-enterprise-charcoal-400" />}
                         </span>
                       ))}
                     </div>
                   )}
                 </div>
-                <button onClick={() => deleteMut.mutate(w.id)} className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 transition-opacity">
+                <button onClick={() => deleteMut.mutate(w.id)} className="opacity-0 group-hover:opacity-100 text-enterprise-error-500 hover:text-enterprise-error-700 transition-opacity">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
@@ -526,20 +526,20 @@ function PoliciesSection() {
 
   return (
     <div className="space-y-3">
-      <h2 className="text-lg font-semibold text-enterprise-charcoal">Governance Policies</h2>
-      <p className="text-sm text-enterprise-charcoal/60">Policies are enforced by the backend. Update values below to change enforcement behavior.</p>
+      <h2 className="text-lg font-semibold text-enterprise-charcoal-800">Governance Policies</h2>
+      <p className="text-sm text-enterprise-charcoal-500">Policies are enforced by the backend. Update values below to change enforcement behavior.</p>
       <div className="space-y-2">
         {(policies || []).map((p: Policy) => (
           <div key={p.id} className="card p-4">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <Settings className="w-4 h-4 text-enterprise-red" />
-                  <p className="font-semibold text-enterprise-charcoal">{p.name}</p>
+                  <Settings className="w-4 h-4 text-enterprise-red-600" />
+                  <p className="font-semibold text-enterprise-charcoal-800">{p.name}</p>
                   {p.is_active ? <StatusBadge status="active" /> : <StatusBadge status="archived" />}
                 </div>
-                <p className="text-sm text-enterprise-charcoal/60 mt-1">{p.description}</p>
-                <p className="text-xs text-enterprise-charcoal/40 mt-1">Type: {p.policy_type}</p>
+                <p className="text-sm text-enterprise-charcoal-500 mt-1">{p.description}</p>
+                <p className="text-xs text-enterprise-charcoal-400 mt-1">Type: {p.policy_type}</p>
               </div>
               <div className="flex items-center gap-2">
                 <input
@@ -573,20 +573,20 @@ function NotificationsSection() {
 
   return (
     <div className="space-y-3">
-      <h2 className="text-lg font-semibold text-enterprise-charcoal">All Notifications ({notifs?.length || 0})</h2>
+      <h2 className="text-lg font-semibold text-enterprise-charcoal-800">All Notifications ({notifs?.length || 0})</h2>
       {(notifs || []).length === 0 ? (
         <EmptyState icon={<Bell className="w-8 h-8" />} title="No notifications" message="System notifications will appear here." />
       ) : (
         <div className="card overflow-hidden">
           <div className="max-h-[500px] overflow-y-auto">
             {(notifs || []).slice(0, 100).map((n: Notification) => (
-              <div key={n.id} className={`flex items-start gap-3 px-4 py-3 border-b border-enterprise-gray-border last:border-0 ${!n.read ? 'bg-blue-50/30' : ''}`}>
-                <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${n.read ? 'bg-gray-300' : 'bg-enterprise-red'}`} />
+              <div key={n.id} className={`flex items-start gap-3 px-4 py-3 border-b border-enterprise-gray-border last:border-0 ${!n.read ? 'bg-enterprise-blue-50/30' : ''}`}>
+                <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${n.read ? 'bg-enterprise-charcoal-300' : 'bg-enterprise-red-600'}`} />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-enterprise-charcoal">{n.message}</p>
-                  <p className="text-xs text-enterprise-charcoal/40 mt-0.5">{new Date(n.created_at).toLocaleString()}</p>
+                  <p className="text-sm text-enterprise-charcoal-800">{n.message}</p>
+                  <p className="text-xs text-enterprise-charcoal-400 mt-0.5">{new Date(n.created_at).toLocaleString()}</p>
                 </div>
-                {!n.read && <span className="text-xs text-enterprise-red font-medium">Unread</span>}
+                {!n.read && <span className="text-xs text-enterprise-red-600 font-medium">Unread</span>}
               </div>
             ))}
           </div>
@@ -614,19 +614,19 @@ function AuditSection() {
             <table className="w-full text-sm">
               <thead className="bg-enterprise-gray-warm border-b border-enterprise-gray-border sticky top-0">
                 <tr>
-                  <th className="text-left px-4 py-2 font-semibold text-enterprise-charcoal/70">Action</th>
-                  <th className="text-left px-4 py-2 font-semibold text-enterprise-charcoal/70">Entity</th>
-                  <th className="text-left px-4 py-2 font-semibold text-enterprise-charcoal/70">Details</th>
-                  <th className="text-left px-4 py-2 font-semibold text-enterprise-charcoal/70">Timestamp</th>
+                  <th className="text-left px-4 py-2 font-semibold text-enterprise-charcoal-600">Action</th>
+                  <th className="text-left px-4 py-2 font-semibold text-enterprise-charcoal-600">Entity</th>
+                  <th className="text-left px-4 py-2 font-semibold text-enterprise-charcoal-600">Details</th>
+                  <th className="text-left px-4 py-2 font-semibold text-enterprise-charcoal-600">Timestamp</th>
                 </tr>
               </thead>
               <tbody>
                 {(events || []).slice(0, 200).map((e: AuditEvent) => (
                   <tr key={e.id} className="border-b border-enterprise-gray-border last:border-0 hover:bg-enterprise-gray-warm/50">
                     <td className="px-4 py-2.5"><StatusBadge status={e.action.toLowerCase()} /></td>
-                    <td className="px-4 py-2.5 text-enterprise-charcoal/60">{e.entity_type}:{e.entity_id.slice(0, 8)}</td>
-                    <td className="px-4 py-2.5 text-enterprise-charcoal/60 max-w-md truncate">{e.details}</td>
-                    <td className="px-4 py-2.5 text-enterprise-charcoal/40 whitespace-nowrap">{new Date(e.created_at).toLocaleString()}</td>
+                    <td className="px-4 py-2.5 text-enterprise-charcoal-500">{e.entity_type}:{e.entity_id.slice(0, 8)}</td>
+                    <td className="px-4 py-2.5 text-enterprise-charcoal-500 max-w-md truncate">{e.details}</td>
+                    <td className="px-4 py-2.5 text-enterprise-charcoal-400 whitespace-nowrap">{new Date(e.created_at).toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>

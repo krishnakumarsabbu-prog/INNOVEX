@@ -67,7 +67,7 @@ export default function App() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-enterprise-gray-warm">
-        <div className="text-enterprise-charcoal text-lg">Loading INNOVEX...</div>
+        <div className="text-enterprise-charcoal-800 text-lg">Loading INNOVEX...</div>
       </div>
     );
   }

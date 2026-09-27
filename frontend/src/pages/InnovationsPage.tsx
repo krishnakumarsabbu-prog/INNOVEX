@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, Search, Filter, Users, Briefcase, ArrowRight, X, Cpu, Building2, Layers, UserCircle, Clock } from 'lucide-react';
 import { innovationApi } from '../api/endpoints';
-import { PageHeader, EmptyState, Loading, ErrorState, StatusBadge } from '../components/ui';
+import { PageHeader, EmptyState, Loading, ErrorState, StatusBadge, SearchBar } from '../components/ui';
 import type { MarketplaceInnovation } from '../types';
 
 const STAGE_OPTIONS = [
@@ -110,28 +110,21 @@ export function InnovationsPage() {
       <div className="card p-4 mb-4">
         <div className="flex flex-col gap-3">
           <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-enterprise-charcoal/40" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search innovations by title, problem, technology, or business area..."
-                className="input pl-9"
-              />
+            <div className="flex-1">
+              <SearchBar value={search} onChange={setSearch} placeholder="Search innovations by title, problem, technology, or business area..." />
               {search && (
-                <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-enterprise-charcoal/40 hover:text-enterprise-charcoal">
+                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-enterprise-charcoal-400 hover:text-enterprise-charcoal-700">
                   <X className="w-4 h-4" />
                 </button>
               )}
             </div>
             <button
-              className={`btn-secondary ${showFilters ? 'bg-enterprise-red/5 border-enterprise-red/30' : ''}`}
+              className={`btn-secondary ${showFilters ? 'bg-enterprise-red-50 border-enterprise-red-300' : ''}`}
               onClick={() => setShowFilters(!showFilters)}
             >
               <Filter className="w-4 h-4" /> Filters
               {activeFilterCount > 0 && (
-                <span className="ml-1 bg-enterprise-red text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                <span className="ml-1 bg-enterprise-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                   {activeFilterCount}
                 </span>
               )}
@@ -174,19 +167,19 @@ export function InnovationsPage() {
                 </select>
               </div>
               <div className="flex items-end gap-4">
-                <label className="flex items-center gap-2 text-sm text-enterprise-charcoal cursor-pointer">
+                <label className="flex items-center gap-2 text-sm text-enterprise-charcoal-700 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={openRolesOnly}
                     onChange={(e) => setOpenRolesOnly(e.target.checked)}
-                    className="rounded border-enterprise-gray-border text-enterprise-red focus:ring-enterprise-red/20"
+                    className="rounded border-enterprise-gray-border text-enterprise-red-600 focus:ring-enterprise-red-200"
                   />
                   Open Roles Only
                 </label>
               </div>
               {activeFilterCount > 0 && (
                 <div className="flex items-end">
-                  <button onClick={clearFilters} className="text-sm text-enterprise-red hover:underline flex items-center gap-1">
+                  <button onClick={clearFilters} className="text-sm text-enterprise-red-600 hover:underline flex items-center gap-1">
                     <X className="w-3 h-3" /> Clear all filters
                   </button>
                 </div>
@@ -196,7 +189,7 @@ export function InnovationsPage() {
         </div>
       </div>
 
-      <div className="mb-3 text-sm text-enterprise-charcoal/60">
+      <div className="mb-3 text-sm text-enterprise-charcoal-500">
         {filtered.length} innovation{filtered.length !== 1 ? 's' : ''} found
       </div>
 
@@ -205,15 +198,15 @@ export function InnovationsPage() {
 
       {innovations && innovations.length === 0 && (
         <EmptyState
-          icon={<Sparkles className="w-8 h-8" />}
-          title="No innovations yet"
-          message="Approved ideas are promoted to innovations to begin the engineering lifecycle."
+          icon={<Sparkles className="w-7 h-7" />}
+          title="No Open Innovations"
+          message="Approved innovations will appear here when they are opened for organization-wide participation."
         />
       )}
 
       {innovations && innovations.length > 0 && filtered.length === 0 && (
         <EmptyState
-          icon={<Filter className="w-8 h-8" />}
+          icon={<Filter className="w-7 h-7" />}
           title="No matching innovations"
           message="Try adjusting your filters to see more results."
           action={<button className="btn-secondary" onClick={clearFilters}>Clear filters</button>}
@@ -234,20 +227,20 @@ export function InnovationsPage() {
 function InnovationCard({ innovation, onClick }: { innovation: MarketplaceInnovation; onClick: () => void }) {
   const openRoles = innovation.open_roles.filter((r) => r.status === 'open');
   return (
-    <div className="card p-5 cursor-pointer hover:shadow-md transition-all duration-150 hover:border-enterprise-red/20 group" onClick={onClick}>
-      <div className="flex items-start justify-between mb-3">
-        <h3 className="font-semibold text-enterprise-charcoal line-clamp-2 group-hover:text-enterprise-red transition-colors">
+    <div className="card-hover p-5 cursor-pointer group animate-fade-in-up" onClick={onClick}>
+      <div className="flex items-start justify-between mb-3 gap-2">
+        <h3 className="font-semibold text-enterprise-charcoal-900 line-clamp-2 group-hover:text-enterprise-red-700 transition-colors text-sm">
           {innovation.title}
         </h3>
         <StatusBadge status={innovation.stage} />
       </div>
 
-      <p className="text-sm text-enterprise-charcoal/60 line-clamp-2 mb-3">
+      <p className="text-sm text-enterprise-charcoal-500 line-clamp-2 mb-3">
         {innovation.problem_statement || innovation.summary}
       </p>
 
       {innovation.business_area && (
-        <div className="flex items-center gap-1.5 text-xs text-enterprise-charcoal/50 mb-2">
+        <div className="flex items-center gap-1.5 text-xs text-enterprise-charcoal-500 mb-2">
           <Building2 className="w-3.5 h-3.5" />
           {innovation.business_area}
         </div>
@@ -256,19 +249,19 @@ function InnovationCard({ innovation, onClick }: { innovation: MarketplaceInnova
       {innovation.technologies.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mb-3">
           {innovation.technologies.slice(0, 4).map((tech) => (
-            <span key={tech} className="badge bg-enterprise-gray-warm text-enterprise-charcoal/70 text-xs">
+            <span key={tech} className="badge bg-enterprise-gray-warm text-enterprise-charcoal-600 text-xs">
               {tech}
             </span>
           ))}
           {innovation.technologies.length > 4 && (
-            <span className="text-xs text-enterprise-charcoal/40 self-center">
+            <span className="text-xs text-enterprise-charcoal-400 self-center">
               +{innovation.technologies.length - 4} more
             </span>
           )}
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-2 text-xs text-enterprise-charcoal/60 mb-3">
+      <div className="grid grid-cols-2 gap-2 text-xs text-enterprise-charcoal-500 mb-3">
         <div className="flex items-center gap-1.5">
           <UserCircle className="w-3.5 h-3.5" />
           <span className="truncate">{innovation.founder_name || 'Unassigned'}</span>
@@ -289,25 +282,22 @@ function InnovationCard({ innovation, onClick }: { innovation: MarketplaceInnova
 
       {innovation.team_progress > 0 && (
         <div className="mb-3">
-          <div className="flex items-center justify-between text-xs text-enterprise-charcoal/50 mb-1">
+          <div className="flex items-center justify-between text-xs text-enterprise-charcoal-500 mb-1">
             <span>Team Progress</span>
             <span>{innovation.team_progress}%</span>
           </div>
-          <div className="h-1.5 bg-enterprise-gray-warm rounded-full overflow-hidden">
-            <div
-              className="h-full bg-enterprise-red rounded-full transition-all duration-300"
-              style={{ width: `${innovation.team_progress}%` }}
-            />
+          <div className="progress-track">
+            <div className="progress-fill" style={{ width: `${innovation.team_progress}%` }} />
           </div>
         </div>
       )}
 
       <div className="flex items-center justify-between pt-3 border-t border-enterprise-gray-border">
-        <div className="flex items-center gap-1 text-xs text-enterprise-charcoal/40">
+        <div className="flex items-center gap-1 text-xs text-enterprise-charcoal-400">
           <Clock className="w-3 h-3" />
           {innovation.last_activity ? formatDate(innovation.last_activity) : 'No activity yet'}
         </div>
-        <div className="flex items-center text-xs text-enterprise-red font-medium group-hover:gap-2 transition-all">
+        <div className="flex items-center text-xs text-enterprise-red-600 font-medium group-hover:gap-2 transition-all">
           View details <ArrowRight className="w-3 h-3 ml-1" />
         </div>
       </div>

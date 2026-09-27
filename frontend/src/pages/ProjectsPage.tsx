@@ -25,7 +25,7 @@ export function ProjectsPage() {
   if (isError) return <ErrorState message="Failed to load projects" />;
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <PageHeader
         title="Projects"
         subtitle="Engineering projects tracking milestones and evidence"
@@ -39,17 +39,17 @@ export function ProjectsPage() {
       {projects && projects.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {projects.map((project) => (
-            <div key={project.id} className="card p-4 cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate(`/projects/${project.id}`)}>
+            <div key={project.id} className="card card-hover p-4 cursor-pointer transition-shadow" onClick={() => navigate(`/projects/${project.id}`)}>
               <div className="flex items-start justify-between mb-2">
-                <h3 className="font-semibold text-enterprise-charcoal line-clamp-1">{project.name}</h3>
+                <h3 className="font-semibold text-enterprise-charcoal-800 line-clamp-1">{project.name}</h3>
                 <StatusBadge status={project.status} />
               </div>
-              <p className="text-sm text-enterprise-charcoal/60 line-clamp-2 mb-3">{project.description || 'No description'}</p>
-              <div className="text-xs text-enterprise-charcoal/50">
+              <p className="text-sm text-enterprise-charcoal-500 line-clamp-2 mb-3">{project.description || 'No description'}</p>
+              <div className="text-xs text-enterprise-charcoal-400">
                 {project.team_id && <p>Team: {teamMap.get(project.team_id)?.name || 'Unknown'}</p>}
                 {project.innovation_id && <p>Innovation: {innovationMap.get(project.innovation_id)?.summary?.substring(0, 40) || 'Unknown'}</p>}
               </div>
-              <div className="mt-3 flex items-center text-xs text-enterprise-red font-medium">
+              <div className="mt-3 flex items-center text-xs text-enterprise-red-600 font-medium">
                 View Details <ArrowRight className="w-3 h-3 ml-1" />
               </div>
             </div>
@@ -85,7 +85,7 @@ function CreateProjectModal({ teams, innovations, onClose }: { teams: Team[]; in
         <div>
           <label className="label">Project Name</label>
           <input {...register('name', { required: 'Required' })} className="input" placeholder="Enter project name" />
-          {errors.name && <p className="text-xs text-red-600 mt-1">{errors.name.message as string}</p>}
+          {errors.name && <p className="text-xs text-enterprise-error-600 mt-1">{errors.name.message as string}</p>}
         </div>
         <div>
           <label className="label">Description</label>

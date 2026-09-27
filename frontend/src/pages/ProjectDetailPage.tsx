@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { projectApi, teamApi, innovationApi, userApi } from '../api/endpoints';
 import { useForm } from 'react-hook-form';
-import { Loading, ErrorState, StatusBadge, Modal, EmptyState } from '../components/ui';
+import { Loading, ErrorState, StatusBadge, Modal, EmptyState, PageHeader } from '../components/ui';
 import type { User, Team, WorkItem, Milestone, Evidence, Activity, Project } from '../types';
 
 const TABS = [
@@ -29,11 +29,11 @@ const TABS = [
 type TabKey = (typeof TABS)[number]['key'];
 
 const KANBAN_COLUMNS = [
-  { key: 'backlog', label: 'Backlog', color: 'border-t-gray-400' },
-  { key: 'ready', label: 'Ready', color: 'border-t-blue-400' },
-  { key: 'in_progress', label: 'In Progress', color: 'border-t-amber-400' },
-  { key: 'review', label: 'Review', color: 'border-t-purple-400' },
-  { key: 'done', label: 'Done', color: 'border-t-green-400' },
+  { key: 'backlog', label: 'Backlog', color: 'border-t-enterprise-charcoal-400' },
+  { key: 'ready', label: 'Ready', color: 'border-t-enterprise-blue-400' },
+  { key: 'in_progress', label: 'In Progress', color: 'border-t-enterprise-warning-400' },
+  { key: 'review', label: 'Review', color: 'border-t-enterprise-charcoal-400' },
+  { key: 'done', label: 'Done', color: 'border-t-enterprise-success-400' },
 ] as const;
 
 export function ProjectDetailPage() {
@@ -62,10 +62,10 @@ export function ProjectDetailPage() {
   if (isError || !project) return <ErrorState message="Failed to load project" />;
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <button
         onClick={() => navigate('/projects')}
-        className="flex items-center gap-1 text-sm text-enterprise-charcoal/60 hover:text-enterprise-charcoal mb-4 transition-colors"
+        className="flex items-center gap-1 text-sm text-enterprise-charcoal-500 hover:text-enterprise-charcoal-800 mb-4 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" /> Back to Projects
       </button>
@@ -77,13 +77,12 @@ export function ProjectDetailPage() {
             <div className="flex items-center gap-2 mb-2">
               <StatusBadge status={project.status} />
               {project.innovation_id && (
-                <span className="badge bg-enterprise-gray-warm text-enterprise-charcoal/60">
+                <span className="badge bg-enterprise-gray-warm text-enterprise-charcoal-500">
                   Linked Innovation
                 </span>
               )}
             </div>
-            <h1 className="text-2xl font-bold text-enterprise-charcoal">{project.name}</h1>
-            <p className="text-sm text-enterprise-charcoal/60 mt-1 max-w-3xl">{project.description || 'No description provided.'}</p>
+            <PageHeader title={project.name} subtitle={project.description || 'No description provided.'} />
           </div>
           <div className="flex gap-2">
             <button className="btn-secondary text-sm" onClick={() => setShowEditProject(true)}>
@@ -92,7 +91,7 @@ export function ProjectDetailPage() {
           </div>
         </div>
 
-        {/* Traceability Chain */}
+        {/* Traceability chain */}
         <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-enterprise-gray-border text-xs">
           <TraceabilityLink label="Idea" />
           <TraceabilityArrow />
@@ -122,8 +121,8 @@ export function ProjectDetailPage() {
                 onClick={() => setActiveTab(tab.key)}
                 className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
                   isActive
-                    ? 'border-enterprise-red text-enterprise-red bg-enterprise-red/5'
-                    : 'border-transparent text-enterprise-charcoal/60 hover:text-enterprise-charcoal hover:bg-gray-50'
+                    ? 'border-enterprise-red-600 text-enterprise-red-600 bg-enterprise-red-50'
+                    : 'border-transparent text-enterprise-charcoal-500 hover:text-enterprise-charcoal-800 hover:bg-enterprise-charcoal-50'
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -162,8 +161,8 @@ export function ProjectDetailPage() {
 function TraceabilityLink({ label, active = false }: { label: string; active?: boolean }) {
   return (
     <span
-      className={`px-2.5 py-1 rounded-md font-medium ${
-        active ? 'bg-enterprise-red/10 text-enterprise-red' : 'bg-gray-100 text-enterprise-charcoal/40'
+      className={`px-2.5 py-1 rounded-enterprise font-medium ${
+        active ? 'bg-enterprise-red-50 text-enterprise-red-600' : 'bg-enterprise-charcoal-100 text-enterprise-charcoal-400'
       }`}
     >
       {label}
@@ -172,7 +171,7 @@ function TraceabilityLink({ label, active = false }: { label: string; active?: b
 }
 
 function TraceabilityArrow() {
-  return <span className="text-enterprise-charcoal/30">→</span>;
+  return <span className="text-enterprise-charcoal-400">→</span>;
 }
 
 // ===================== Overview Tab =====================
@@ -208,13 +207,13 @@ function OverviewTab({ project, team, userMap }: { project: Project; team: Team 
 
       <div className="card p-5">
         <h3 className="section-title mb-3 text-lg">Project Progress</h3>
-        <div className="mb-2 flex items-center justify-between text-sm text-enterprise-charcoal/60">
+        <div className="mb-2 flex items-center justify-between text-sm text-enterprise-charcoal-500">
           <span>Milestone completion</span>
-          <span className="font-semibold text-enterprise-charcoal">{progress}%</span>
+          <span className="font-semibold text-enterprise-charcoal-800">{progress}%</span>
         </div>
-        <div className="h-3 bg-enterprise-gray-warm rounded-full overflow-hidden">
+        <div className="h-3 bg-enterprise-gray-warm rounded-enterprise overflow-hidden">
           <div
-            className="h-full bg-enterprise-red rounded-full transition-all duration-500"
+            className="h-full bg-enterprise-red-600 rounded-enterprise transition-all duration-500"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -239,12 +238,12 @@ function ProblemTab({ project }: { project: Project }) {
   return (
     <div className="card p-6">
       <h3 className="section-title mb-3 text-lg">Problem Statement</h3>
-      <p className="text-sm text-enterprise-charcoal/70 leading-relaxed mb-6">
+      <p className="text-sm text-enterprise-charcoal-700 leading-relaxed mb-6">
         {project.description || 'No problem statement has been defined for this project yet.'}
       </p>
       <div className="border-t border-enterprise-gray-border pt-4">
-        <h4 className="text-sm font-semibold text-enterprise-charcoal mb-2">Success Criteria</h4>
-        <p className="text-sm text-enterprise-charcoal/60">
+        <h4 className="text-sm font-semibold text-enterprise-charcoal-800 mb-2">Success Criteria</h4>
+        <p className="text-sm text-enterprise-charcoal-500">
           Success criteria will be defined as milestones and work items are created.
           Use the Milestones tab to track key deliverables and the Backlog tab to manage work items.
         </p>
@@ -260,22 +259,22 @@ function ArchitectureTab({ project }: { project: Project }) {
     <div className="space-y-4">
       <div className="card p-6">
         <h3 className="section-title mb-3 text-lg">Architecture Overview</h3>
-        <p className="text-sm text-enterprise-charcoal/70 leading-relaxed">
+        <p className="text-sm text-enterprise-charcoal-700 leading-relaxed">
           {project.description || 'No architecture documentation has been added yet.'}
         </p>
       </div>
       <div className="card p-6">
         <h3 className="section-title mb-3 text-lg">Technology Stack</h3>
         <div className="flex flex-wrap gap-2">
-          <span className="badge bg-enterprise-gray-warm text-enterprise-charcoal/70">React 19</span>
-          <span className="badge bg-enterprise-gray-warm text-enterprise-charcoal/70">TypeScript</span>
-          <span className="badge bg-enterprise-gray-warm text-enterprise-charcoal/70">FastAPI</span>
-          <span className="badge bg-enterprise-gray-warm text-enterprise-charcoal/70">Python 3.12+</span>
+          <span className="badge bg-enterprise-gray-warm text-enterprise-charcoal-700">React 19</span>
+          <span className="badge bg-enterprise-gray-warm text-enterprise-charcoal-700">TypeScript</span>
+          <span className="badge bg-enterprise-gray-warm text-enterprise-charcoal-700">FastAPI</span>
+          <span className="badge bg-enterprise-gray-warm text-enterprise-charcoal-700">Python 3.12+</span>
         </div>
       </div>
       <div className="card p-6">
         <h3 className="section-title mb-3 text-lg">Dependencies</h3>
-        <p className="text-sm text-enterprise-charcoal/60">
+        <p className="text-sm text-enterprise-charcoal-500">
           No external dependencies have been documented for this project.
         </p>
       </div>
@@ -308,13 +307,13 @@ function TeamTab({ project, team, userMap }: { project: Project; team: Team | nu
           <StatusBadge status="active" />
         </div>
         {lead && (
-          <div className="flex items-center gap-3 mb-4 border border-enterprise-gray-border rounded-md p-3">
-            <div className="w-10 h-10 rounded-full bg-enterprise-red/10 flex items-center justify-center text-enterprise-red font-medium">
+          <div className="flex items-center gap-3 mb-4 border border-enterprise-gray-border rounded-enterprise p-3">
+            <div className="w-10 h-10 rounded-full bg-enterprise-red-50 flex items-center justify-center text-enterprise-red-600 font-medium">
               {lead.name.charAt(0).toUpperCase()}
             </div>
             <div>
-              <p className="text-sm font-medium text-enterprise-charcoal">{lead.name}</p>
-              <p className="text-xs text-enterprise-charcoal/50">Team Lead · {lead.title || lead.department}</p>
+              <p className="text-sm font-medium text-enterprise-charcoal-800">{lead.name}</p>
+              <p className="text-xs text-enterprise-charcoal-400">Team Lead · {lead.title || lead.department}</p>
             </div>
           </div>
         )}
@@ -322,19 +321,19 @@ function TeamTab({ project, team, userMap }: { project: Project; team: Team | nu
           {team.member_ids.map((memberId) => {
             const member = userMap.get(memberId);
             return (
-              <div key={memberId} className="flex items-center gap-3 border border-enterprise-gray-border rounded-md p-3">
-                <div className="w-9 h-9 rounded-full bg-enterprise-red/10 flex items-center justify-center text-enterprise-red font-medium text-sm">
+              <div key={memberId} className="flex items-center gap-3 border border-enterprise-gray-border rounded-enterprise p-3">
+                <div className="w-9 h-9 rounded-full bg-enterprise-red-50 flex items-center justify-center text-enterprise-red-600 font-medium text-sm">
                   {member?.name.charAt(0).toUpperCase() || '?'}
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-enterprise-charcoal">{member?.name || 'Unknown'}</p>
-                  <p className="text-xs text-enterprise-charcoal/50">{member?.title || ''} {member?.department ? `· ${member.department}` : ''}</p>
+                  <p className="text-sm font-medium text-enterprise-charcoal-800">{member?.name || 'Unknown'}</p>
+                  <p className="text-xs text-enterprise-charcoal-400">{member?.title || ''} {member?.department ? `· ${member.department}` : ''}</p>
                 </div>
               </div>
             );
           })}
           {team.member_ids.length === 0 && (
-            <p className="text-sm text-enterprise-charcoal/50 text-center py-4">No team members assigned.</p>
+            <p className="text-sm text-enterprise-charcoal-400 text-center py-4">No team members assigned.</p>
           )}
         </div>
       </div>
@@ -395,15 +394,15 @@ function BacklogTab({ projectId, users }: { projectId: string; users: User[] }) 
           return (
             <div
               key={col.key}
-              className={`card border-t-4 ${col.color} ${dropTarget === col.key ? 'ring-2 ring-enterprise-red/30' : ''}`}
+              className={`card border-t-4 ${col.color} ${dropTarget === col.key ? 'ring-2 ring-enterprise-red-300' : ''}`}
               onDragOver={(e) => { e.preventDefault(); setDropTarget(col.key); }}
               onDragLeave={() => setDropTarget(null)}
               onDrop={() => handleDrop(col.key)}
             >
               <div className="px-3 py-2.5 border-b border-enterprise-gray-border">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-enterprise-charcoal">{col.label}</span>
-                  <span className="badge bg-enterprise-gray-warm text-enterprise-charcoal/60">{items.length}</span>
+                  <span className="text-sm font-semibold text-enterprise-charcoal-800">{col.label}</span>
+                  <span className="badge bg-enterprise-gray-warm text-enterprise-charcoal-500">{items.length}</span>
                 </div>
               </div>
               <div className="p-2 space-y-2 min-h-[100px]">
@@ -413,23 +412,23 @@ function BacklogTab({ projectId, users }: { projectId: string; users: User[] }) 
                     draggable
                     onDragStart={() => setDraggedItem(item.id)}
                     onDragEnd={() => { setDraggedItem(null); setDropTarget(null); }}
-                    className="border border-enterprise-gray-border rounded-md p-3 bg-white cursor-move hover:shadow-sm transition-shadow group"
+                    className="border border-enterprise-gray-border rounded-enterprise p-3 bg-white cursor-move hover:shadow-enterprise-md transition-shadow group"
                   >
                     <div className="flex items-start gap-2">
-                      <GripVertical className="w-3.5 h-3.5 text-enterprise-charcoal/20 mt-0.5 group-hover:text-enterprise-charcoal/40 transition-colors" />
+                      <GripVertical className="w-3.5 h-3.5 text-enterprise-charcoal-400 mt-0.5 group-hover:text-enterprise-charcoal-500 transition-colors" />
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-enterprise-charcoal">{item.title}</p>
+                        <p className="text-sm font-medium text-enterprise-charcoal-800">{item.title}</p>
                         {item.description && (
-                          <p className="text-xs text-enterprise-charcoal/60 mt-1 line-clamp-2">{item.description}</p>
+                          <p className="text-xs text-enterprise-charcoal-500 mt-1 line-clamp-2">{item.description}</p>
                         )}
                         <div className="flex items-center gap-2 mt-2">
                           {item.assignee_id && userMap.get(item.assignee_id) && (
-                            <div className="w-5 h-5 rounded-full bg-enterprise-red/10 flex items-center justify-center text-enterprise-red text-[10px] font-medium">
+                            <div className="w-5 h-5 rounded-full bg-enterprise-red-50 flex items-center justify-center text-enterprise-red-600 text-[10px] font-medium">
                               {userMap.get(item.assignee_id)!.name.charAt(0).toUpperCase()}
                             </div>
                           )}
                           {item.milestone_id && milestones?.find((m) => m.id === item.milestone_id) && (
-                            <span className="badge bg-blue-50 text-blue-700 text-[10px]">
+                            <span className="badge bg-enterprise-blue-50 text-enterprise-blue-700 text-[10px]">
                               {milestones.find((m) => m.id === item.milestone_id)!.title.substring(0, 20)}
                             </span>
                           )}
@@ -439,7 +438,7 @@ function BacklogTab({ projectId, users }: { projectId: string; users: User[] }) 
                   </div>
                 ))}
                 {items.length === 0 && (
-                  <p className="text-xs text-enterprise-charcoal/30 text-center py-6">Drop items here</p>
+                  <p className="text-xs text-enterprise-charcoal-400 text-center py-6">Drop items here</p>
                 )}
               </div>
             </div>
@@ -479,7 +478,7 @@ function CreateWorkItemModal({ projectId, milestones, users, onClose }: { projec
         <div>
           <label className="label">Title</label>
           <input {...register('title', { required: 'Required' })} className="input" placeholder="Work item title" />
-          {errors.title && <p className="text-xs text-red-600 mt-1">{errors.title.message as string}</p>}
+          {errors.title && <p className="text-xs text-enterprise-error-600 mt-1">{errors.title.message as string}</p>}
         </div>
         <div>
           <label className="label">Description</label>
@@ -527,23 +526,23 @@ function RepositoryTab({ project }: { project: Project }) {
     <div className="space-y-4">
       <div className="card p-6">
         <h3 className="section-title mb-3 text-lg flex items-center gap-2">
-          <GitBranch className="w-5 h-5 text-enterprise-red" /> Repository
+          <GitBranch className="w-5 h-5 text-enterprise-red-600" /> Repository
         </h3>
-        <p className="text-sm text-enterprise-charcoal/60 mb-4">
+        <p className="text-sm text-enterprise-charcoal-500 mb-4">
           Connect this project to a source code repository to track branches, commits, and pull requests.
         </p>
-        <div className="border border-dashed border-enterprise-gray-border rounded-md p-6 text-center">
-          <GitBranch className="w-8 h-8 text-enterprise-charcoal/20 mx-auto mb-2" />
-          <p className="text-sm text-enterprise-charcoal/50">No repository connected</p>
-          <p className="text-xs text-enterprise-charcoal/40 mt-1">Link a Git repository to track code changes alongside project milestones.</p>
+        <div className="border border-dashed border-enterprise-gray-border rounded-enterprise p-6 text-center">
+          <GitBranch className="w-8 h-8 text-enterprise-charcoal-400 mx-auto mb-2" />
+          <p className="text-sm text-enterprise-charcoal-500">No repository connected</p>
+          <p className="text-xs text-enterprise-charcoal-400 mt-1">Link a Git repository to track code changes alongside project milestones.</p>
         </div>
       </div>
       <div className="card p-5">
-        <h4 className="text-sm font-semibold text-enterprise-charcoal mb-3">Branch Strategy</h4>
-        <div className="space-y-2 text-sm text-enterprise-charcoal/60">
-          <p><span className="font-medium text-enterprise-charcoal">main</span> — Production-ready code</p>
-          <p><span className="font-medium text-enterprise-charcoal">develop</span> — Integration branch</p>
-          <p><span className="font-medium text-enterprise-charcoal">feature/*</span> — Feature branches per work item</p>
+        <h4 className="text-sm font-semibold text-enterprise-charcoal-800 mb-3">Branch Strategy</h4>
+        <div className="space-y-2 text-sm text-enterprise-charcoal-500">
+          <p><span className="font-medium text-enterprise-charcoal-800">main</span> — Production-ready code</p>
+          <p><span className="font-medium text-enterprise-charcoal-800">develop</span> — Integration branch</p>
+          <p><span className="font-medium text-enterprise-charcoal-800">feature/*</span> — Feature branches per work item</p>
         </div>
       </div>
     </div>
@@ -585,23 +584,23 @@ function MilestonesTab({ projectId }: { projectId: string }) {
           {milestones.map((m) => (
             <div key={m.id} className="card p-4">
               <div className="flex items-start gap-3">
-                {m.status === 'done' ? <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" /> :
-                 m.status === 'in_progress' ? <Clock className="w-5 h-5 text-blue-600 mt-0.5" /> :
-                 m.status === 'blocked' ? <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5" /> :
-                 <Circle className="w-5 h-5 text-gray-400 mt-0.5" />}
+                {m.status === 'done' ? <CheckCircle className="w-5 h-5 text-enterprise-success-600 mt-0.5" /> :
+                 m.status === 'in_progress' ? <Clock className="w-5 h-5 text-enterprise-blue-600 mt-0.5" /> :
+                 m.status === 'blocked' ? <AlertTriangle className="w-5 h-5 text-enterprise-error-600 mt-0.5" /> :
+                 <Circle className="w-5 h-5 text-enterprise-charcoal-400 mt-0.5" />}
                 <div className="flex-1">
                   <p className="text-sm font-medium text-enterprise-charcoal">{m.title}</p>
-                  {m.description && <p className="text-xs text-enterprise-charcoal/60 mt-1">{m.description}</p>}
+                  {m.description && <p className="text-xs text-enterprise-charcoal-500 mt-1">{m.description}</p>}
                   <div className="flex items-center gap-2 mt-2">
                     <StatusBadge status={m.status} />
-                    {m.due_date && <span className="text-xs text-enterprise-charcoal/50">Due: {new Date(m.due_date).toLocaleDateString()}</span>}
-                    {m.completed_at && <span className="text-xs text-green-600">Completed: {formatDate(m.completed_at)}</span>}
+                    {m.due_date && <span className="text-xs text-enterprise-charcoal-400">Due: {new Date(m.due_date).toLocaleDateString()}</span>}
+                    {m.completed_at && <span className="text-xs text-enterprise-success-600">Completed: {formatDate(m.completed_at)}</span>}
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
                   {m.status !== 'done' && (
                     <button
-                      className="text-xs text-enterprise-red hover:underline"
+                      className="text-xs text-enterprise-red-600 hover:underline"
                       onClick={() => patchMutation.mutate({ milestoneId: m.id, data: { status: 'done' } })}
                     >
                       Mark Done
@@ -643,7 +642,7 @@ function CreateMilestoneModal({ projectId, onClose }: { projectId: string; onClo
         <div>
           <label className="label">Title</label>
           <input {...register('title', { required: 'Required' })} className="input" placeholder="Milestone title" />
-          {errors.title && <p className="text-xs text-red-600 mt-1">{errors.title.message as string}</p>}
+          {errors.title && <p className="text-xs text-enterprise-error-600 mt-1">{errors.title.message as string}</p>}
         </div>
         <div>
           <label className="label">Description</label>
@@ -671,21 +670,21 @@ function RisksTab({ project }: { project: Project }) {
     <div className="space-y-4">
       <div className="card p-6">
         <h3 className="section-title mb-3 text-lg flex items-center gap-2">
-          <AlertTriangle className="w-5 h-5 text-enterprise-red" /> Risk Register
+          <AlertTriangle className="w-5 h-5 text-enterprise-red-600" /> Risk Register
         </h3>
-        <p className="text-sm text-enterprise-charcoal/60 mb-4">
+        <p className="text-sm text-enterprise-charcoal-500 mb-4">
           Track and manage project risks. Risks can be linked to milestones and work items.
         </p>
-        <div className="border border-dashed border-enterprise-gray-border rounded-md p-6 text-center">
-          <AlertTriangle className="w-8 h-8 text-enterprise-charcoal/20 mx-auto mb-2" />
-          <p className="text-sm text-enterprise-charcoal/50">No risks identified</p>
-          <p className="text-xs text-enterprise-charcoal/40 mt-1">Add risks as they are identified during the project lifecycle.</p>
+        <div className="border border-dashed border-enterprise-gray-border rounded-enterprise p-6 text-center">
+          <AlertTriangle className="w-8 h-8 text-enterprise-charcoal-400 mx-auto mb-2" />
+          <p className="text-sm text-enterprise-charcoal-500">No risks identified</p>
+          <p className="text-xs text-enterprise-charcoal-400 mt-1">Add risks as they are identified during the project lifecycle.</p>
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <RiskCard level="High" count={0} color="text-red-600" />
-        <RiskCard level="Medium" count={0} color="text-amber-600" />
-        <RiskCard level="Low" count={0} color="text-green-600" />
+        <RiskCard level="High" count={0} color="text-enterprise-error-600" />
+        <RiskCard level="Medium" count={0} color="text-enterprise-warning-600" />
+        <RiskCard level="Low" count={0} color="text-enterprise-success-600" />
       </div>
     </div>
   );
@@ -698,7 +697,7 @@ function RiskCard({ level, count, color }: { level: string; count: number; color
         <span className={`text-sm font-semibold ${color}`}>{level} Risk</span>
         <span className={`text-2xl font-bold ${color}`}>{count}</span>
       </div>
-      <p className="text-xs text-enterprise-charcoal/50">No {level.toLowerCase()} risks identified</p>
+      <p className="text-xs text-enterprise-charcoal-500">No {level.toLowerCase()} risks identified</p>
     </div>
   );
 }
@@ -710,7 +709,7 @@ function SecurityTab({ project }: { project: Project }) {
     <div className="space-y-4">
       <div className="card p-6">
         <h3 className="section-title mb-3 text-lg flex items-center gap-2">
-          <Shield className="w-5 h-5 text-enterprise-red" /> Security Posture
+          <Shield className="w-5 h-5 text-enterprise-red-600" /> Security Posture
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <SecurityCheckItem label="Security Review" status="pending" />
@@ -720,8 +719,8 @@ function SecurityTab({ project }: { project: Project }) {
         </div>
       </div>
       <div className="card p-5">
-        <h4 className="text-sm font-semibold text-enterprise-charcoal mb-2">Security Notes</h4>
-        <p className="text-sm text-enterprise-charcoal/60">
+        <h4 className="text-sm font-semibold text-enterprise-charcoal-800 mb-2">Security Notes</h4>
+        <p className="text-sm text-enterprise-charcoal-500">
           No security notes have been recorded. Security reviews should be completed before production deployment.
         </p>
       </div>
@@ -731,9 +730,9 @@ function SecurityTab({ project }: { project: Project }) {
 
 function SecurityCheckItem({ label, status }: { label: string; status: string }) {
   return (
-    <div className="flex items-center justify-between border border-enterprise-gray-border rounded-md p-3">
-      <span className="text-sm text-enterprise-charcoal">{label}</span>
-      <span className={`badge ${status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+    <div className="flex items-center justify-between border border-enterprise-gray-border rounded-enterprise p-3">
+      <span className="text-sm text-enterprise-charcoal-800">{label}</span>
+      <span className={`badge ${status === 'completed' ? 'bg-enterprise-success-100 text-enterprise-success-700' : 'bg-enterprise-charcoal-100 text-enterprise-charcoal-600'}`}>
         {status === 'completed' ? 'Completed' : 'Pending'}
       </span>
     </div>
@@ -770,18 +769,18 @@ function EvidenceTab({ projectId, users }: { projectId: string; users: User[]; }
           {evidence.map((e) => (
             <div key={e.id} className="card p-4">
               <div className="flex items-start gap-3">
-                <FileText className="w-5 h-5 text-enterprise-red mt-0.5" />
+                <FileText className="w-5 h-5 text-enterprise-red-600 mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-enterprise-charcoal">{e.title}</p>
-                  {e.description && <p className="text-xs text-enterprise-charcoal/60 mt-1">{e.description}</p>}
+                  <p className="text-sm font-medium text-enterprise-charcoal-800">{e.title}</p>
+                  {e.description && <p className="text-xs text-enterprise-charcoal-500 mt-1">{e.description}</p>}
                   <div className="flex items-center gap-2 mt-2">
-                    <span className="badge bg-gray-100 text-gray-700">{e.evidence_type}</span>
+                    <span className="badge bg-enterprise-charcoal-100 text-enterprise-charcoal-700">{e.evidence_type}</span>
                     {e.url && (
-                      <a href={e.url} target="_blank" rel="noreferrer" className="text-xs text-enterprise-red hover:underline">
+                      <a href={e.url} target="_blank" rel="noreferrer" className="text-xs text-enterprise-red-600 hover:underline">
                         View
                       </a>
                     )}
-                    <span className="text-xs text-enterprise-charcoal/50">
+                    <span className="text-xs text-enterprise-charcoal-500">
                       by {userMap.get(e.created_by)?.name || 'Unknown'}
                     </span>
                   </div>
@@ -823,7 +822,7 @@ function CreateEvidenceModal({ projectId, users, onClose }: { projectId: string;
         <div>
           <label className="label">Title</label>
           <input {...register('title', { required: 'Required' })} className="input" placeholder="Evidence title" />
-          {errors.title && <p className="text-xs text-red-600 mt-1">{errors.title.message as string}</p>}
+          {errors.title && <p className="text-xs text-enterprise-error-600 mt-1">{errors.title.message as string}</p>}
         </div>
         <div>
           <label className="label">Description</label>
@@ -849,7 +848,7 @@ function CreateEvidenceModal({ projectId, users, onClose }: { projectId: string;
             <option value="">Select user...</option>
             {users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
           </select>
-          {errors.created_by && <p className="text-xs text-red-600 mt-1">{errors.created_by.message as string}</p>}
+          {errors.created_by && <p className="text-xs text-enterprise-error-600 mt-1">{errors.created_by.message as string}</p>}
         </div>
         <div className="flex gap-2 justify-end">
           <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
@@ -881,7 +880,7 @@ function DemoTab({ projectId }: { projectId: string }) {
     <div className="space-y-4">
       <div className="card p-6">
         <h3 className="section-title mb-3 text-lg flex items-center gap-2">
-          <CheckCircle className="w-5 h-5 text-enterprise-red" /> Demo Readiness
+          <CheckCircle className="w-5 h-5 text-enterprise-red-600" /> Demo Readiness
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <DemoCheckItem label="Milestones Completed" value={`${doneMilestones.length}/${milestones?.length || 0}`} />
@@ -891,18 +890,18 @@ function DemoTab({ projectId }: { projectId: string }) {
       </div>
 
       <div className="card p-5">
-        <h4 className="text-sm font-semibold text-enterprise-charcoal mb-3">Demo Materials</h4>
+        <h4 className="text-sm font-semibold text-enterprise-charcoal-800 mb-3">Demo Materials</h4>
         {demoEvidence.length > 0 ? (
           <div className="space-y-2">
             {demoEvidence.map((e) => (
-              <div key={e.id} className="flex items-center gap-3 border border-enterprise-gray-border rounded-md p-3">
-                <FileText className="w-5 h-5 text-enterprise-red" />
+              <div key={e.id} className="flex items-center gap-3 border border-enterprise-gray-border rounded-enterprise p-3">
+                <FileText className="w-5 h-5 text-enterprise-red-600" />
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-enterprise-charcoal">{e.title}</p>
-                  {e.description && <p className="text-xs text-enterprise-charcoal/60 mt-1">{e.description}</p>}
+                  <p className="text-sm font-medium text-enterprise-charcoal-800">{e.title}</p>
+                  {e.description && <p className="text-xs text-enterprise-charcoal-500 mt-1">{e.description}</p>}
                 </div>
                 {e.url && (
-                  <a href={e.url} target="_blank" rel="noreferrer" className="text-xs text-enterprise-red hover:underline">
+                  <a href={e.url} target="_blank" rel="noreferrer" className="text-xs text-enterprise-red-600 hover:underline">
                     Open
                   </a>
                 )}
@@ -910,7 +909,7 @@ function DemoTab({ projectId }: { projectId: string }) {
             ))}
           </div>
         ) : (
-          <p className="text-sm text-enterprise-charcoal/50">No demo materials have been uploaded yet.</p>
+          <p className="text-sm text-enterprise-charcoal-500">No demo materials have been uploaded yet.</p>
         )}
       </div>
     </div>
@@ -919,9 +918,9 @@ function DemoTab({ projectId }: { projectId: string }) {
 
 function DemoCheckItem({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="border border-enterprise-gray-border rounded-md p-3 text-center">
-      <p className="text-2xl font-bold text-enterprise-charcoal">{value}</p>
-      <p className="text-xs text-enterprise-charcoal/50 mt-1">{label}</p>
+    <div className="border border-enterprise-gray-border rounded-enterprise p-3 text-center">
+      <p className="text-2xl font-bold text-enterprise-charcoal-800">{value}</p>
+      <p className="text-xs text-enterprise-charcoal-500 mt-1">{label}</p>
     </div>
   );
 }
@@ -939,18 +938,18 @@ function ActivityTab({ projectId }: { projectId: string }) {
   return (
     <div className="card p-5">
       <h3 className="section-title mb-4 text-lg flex items-center gap-2">
-        <ActivityIcon className="w-5 h-5 text-enterprise-red" /> Activity Feed
+        <ActivityIcon className="w-5 h-5 text-enterprise-red-600" /> Activity Feed
       </h3>
       {activities && activities.length > 0 ? (
         <div className="space-y-3">
           {activities.map((a) => (
-            <div key={a.id} className="flex items-start gap-3 border-l-2 border-enterprise-red/30 pl-3">
+            <div key={a.id} className="flex items-start gap-3 border-l-2 border-enterprise-red-300 pl-3">
               <div className="flex-1">
-                <p className="text-sm text-enterprise-charcoal">{a.description}</p>
+                <p className="text-sm text-enterprise-charcoal-800">{a.description}</p>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-xs text-enterprise-charcoal/40">{a.action.replace(/_/g, ' ')}</span>
-                  <span className="text-xs text-enterprise-charcoal/40">·</span>
-                  <span className="text-xs text-enterprise-charcoal/40">{formatDate(a.created_at)}</span>
+                  <span className="text-xs text-enterprise-charcoal-400">{a.action.replace(/_/g, ' ')}</span>
+                  <span className="text-xs text-enterprise-charcoal-400">·</span>
+                  <span className="text-xs text-enterprise-charcoal-400">{formatDate(a.created_at)}</span>
                 </div>
               </div>
             </div>
@@ -990,7 +989,7 @@ function EditProjectModal({ project, onClose }: { project: Project; onClose: () 
         <div>
           <label className="label">Project Name</label>
           <input {...register('name', { required: 'Required' })} className="input" />
-          {errors.name && <p className="text-xs text-red-600 mt-1">{errors.name.message as string}</p>}
+          {errors.name && <p className="text-xs text-enterprise-error-600 mt-1">{errors.name.message as string}</p>}
         </div>
         <div>
           <label className="label">Description</label>
@@ -1024,10 +1023,10 @@ function StatCard({ label, value, icon }: { label: string; value: string | numbe
   return (
     <div className="card p-4">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs text-enterprise-charcoal/50">{label}</span>
-        <span className="text-enterprise-red">{icon}</span>
+        <span className="text-xs text-enterprise-charcoal-500">{label}</span>
+        <span className="text-enterprise-red-600">{icon}</span>
       </div>
-      <p className="text-xl font-bold text-enterprise-charcoal">{value}</p>
+      <p className="text-xl font-bold text-enterprise-charcoal-800">{value}</p>
     </div>
   );
 }
@@ -1035,8 +1034,8 @@ function StatCard({ label, value, icon }: { label: string; value: string | numbe
 function DetailField({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-xs font-medium text-enterprise-charcoal/50 uppercase tracking-wide">{label}</p>
-      <p className="text-sm text-enterprise-charcoal mt-0.5 capitalize">{value}</p>
+      <p className="text-xs font-medium text-enterprise-charcoal-500 uppercase tracking-wide">{label}</p>
+      <p className="text-sm text-enterprise-charcoal-800 mt-0.5 capitalize">{value}</p>
     </div>
   );
 }

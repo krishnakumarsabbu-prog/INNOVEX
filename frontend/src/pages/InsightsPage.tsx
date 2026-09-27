@@ -24,15 +24,15 @@ const PIE_COLORS = [
 ];
 
 const METRIC_CONFIG = [
-  { key: 'ideas_submitted', label: 'Ideas Submitted', icon: <Lightbulb className="w-5 h-5" />, color: 'text-blue-600', bg: 'bg-blue-50' },
-  { key: 'under_review', label: 'Under Review', icon: <Eye className="w-5 h-5" />, color: 'text-amber-600', bg: 'bg-amber-50' },
-  { key: 'in_validation', label: 'In Validation', icon: <FlaskConical className="w-5 h-5" />, color: 'text-purple-600', bg: 'bg-purple-50' },
-  { key: 'approved', label: 'Approved', icon: <CheckCircle className="w-5 h-5" />, color: 'text-green-600', bg: 'bg-green-50' },
-  { key: 'team_forming', label: 'Team Formation', icon: <Users className="w-5 h-5" />, color: 'text-cyan-600', bg: 'bg-cyan-50' },
-  { key: 'building', label: 'Building', icon: <Hammer className="w-5 h-5" />, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-  { key: 'pocs_completed', label: 'POCs', icon: <Beaker className="w-5 h-5" />, color: 'text-orange-600', bg: 'bg-orange-50' },
-  { key: 'production_candidates', label: 'Production Candidates', icon: <Rocket className="w-5 h-5" />, color: 'text-teal-600', bg: 'bg-teal-50' },
-  { key: 'adopted', label: 'Adopted', icon: <TrendingUp className="w-5 h-5" />, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+  { key: 'ideas_submitted', label: 'Ideas Submitted', icon: <Lightbulb className="w-5 h-5" />, color: 'text-enterprise-blue-600', bg: 'bg-enterprise-blue-50' },
+  { key: 'under_review', label: 'Under Review', icon: <Eye className="w-5 h-5" />, color: 'text-enterprise-warning-600', bg: 'bg-enterprise-warning-50' },
+  { key: 'in_validation', label: 'In Validation', icon: <FlaskConical className="w-5 h-5" />, color: 'text-enterprise-blue-600', bg: 'bg-enterprise-blue-50' },
+  { key: 'approved', label: 'Approved', icon: <CheckCircle className="w-5 h-5" />, color: 'text-enterprise-success-600', bg: 'bg-enterprise-success-50' },
+  { key: 'team_forming', label: 'Team Formation', icon: <Users className="w-5 h-5" />, color: 'text-enterprise-blue-600', bg: 'bg-enterprise-blue-50' },
+  { key: 'building', label: 'Building', icon: <Hammer className="w-5 h-5" />, color: 'text-enterprise-blue-600', bg: 'bg-enterprise-blue-50' },
+  { key: 'pocs_completed', label: 'POCs', icon: <Beaker className="w-5 h-5" />, color: 'text-enterprise-warning-600', bg: 'bg-enterprise-warning-50' },
+  { key: 'production_candidates', label: 'Production Candidates', icon: <Rocket className="w-5 h-5" />, color: 'text-enterprise-success-600', bg: 'bg-enterprise-success-50' },
+  { key: 'adopted', label: 'Adopted', icon: <TrendingUp className="w-5 h-5" />, color: 'text-enterprise-success-600', bg: 'bg-enterprise-success-50' },
 ] as const;
 
 function ChartCard({ title, children, isEmpty, emptyMessage }: { title: string; children: React.ReactNode; isEmpty: boolean; emptyMessage: string }) {
@@ -41,8 +41,8 @@ function ChartCard({ title, children, isEmpty, emptyMessage }: { title: string; 
       <h2 className="section-title mb-4">{title}</h2>
       {isEmpty ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
-          <BarChart3 className="w-8 h-8 text-enterprise-charcoal/20 mb-2" />
-          <p className="text-sm text-enterprise-charcoal/40">{emptyMessage}</p>
+          <BarChart3 className="w-8 h-8 text-enterprise-charcoal-300 mb-2" />
+          <p className="text-sm text-enterprise-charcoal-400">{emptyMessage}</p>
         </div>
       ) : (
         children
@@ -91,7 +91,7 @@ export function InsightsPage() {
   const maxFunnelCount = Math.max(...funnelData.map((d) => d.count), 1);
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <PageHeader title="Leadership Insights" subtitle="Innovation Command Center - metrics from ideas to adoption" />
 
       {!hasData ? (
@@ -105,14 +105,14 @@ export function InsightsPage() {
           {/* 9 Metric Cards */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
             {METRIC_CONFIG.map((cfg) => (
-              <div key={cfg.key} className="card p-4 hover:shadow-md transition-shadow">
+              <div key={cfg.key} className="card p-4 hover:shadow-enterprise-md transition-shadow">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-medium text-enterprise-charcoal/60 uppercase tracking-wide">{cfg.label}</span>
-                  <span className={`p-1.5 rounded-md ${cfg.bg} ${cfg.color}`}>
+                  <span className="text-xs font-medium text-enterprise-charcoal-500 uppercase tracking-wide">{cfg.label}</span>
+                  <span className={`p-1.5 rounded-enterprise ${cfg.bg} ${cfg.color}`}>
                     {cfg.icon}
                   </span>
                 </div>
-                <div className="text-3xl font-bold text-enterprise-charcoal">{m[cfg.key]}</div>
+                <div className="text-3xl font-bold text-enterprise-charcoal-800">{m[cfg.key]}</div>
               </div>
             ))}
           </div>
@@ -122,8 +122,8 @@ export function InsightsPage() {
             <h2 className="section-title mb-4">Innovation Funnel</h2>
             {insights.innovation_funnel.every((s) => s.count === 0) ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <BarChart3 className="w-8 h-8 text-enterprise-charcoal/20 mb-2" />
-                <p className="text-sm text-enterprise-charcoal/40">No pipeline data yet. Ideas will flow through the funnel as they progress.</p>
+                <BarChart3 className="w-8 h-8 text-enterprise-charcoal-300 mb-2" />
+                <p className="text-sm text-enterprise-charcoal-400">No pipeline data yet. Ideas will flow through the funnel as they progress.</p>
               </div>
             ) : (
               <div className="space-y-2">
@@ -132,11 +132,11 @@ export function InsightsPage() {
                   const isLast = i === insights.innovation_funnel.length - 1;
                   return (
                     <div key={stage.stage} className="flex items-center gap-3">
-                      <span className="text-sm text-enterprise-charcoal/70 w-32 flex-shrink-0">{stage.label}</span>
+                      <span className="text-sm text-enterprise-charcoal-600 w-32 flex-shrink-0">{stage.label}</span>
                       <div className="flex-1 relative">
                         <div className="flex items-center">
                           <div
-                            className="h-9 rounded-md flex items-center px-3 transition-all duration-500"
+                            className="h-9 rounded-enterprise flex items-center px-3 transition-all duration-500"
                             style={{
                               width: `${Math.max(widthPercent, stage.count > 0 ? 8 : 0)}%`,
                               backgroundColor: FUNNEL_COLORS[i % FUNNEL_COLORS.length],
@@ -147,11 +147,11 @@ export function InsightsPage() {
                             )}
                           </div>
                           {stage.count === 0 && (
-                            <span className="text-xs text-enterprise-charcoal/30 ml-2">0</span>
+                            <span className="text-xs text-enterprise-charcoal-400 ml-2">0</span>
                           )}
                         </div>
                       </div>
-                      {!isLast && <ChevronRight className="w-4 h-4 text-enterprise-charcoal/20 flex-shrink-0" />}
+                      {!isLast && <ChevronRight className="w-4 h-4 text-enterprise-charcoal-300 flex-shrink-0" />}
                     </div>
                   );
                 })}
@@ -258,24 +258,24 @@ export function InsightsPage() {
               <h2 className="section-title mb-4">Adoption Summary</h2>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-enterprise-charcoal/70">Adoption Rate</span>
-                  <span className="text-lg font-bold text-emerald-600">{insights.adoption_metrics.adoption_rate}%</span>
+                  <span className="text-sm text-enterprise-charcoal-600">Adoption Rate</span>
+                  <span className="text-lg font-bold text-enterprise-success-600">{insights.adoption_metrics.adoption_rate}%</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-enterprise-charcoal/70">Adopted</span>
-                  <span className="text-lg font-bold text-enterprise-charcoal">{insights.adoption_metrics.adopted}</span>
+                  <span className="text-sm text-enterprise-charcoal-600">Adopted</span>
+                  <span className="text-lg font-bold text-enterprise-charcoal-800">{insights.adoption_metrics.adopted}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-enterprise-charcoal/70">Production Candidates</span>
-                  <span className="text-lg font-bold text-enterprise-charcoal">{insights.adoption_metrics.production_candidates}</span>
+                  <span className="text-sm text-enterprise-charcoal-600">Production Candidates</span>
+                  <span className="text-lg font-bold text-enterprise-charcoal-800">{insights.adoption_metrics.production_candidates}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-enterprise-charcoal/70">Demos</span>
-                  <span className="text-lg font-bold text-enterprise-charcoal">{insights.adoption_metrics.demos}</span>
+                  <span className="text-sm text-enterprise-charcoal-600">Demos</span>
+                  <span className="text-lg font-bold text-enterprise-charcoal-800">{insights.adoption_metrics.demos}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-enterprise-charcoal/70">POCs Completed</span>
-                  <span className="text-lg font-bold text-enterprise-charcoal">{insights.adoption_metrics.pocs_completed}</span>
+                  <span className="text-sm text-enterprise-charcoal-600">POCs Completed</span>
+                  <span className="text-lg font-bold text-enterprise-charcoal-800">{insights.adoption_metrics.pocs_completed}</span>
                 </div>
               </div>
             </div>
@@ -285,11 +285,11 @@ export function InsightsPage() {
               {insights.recent_activity.length > 0 ? (
                 <div className="space-y-2 max-h-80 overflow-y-auto">
                   {insights.recent_activity.map((activity) => (
-                    <div key={activity.id} className="flex items-start gap-3 p-2 rounded-md hover:bg-enterprise-gray-warm transition-colors">
-                      <div className="w-2 h-2 rounded-full bg-enterprise-red mt-1.5 flex-shrink-0" />
+                    <div key={activity.id} className="flex items-start gap-3 p-2 rounded-enterprise hover:bg-enterprise-gray-warm transition-colors">
+                      <div className="w-2 h-2 rounded-full bg-enterprise-red-600 mt-1.5 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-enterprise-charcoal">{activity.description}</p>
-                        <p className="text-xs text-enterprise-charcoal/40 mt-0.5">
+                        <p className="text-sm text-enterprise-charcoal-800">{activity.description}</p>
+                        <p className="text-xs text-enterprise-charcoal-400 mt-0.5">
                           {new Date(activity.created_at).toLocaleString()}
                         </p>
                       </div>
@@ -298,8 +298,8 @@ export function InsightsPage() {
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <ActivityIcon className="w-8 h-8 text-enterprise-charcoal/20 mb-2" />
-                  <p className="text-sm text-enterprise-charcoal/40">No recent activity.</p>
+                  <ActivityIcon className="w-8 h-8 text-enterprise-charcoal-300 mb-2" />
+                  <p className="text-sm text-enterprise-charcoal-400">No recent activity.</p>
                 </div>
               )}
             </div>

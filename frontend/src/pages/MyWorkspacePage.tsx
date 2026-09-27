@@ -14,7 +14,7 @@ export function MyWorkspacePage() {
   const hasAny = (ideas?.length || 0) > 0 || (projects?.length || 0) > 0 || (teams?.length || 0) > 0;
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <PageHeader title="My Workspace" subtitle="Your ideas, projects, and team assignments" />
 
       {!hasAny && (
@@ -32,17 +32,17 @@ export function MyWorkspacePage() {
             {ideas && ideas.length > 0 ? (
               <div className="space-y-2">
                 {ideas.map((idea) => (
-                  <div key={idea.id} className="flex items-center justify-between border border-enterprise-gray-border rounded-md p-3">
+                  <div key={idea.id} className="flex items-center justify-between border border-enterprise-gray-border rounded-enterprise p-3">
                     <div>
                       <p className="text-sm font-medium">{idea.title}</p>
-                      <p className="text-xs text-enterprise-charcoal/50">{idea.business_area || 'No area'}</p>
+                      <p className="text-xs text-enterprise-charcoal-400">{idea.business_area || 'No area'}</p>
                     </div>
                     <StatusBadge status={idea.status} />
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-enterprise-charcoal/50">No ideas submitted yet.</p>
+              <p className="text-sm text-enterprise-charcoal-400">No ideas submitted yet.</p>
             )}
           </div>
 
@@ -51,17 +51,17 @@ export function MyWorkspacePage() {
             {projects && projects.length > 0 ? (
               <div className="space-y-2">
                 {projects.map((project) => (
-                  <div key={project.id} className="flex items-center justify-between border border-enterprise-gray-border rounded-md p-3">
+                  <div key={project.id} className="flex items-center justify-between border border-enterprise-gray-border rounded-enterprise p-3">
                     <div>
                       <p className="text-sm font-medium">{project.name}</p>
-                      <p className="text-xs text-enterprise-charcoal/50">{project.description || 'No description'}</p>
+                      <p className="text-xs text-enterprise-charcoal-400">{project.description || 'No description'}</p>
                     </div>
                     <StatusBadge status={project.status} />
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-enterprise-charcoal/50">No projects assigned yet.</p>
+              <p className="text-sm text-enterprise-charcoal-400">No projects assigned yet.</p>
             )}
           </div>
 
@@ -70,14 +70,14 @@ export function MyWorkspacePage() {
             {teams && teams.length > 0 ? (
               <div className="space-y-2">
                 {teams.map((team) => (
-                  <div key={team.id} className="border border-enterprise-gray-border rounded-md p-3">
+                  <div key={team.id} className="border border-enterprise-gray-border rounded-enterprise p-3">
                     <p className="text-sm font-medium">{team.name}</p>
-                    <p className="text-xs text-enterprise-charcoal/50">{team.member_ids.length} members</p>
+                    <p className="text-xs text-enterprise-charcoal-400">{team.member_ids.length} members</p>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-enterprise-charcoal/50">No team memberships yet.</p>
+              <p className="text-sm text-enterprise-charcoal-400">No team memberships yet.</p>
             )}
           </div>
         </div>

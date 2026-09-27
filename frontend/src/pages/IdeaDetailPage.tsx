@@ -108,22 +108,22 @@ export function IdeaDetailPage() {
 
   return (
     <div>
-      <Link to="/ideas" className="flex items-center gap-1 text-sm text-enterprise-charcoal/60 hover:text-enterprise-charcoal mb-4">
+      <Link to="/ideas" className="flex items-center gap-1 text-sm text-enterprise-charcoal-500 hover:text-enterprise-red-700 mb-4 transition-colors">
         <ArrowLeft className="w-4 h-4" /> Back to Ideas
       </Link>
 
       {actionError && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700 flex items-center justify-between">
+        <div className="mb-4 p-3 bg-enterprise-error-50 border border-enterprise-error-200 rounded-enterprise text-sm text-enterprise-error-700 flex items-center justify-between">
           {actionError}
-          <button onClick={() => setActionError('')} className="text-red-400 hover:text-red-600">&times;</button>
+          <button onClick={() => setActionError('')} className="text-enterprise-error-400 hover:text-enterprise-error-600">&times;</button>
         </div>
       )}
 
-      <div className="card p-6 mb-4">
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-enterprise-charcoal">{idea.title}</h1>
-            <p className="text-sm text-enterprise-charcoal/50 mt-1">
+      <div className="card p-6 mb-4 animate-fade-in">
+        <div className="flex items-start justify-between mb-4 gap-4">
+          <div className="min-w-0">
+            <h1 className="text-xl font-bold text-enterprise-charcoal-900">{idea.title}</h1>
+            <p className="text-sm text-enterprise-charcoal-500 mt-1">
               Submitted by {founder?.name || 'Unknown'} on {new Date(idea.created_at).toLocaleDateString()}
             </p>
           </div>
@@ -148,16 +148,16 @@ export function IdeaDetailPage() {
           )}
           {idea.business_area && (
             <div className="flex items-center gap-3 pt-2 border-t border-enterprise-gray-border">
-              <span className="text-sm font-semibold text-enterprise-charcoal/70">Business Area:</span>
-              <span className="badge bg-blue-100 text-blue-800">{idea.business_area}</span>
+              <span className="text-sm font-semibold text-enterprise-charcoal-600">Business Area:</span>
+              <span className="badge bg-enterprise-blue-100 text-enterprise-blue-700">{idea.business_area}</span>
             </div>
           )}
           {idea.technologies && idea.technologies.length > 0 && (
             <div>
-              <h3 className="text-sm font-semibold text-enterprise-charcoal/70 mb-1">Technologies</h3>
+              <h3 className="text-sm font-semibold text-enterprise-charcoal-600 mb-1">Technologies</h3>
               <div className="flex flex-wrap gap-1">
                 {idea.technologies.map((t) => (
-                  <span key={t} className="badge bg-blue-50 text-blue-700">{t}</span>
+                  <span key={t} className="badge bg-enterprise-blue-50 text-enterprise-blue-700">{t}</span>
                 ))}
               </div>
             </div>
@@ -172,14 +172,14 @@ export function IdeaDetailPage() {
             <div className="grid grid-cols-2 gap-4 pt-2 border-t border-enterprise-gray-border">
               {idea.estimated_complexity && (
                 <div>
-                  <span className="text-sm font-semibold text-enterprise-charcoal/70">Complexity:</span>
-                  <p className="text-sm text-enterprise-charcoal">{idea.estimated_complexity}</p>
+                  <span className="text-sm font-semibold text-enterprise-charcoal-600">Complexity:</span>
+                  <p className="text-sm text-enterprise-charcoal-800">{idea.estimated_complexity}</p>
                 </div>
               )}
               {idea.estimated_duration && (
                 <div>
-                  <span className="text-sm font-semibold text-enterprise-charcoal/70">Duration:</span>
-                  <p className="text-sm text-enterprise-charcoal">{idea.estimated_duration}</p>
+                  <span className="text-sm font-semibold text-enterprise-charcoal-600">Duration:</span>
+                  <p className="text-sm text-enterprise-charcoal-800">{idea.estimated_duration}</p>
                 </div>
               )}
             </div>
@@ -245,16 +245,16 @@ export function IdeaDetailPage() {
         {/* Activity */}
         <div className="card p-5">
           <h2 className="section-title mb-4 flex items-center gap-2">
-            <ActivityIcon className="w-5 h-5 text-enterprise-charcoal/50" /> Activity
+            <ActivityIcon className="w-5 h-5 text-enterprise-charcoal-400" /> Activity
           </h2>
           {activities && activities.length > 0 ? (
-            <div className="space-y-2 max-h-64 overflow-y-auto">
+            <div className="space-y-1 max-h-64 overflow-y-auto">
               {activities.map((a) => (
-                <div key={a.id} className="flex items-start gap-3 p-2 rounded-md hover:bg-enterprise-gray-warm transition-colors">
-                  <div className="w-2 h-2 rounded-full bg-enterprise-red mt-1.5 flex-shrink-0" />
+                <div key={a.id} className="flex items-start gap-3 p-2 rounded-enterprise hover:bg-enterprise-gray-warm transition-colors">
+                  <div className="w-2 h-2 rounded-full bg-enterprise-red-600 mt-1.5 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-enterprise-charcoal">{a.description}</p>
-                    <p className="text-xs text-enterprise-charcoal/40 mt-0.5">
+                    <p className="text-sm text-enterprise-charcoal-700">{a.description}</p>
+                    <p className="text-xs text-enterprise-charcoal-400 mt-0.5">
                       {new Date(a.created_at).toLocaleString()}
                     </p>
                   </div>
@@ -270,7 +270,7 @@ export function IdeaDetailPage() {
         <div className="card p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="section-title flex items-center gap-2">
-              <FileText className="w-5 h-5 text-enterprise-charcoal/50" /> Evidence
+              <FileText className="w-5 h-5 text-enterprise-charcoal-400" /> Evidence
             </h2>
             <button className="btn-secondary text-sm" onClick={() => setShowEvidence(true)}>
               <Plus className="w-4 h-4" /> Add Evidence
@@ -279,13 +279,13 @@ export function IdeaDetailPage() {
           {evidence && evidence.length > 0 ? (
             <div className="space-y-2">
               {evidence.map((e) => (
-                <div key={e.id} className="border border-enterprise-gray-border rounded-md p-3">
+                <div key={e.id} className="border border-enterprise-gray-border rounded-enterprise p-3">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-medium">{e.title}</span>
-                    <span className="badge bg-gray-100 text-gray-600 text-xs">{e.evidence_type}</span>
+                    <span className="text-sm font-medium text-enterprise-charcoal-800">{e.title}</span>
+                    <span className="badge bg-enterprise-charcoal-100 text-enterprise-charcoal-500 text-xs">{e.evidence_type}</span>
                   </div>
-                  {e.description && <p className="text-sm text-enterprise-charcoal/70">{e.description}</p>}
-                  {e.url && <a href={e.url} target="_blank" rel="noopener noreferrer" className="text-xs text-enterprise-red hover:underline mt-1 inline-block">{e.url}</a>}
+                  {e.description && <p className="text-sm text-enterprise-charcoal-600">{e.description}</p>}
+                  {e.url && <a href={e.url} target="_blank" rel="noopener noreferrer" className="text-xs text-enterprise-red-600 hover:underline mt-1 inline-block">{e.url}</a>}
                 </div>
               ))}
             </div>
@@ -297,20 +297,20 @@ export function IdeaDetailPage() {
         {/* Reviews */}
         <div className="card p-5">
           <h2 className="section-title mb-4 flex items-center gap-2">
-            <MessageSquare className="w-5 h-5 text-enterprise-charcoal/50" /> Reviews
+            <MessageSquare className="w-5 h-5 text-enterprise-charcoal-400" /> Reviews
           </h2>
           {reviews && reviews.length > 0 ? (
             <div className="space-y-3">
               {reviews.map((review) => {
                 const reviewer = userMap.get(review.reviewer_id);
                 return (
-                  <div key={review.id} className="border border-enterprise-gray-border rounded-md p-3">
+                  <div key={review.id} className="border border-enterprise-gray-border rounded-enterprise p-3">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">{reviewer?.name || 'Unknown'}</span>
+                      <span className="text-sm font-medium text-enterprise-charcoal-800">{reviewer?.name || 'Unknown'}</span>
                       <StatusBadge status={review.decision} />
                     </div>
-                    {review.comments && <p className="text-sm text-enterprise-charcoal/70">{review.comments}</p>}
-                    <p className="text-xs text-enterprise-charcoal/40 mt-1">{new Date(review.created_at).toLocaleString()}</p>
+                    {review.comments && <p className="text-sm text-enterprise-charcoal-600">{review.comments}</p>}
+                    <p className="text-xs text-enterprise-charcoal-400 mt-1">{new Date(review.created_at).toLocaleString()}</p>
                   </div>
                 );
               })}
@@ -323,29 +323,29 @@ export function IdeaDetailPage() {
         {/* Validation Sprint */}
         <div className="card p-5">
           <h2 className="section-title mb-4 flex items-center gap-2">
-            <CheckCircle className="w-5 h-5 text-enterprise-charcoal/50" /> Validation Sprint
+            <CheckCircle className="w-5 h-5 text-enterprise-charcoal-400" /> Validation Sprint
           </h2>
           {validation ? (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-enterprise-charcoal/70">Status</span>
+                <span className="text-sm text-enterprise-charcoal-600">Status</span>
                 <StatusBadge status={validation.status} />
               </div>
               {validation.principal_engineer_id && (
                 <div>
-                  <span className="text-sm text-enterprise-charcoal/70">Principal Engineer</span>
-                  <p className="text-sm font-medium">{userMap.get(validation.principal_engineer_id)?.name || 'Unassigned'}</p>
+                  <span className="text-sm text-enterprise-charcoal-600">Principal Engineer</span>
+                  <p className="text-sm font-medium text-enterprise-charcoal-800">{userMap.get(validation.principal_engineer_id)?.name || 'Unassigned'}</p>
                 </div>
               )}
               {validation.manager_id && (
                 <div>
-                  <span className="text-sm text-enterprise-charcoal/70">Manager</span>
-                  <p className="text-sm font-medium">{userMap.get(validation.manager_id)?.name || 'Unassigned'}</p>
+                  <span className="text-sm text-enterprise-charcoal-600">Manager</span>
+                  <p className="text-sm font-medium text-enterprise-charcoal-800">{userMap.get(validation.manager_id)?.name || 'Unassigned'}</p>
                 </div>
               )}
               {validation.decision && (
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-enterprise-charcoal/70">Decision</span>
+                  <span className="text-sm text-enterprise-charcoal-600">Decision</span>
                   <StatusBadge status={validation.decision} />
                 </div>
               )}
@@ -372,8 +372,8 @@ export function IdeaDetailPage() {
 function DetailSection({ label, content }: { label: string; content: string }) {
   return (
     <div>
-      <h3 className="text-sm font-semibold text-enterprise-charcoal/70 mb-1">{label}</h3>
-      <p className="text-sm text-enterprise-charcoal whitespace-pre-wrap">{content}</p>
+      <h3 className="text-sm font-semibold text-enterprise-charcoal-600 mb-1">{label}</h3>
+      <p className="text-sm text-enterprise-charcoal-800 whitespace-pre-wrap">{content}</p>
     </div>
   );
 }
@@ -403,7 +403,7 @@ function ReviewModal({ ideaId, users, onClose }: { ideaId: string; users: User[]
             <option value="">Select reviewer...</option>
             {users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
           </select>
-          {errors.reviewer_id && <p className="text-xs text-red-600 mt-1">{errors.reviewer_id.message as string}</p>}
+          {errors.reviewer_id && <p className="text-xs text-enterprise-error-600 mt-1">{errors.reviewer_id.message as string}</p>}
         </div>
         <div>
           <label className="label">Decision</label>
@@ -449,9 +449,9 @@ function EvidenceModal({ ideaId, users, onClose }: { ideaId: string; users: User
     <Modal open={true} onClose={onClose} title="Add Evidence">
       <form onSubmit={handleSubmit((data) => mutation.mutate(data))} className="space-y-4">
         <div>
-          <label className="label">Title <span className="text-red-500">*</span></label>
+          <label className="label">Title <span className="text-enterprise-error-500">*</span></label>
           <input {...register('title', { required: 'Title is required' })} className="input" placeholder="Evidence title" />
-          {errors.title && <p className="text-xs text-red-600 mt-1">{errors.title.message as string}</p>}
+          {errors.title && <p className="text-xs text-enterprise-error-600 mt-1">{errors.title.message as string}</p>}
         </div>
         <div>
           <label className="label">Description</label>
@@ -472,12 +472,12 @@ function EvidenceModal({ ideaId, users, onClose }: { ideaId: string; users: User
           <input {...register('url')} className="input" placeholder="https://..." />
         </div>
         <div>
-          <label className="label">Added By <span className="text-red-500">*</span></label>
+          <label className="label">Added By <span className="text-enterprise-error-500">*</span></label>
           <select {...register('created_by', { required: 'Required' })} className="input">
             <option value="">Select user...</option>
             {users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
           </select>
-          {errors.created_by && <p className="text-xs text-red-600 mt-1">{errors.created_by.message as string}</p>}
+          {errors.created_by && <p className="text-xs text-enterprise-error-600 mt-1">{errors.created_by.message as string}</p>}
         </div>
         <div className="flex gap-2 justify-end">
           <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>

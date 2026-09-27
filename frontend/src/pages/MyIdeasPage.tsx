@@ -24,7 +24,7 @@ export function MyIdeasPage() {
   users?.forEach((u) => userMap.set(u.id, u));
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <PageHeader
         title="My Ideas"
         subtitle="Ideas you have submitted and are working on"
@@ -37,7 +37,7 @@ export function MyIdeasPage() {
 
       {!founderId && (
         <div className="card p-6">
-          <p className="text-sm text-enterprise-charcoal/70 mb-3">Select your name to see your ideas:</p>
+          <p className="text-sm text-enterprise-charcoal-600 mb-3">Select your name to see your ideas:</p>
           <div className="flex flex-wrap gap-2">
             {users?.map((u) => (
               <Link
@@ -71,10 +71,10 @@ export function MyIdeasPage() {
       {founderId && ideas && ideas.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-enterprise-charcoal/60">
+            <p className="text-sm text-enterprise-charcoal-500">
               {ideas.length} idea{ideas.length !== 1 ? 's' : ''}
             </p>
-            <Link to="/ideas" className="text-sm text-enterprise-red hover:underline">
+            <Link to="/ideas" className="text-sm text-enterprise-red-600 hover:underline">
               View all ideas
             </Link>
           </div>
@@ -82,19 +82,19 @@ export function MyIdeasPage() {
             <Link
               key={idea.id}
               to={`/ideas/${idea.id}`}
-              className="card p-4 flex items-center justify-between hover:shadow-md transition-shadow block"
+              className="card card-hover p-4 flex items-center justify-between transition-shadow block"
             >
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-enterprise-charcoal line-clamp-1">{idea.title}</h3>
-                <p className="text-sm text-enterprise-charcoal/60 line-clamp-1 mt-1">
+                <h3 className="font-semibold text-enterprise-charcoal-800 line-clamp-1">{idea.title}</h3>
+                <p className="text-sm text-enterprise-charcoal-500 line-clamp-1 mt-1">
                   {idea.problem_statement || 'No problem statement'}
                 </p>
                 <div className="flex items-center gap-2 mt-2">
                   {idea.business_area && (
-                    <span className="badge bg-blue-50 text-blue-700 text-xs">{idea.business_area}</span>
+                    <span className="badge bg-enterprise-blue-50 text-enterprise-blue-700 text-xs">{idea.business_area}</span>
                   )}
                   {idea.technologies && idea.technologies.length > 0 && (
-                    <span className="text-xs text-enterprise-charcoal/50">
+                    <span className="text-xs text-enterprise-charcoal-400">
                       {idea.technologies.length} tech{idea.technologies.length !== 1 ? 's' : ''}
                     </span>
                   )}
@@ -102,7 +102,7 @@ export function MyIdeasPage() {
               </div>
               <div className="flex items-center gap-3 ml-4">
                 <StatusBadge status={idea.status} />
-                <ArrowRight className="w-4 h-4 text-enterprise-charcoal/30" />
+                <ArrowRight className="w-4 h-4 text-enterprise-charcoal-300" />
               </div>
             </Link>
           ))}

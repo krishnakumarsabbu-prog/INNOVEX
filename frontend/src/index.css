@@ -5,44 +5,208 @@
 @layer base {
   body {
     @apply bg-enterprise-gray-warm text-enterprise-charcoal font-sans antialiased;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-enterprise-charcoal;
+    letter-spacing: -0.01em;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-enterprise-gray-border-dark rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-enterprise-charcoal-300;
+  }
+
+  /* Focus visible */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-enterprise-red-400 ring-offset-1 ring-offset-white;
   }
 }
 
 @layer components {
+  /* ---- Buttons ---- */
   .btn {
-    @apply inline-flex items-center gap-2 px-4 py-2 rounded-md font-medium text-sm transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-enterprise font-medium text-sm transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
   }
   .btn-primary {
-    @apply btn bg-enterprise-red text-white hover:bg-enterprise-red-dark;
+    @apply btn bg-enterprise-red-600 text-white hover:bg-enterprise-red-700 active:bg-enterprise-red-800;
+    box-shadow: 0 1px 2px 0 rgba(179, 25, 37, 0.2);
+  }
+  .btn-primary:hover {
+    box-shadow: 0 2px 4px 0 rgba(179, 25, 37, 0.3);
   }
   .btn-secondary {
-    @apply btn bg-white text-enterprise-charcoal border border-enterprise-gray-border hover:bg-gray-50;
+    @apply btn bg-white text-enterprise-charcoal-700 border border-enterprise-gray-border hover:bg-enterprise-gray-warm hover:border-enterprise-gray-border-dark;
   }
   .btn-gold {
-    @apply btn bg-enterprise-gold text-enterprise-charcoal hover:bg-enterprise-gold-dark;
+    @apply btn bg-enterprise-gold-400 text-enterprise-charcoal-900 hover:bg-enterprise-gold-500 font-semibold;
   }
+  .btn-ghost {
+    @apply btn bg-transparent text-enterprise-charcoal-600 hover:bg-enterprise-gray-warm hover:text-enterprise-charcoal;
+  }
+  .btn-danger {
+    @apply btn bg-enterprise-error-600 text-white hover:bg-enterprise-error-700;
+  }
+
+  /* ---- Cards ---- */
   .card {
-    @apply bg-white border border-enterprise-gray-border rounded-lg shadow-sm;
+    @apply bg-white border border-enterprise-gray-border rounded-enterprise shadow-enterprise;
   }
+  .card-hover {
+    @apply card hover:shadow-enterprise-md hover:border-enterprise-gray-border-dark transition-all duration-150;
+  }
+
+  /* ---- Inputs ---- */
   .input {
-    @apply w-full px-3 py-2 border border-enterprise-gray-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-enterprise-red/20 focus:border-enterprise-red transition-colors;
+    @apply w-full px-3 py-2 bg-white border border-enterprise-gray-border rounded-enterprise text-sm text-enterprise-charcoal placeholder:text-enterprise-charcoal-400 focus:outline-none focus:ring-2 focus:ring-enterprise-red-200 focus:border-enterprise-red-400 transition-colors;
   }
+  .input-base {
+    @apply w-full px-3 py-2 bg-white border border-enterprise-gray-border rounded-enterprise text-sm text-enterprise-charcoal placeholder:text-enterprise-charcoal-400 focus:outline-none focus:ring-2 focus:ring-enterprise-red-200 focus:border-enterprise-red-400 transition-colors;
+  }
+
   .label {
-    @apply block text-sm font-medium text-enterprise-charcoal mb-1;
+    @apply block text-sm font-medium text-enterprise-charcoal-700 mb-1;
   }
+
+  /* ---- Badges ---- */
   .badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-enterprise text-xs font-medium;
   }
+
+  /* ---- Navigation ---- */
   .nav-link {
-    @apply px-3 py-2 text-sm font-medium text-white/90 hover:text-white hover:bg-white/10 rounded-md transition-colors;
+    @apply px-3 py-2 text-sm font-medium text-white/85 hover:text-white hover:bg-white/10 rounded-enterprise transition-colors duration-150;
   }
   .nav-link-active {
-    @apply px-3 py-2 text-sm font-medium text-white bg-white/15 rounded-md;
+    @apply px-3 py-2 text-sm font-semibold text-white bg-white/15 rounded-enterprise;
   }
+
+  /* ---- Section Title ---- */
   .section-title {
-    @apply text-xl font-semibold text-enterprise-charcoal;
+    @apply text-base font-semibold text-enterprise-charcoal;
   }
+
+  /* ---- Empty State ---- */
   .empty-state {
     @apply flex flex-col items-center justify-center py-12 text-center;
+  }
+
+  /* ---- Skeleton / Loading ---- */
+  .skeleton {
+    @apply bg-gradient-to-r from-enterprise-gray-warm via-enterprise-gray-border to-enterprise-gray-warm bg-[length:200%_100%] animate-shimmer rounded-enterprise;
+  }
+
+  /* ---- Table ---- */
+  .enterprise-table {
+    @apply w-full text-sm;
+  }
+  .enterprise-table thead {
+    @apply bg-enterprise-gray-warm border-b border-enterprise-gray-border;
+  }
+  .enterprise-table th {
+    @apply text-left px-4 py-2.5 font-semibold text-enterprise-charcoal-600 text-xs uppercase tracking-wide;
+  }
+  .enterprise-table tbody tr {
+    @apply border-b border-enterprise-gray-border last:border-0 hover:bg-enterprise-gray-warm/50 transition-colors;
+  }
+  .enterprise-table td {
+    @apply px-4 py-2.5 text-enterprise-charcoal-700;
+  }
+
+  /* ---- Tabs ---- */
+  .tab-bar {
+    @apply flex items-center gap-0 overflow-x-auto border-b border-enterprise-gray-border;
+  }
+  .tab-item {
+    @apply flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors duration-150;
+  }
+  .tab-active {
+    @apply border-enterprise-red-600 text-enterprise-red-700 bg-enterprise-red-50;
+  }
+  .tab-inactive {
+    @apply border-transparent text-enterprise-charcoal-500 hover:text-enterprise-charcoal hover:bg-enterprise-gray-warm;
+  }
+
+  /* ---- Gold separator ---- */
+  .gold-separator {
+    @apply h-0.5 bg-enterprise-gold-400 w-full;
+  }
+
+  /* ---- Breadcrumb ---- */
+  .breadcrumb-link {
+    @apply text-enterprise-charcoal-500 hover:text-enterprise-red-700 transition-colors text-sm;
+  }
+  .breadcrumb-separator {
+    @apply text-enterprise-charcoal-300 mx-1.5 text-sm;
+  }
+  .breadcrumb-current {
+    @apply text-enterprise-charcoal font-medium text-sm;
+  }
+
+  /* ---- Progress ---- */
+  .progress-track {
+    @apply h-2 bg-enterprise-gray-warm rounded-full overflow-hidden;
+  }
+  .progress-fill {
+    @apply h-full bg-enterprise-red-600 rounded-full transition-all duration-500;
+  }
+
+  /* ---- Drawer ---- */
+  .drawer-overlay {
+    @apply fixed inset-0 bg-enterprise-charcoal-900/40 z-40 animate-fade-in;
+  }
+  .drawer-panel {
+    @apply fixed right-0 top-0 h-full bg-white shadow-enterprise-lg z-50 animate-slide-in-right;
+  }
+
+  /* ---- Modal ---- */
+  .modal-overlay {
+    @apply fixed inset-0 bg-enterprise-charcoal-900/50 z-40 flex items-center justify-center p-4 animate-fade-in;
+  }
+  .modal-panel {
+    @apply bg-white rounded-lg shadow-enterprise-lg w-full max-w-lg animate-scale-in;
+  }
+
+  /* ---- Toast ---- */
+  .toast-container {
+    @apply fixed bottom-4 right-4 z-50 flex flex-col gap-2;
+  }
+  .toast {
+    @apply bg-enterprise-charcoal-900 text-white rounded-enterprise shadow-enterprise-lg px-4 py-3 flex items-center gap-3 animate-slide-in-right;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
   }
 }

@@ -23,7 +23,7 @@ export function TeamsPage() {
   if (isError) return <ErrorState message="Failed to load teams" />;
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <PageHeader
         title="Teams"
         subtitle="Engineering teams formed for innovation projects"
@@ -38,21 +38,21 @@ export function TeamsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {teams.map((team) => (
             <div key={team.id} className="card p-4">
-              <h3 className="font-semibold text-enterprise-charcoal mb-2">{team.name}</h3>
+              <h3 className="font-semibold text-enterprise-charcoal-800 mb-2">{team.name}</h3>
               {team.innovation_id && (
-                <p className="text-xs text-enterprise-charcoal/50 mb-2">
+                <p className="text-xs text-enterprise-charcoal-400 mb-2">
                   Innovation: {innovationMap.get(team.innovation_id)?.summary || 'Unknown'}
                 </p>
               )}
-              <p className="text-sm text-enterprise-charcoal/70 mb-3">{team.member_ids.length} members</p>
-              {team.lead_id && <p className="text-xs text-enterprise-charcoal/50 mb-2">Lead: {userMap.get(team.lead_id)?.name || 'Unknown'}</p>}
+              <p className="text-sm text-enterprise-charcoal-600 mb-3">{team.member_ids.length} members</p>
+              {team.lead_id && <p className="text-xs text-enterprise-charcoal-400 mb-2">Lead: {userMap.get(team.lead_id)?.name || 'Unknown'}</p>}
               <div className="flex flex-wrap gap-1 mb-3">
                 {team.member_ids.slice(0, 5).map((mid) => (
-                  <span key={mid} className="badge bg-blue-50 text-blue-700 text-xs">
+                  <span key={mid} className="badge bg-enterprise-blue-50 text-enterprise-blue-700 text-xs">
                     {userMap.get(mid)?.name?.split(' ')[0] || 'Unknown'}
                   </span>
                 ))}
-                {team.member_ids.length > 5 && <span className="text-xs text-enterprise-charcoal/50">+{team.member_ids.length - 5} more</span>}
+                {team.member_ids.length > 5 && <span className="text-xs text-enterprise-charcoal-400">+{team.member_ids.length - 5} more</span>}
               </div>
               <button className="btn-secondary text-sm w-full" onClick={() => setManageTeam(team.id)}>
                 <UserPlus className="w-4 h-4" /> Manage Members
@@ -93,7 +93,7 @@ function CreateTeamModal({ users, innovations, onClose }: { users: User[]; innov
         <div>
           <label className="label">Team Name</label>
           <input {...register('name', { required: 'Required' })} className="input" placeholder="Enter team name" />
-          {errors.name && <p className="text-xs text-red-600 mt-1">{errors.name.message as string}</p>}
+          {errors.name && <p className="text-xs text-enterprise-error-600 mt-1">{errors.name.message as string}</p>}
         </div>
         <div>
           <label className="label">Innovation (Optional)</label>
@@ -139,10 +139,10 @@ function ManageMembersModal({ teamId, teamName, memberIds, users, onClose }: { t
         {users.map((user) => {
           const isMember = memberIds.includes(user.id);
           return (
-            <div key={user.id} className="flex items-center justify-between border border-enterprise-gray-border rounded-md p-2">
+            <div key={user.id} className="flex items-center justify-between border border-enterprise-gray-border rounded-enterprise p-2">
               <div>
                 <p className="text-sm font-medium">{user.name}</p>
-                <p className="text-xs text-enterprise-charcoal/50">{user.department}</p>
+                <p className="text-xs text-enterprise-charcoal-400">{user.department}</p>
               </div>
               {isMember ? (
                 <button className="btn-secondary text-xs" onClick={() => removeMutation.mutate({ teamId, userId: user.id })}>

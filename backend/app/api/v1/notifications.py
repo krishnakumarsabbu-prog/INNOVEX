@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from app.api.dependencies import get_repository_factory
 from app.database.repository_factory import RepositoryFactory
 from app.services.notification_service import NotificationService, ActivityService, AuditService
@@ -19,6 +19,8 @@ def get_audit_service(repos: RepositoryFactory = Depends(get_repository_factory)
     return AuditService(repos)
 
 
+# ---- Notifications ----
+
 @router.get("/notifications", response_model=list[NotificationResponse])
 async def get_all_notifications(service: NotificationService = Depends(get_notification_service)):
     notifs = service.get_all()
@@ -36,14 +38,27 @@ async def get_unread_count(user_id: str, service: NotificationService = Depends(
     return {"count": service.get_unread_count(user_id)}
 
 
-@router.put("/notifications/{notif_id}/read")
+@router.post("/notifications/{notif_id}/read")
 async def mark_as_read(notif_id: str, service: NotificationService = Depends(get_notification_service)):
     service.mark_as_read(notif_id)
     return {"read": True}
 
 
+@router.post("/notifications/read-all")
+async def mark_all_read(body: dict, service: NotificationService = Depends(get_notification_service)):
+    user_id = body.get("user_id", "")
+    service.mark_all_read(user_id)
+    return {"read": True}
+
+
+@router.put("/notifications/{notif_id}/read")
+async def mark_as_read_put(notif_id: str, service: NotificationService = Depends(get_notification_service)):
+    service.mark_as_read(notif_id)
+    return {"read": True}
+
+
 @router.put("/notifications/user/{user_id}/read-all")
-async def mark_all_read(user_id: str, service: NotificationService = Depends(get_notification_service)):
+async def mark_all_read_put(user_id: str, service: NotificationService = Depends(get_notification_service)):
     service.mark_all_read(user_id)
     return {"read": True}
 
@@ -54,8 +69,37 @@ async def delete_notification(notif_id: str, service: NotificationService = Depe
     return {"deleted": True}
 
 
+# ---- Activity ----
+
+@router.get("/activity", response_model=list[ActivityResponse])
+async def get_activities(
+    entity: str | None = Query(None),
+    entity_id: str | None = Query(None),
+    actor: str | None = Query(None),
+    date_from: str | None = Query(None),
+    date_to: str | None = Query(None),
+    service: ActivityService = Depends(get_activity_service),
+):
+    filters: dict = {}
+    if entity:
+        filters["entity"] = entity
+    if entity_id:
+        filters["entity_id"] = entity_id
+    if actor:
+        filters["actor"] = actor
+    if date_from:
+        filters["date_from"] = date_from
+    if date_to:
+        filters["date_to"] = date_to
+    if filters:
+        activities = service.get_filtered(filters)
+    else:
+        activities = service.get_all()
+    return [ActivityResponse(**_activity_dict(a)) for a in activities]
+
+
 @router.get("/activities", response_model=list[ActivityResponse])
-async def get_activities(service: ActivityService = Depends(get_activity_service)):
+async def get_all_activities(service: ActivityService = Depends(get_activity_service)):
     activities = service.get_all()
     return [ActivityResponse(**_activity_dict(a)) for a in activities]
 
@@ -66,8 +110,37 @@ async def get_entity_activities(entity_type: str, entity_id: str, service: Activ
     return [ActivityResponse(**_activity_dict(a)) for a in activities]
 
 
+# ---- Audit ----
+
+@router.get("/audit", response_model=list[AuditEventResponse])
+async def get_audit_events(
+    entity: str | None = Query(None),
+    entity_id: str | None = Query(None),
+    actor: str | None = Query(None),
+    date_from: str | None = Query(None),
+    date_to: str | None = Query(None),
+    service: AuditService = Depends(get_audit_service),
+):
+    filters: dict = {}
+    if entity:
+        filters["entity"] = entity
+    if entity_id:
+        filters["entity_id"] = entity_id
+    if actor:
+        filters["actor"] = actor
+    if date_from:
+        filters["date_from"] = date_from
+    if date_to:
+        filters["date_to"] = date_to
+    if filters:
+        events = service.get_filtered(filters)
+    else:
+        events = service.get_all()
+    return [AuditEventResponse(**_audit_dict(a)) for a in events]
+
+
 @router.get("/audit-events", response_model=list[AuditEventResponse])
-async def get_audit_events(service: AuditService = Depends(get_audit_service)):
+async def get_all_audit_events(service: AuditService = Depends(get_audit_service)):
     events = service.get_all()
     return [AuditEventResponse(**_audit_dict(a)) for a in events]
 

@@ -1,9 +1,10 @@
 from fastapi import APIRouter
-from app.api.v1 import setup, users, ideas, validation, innovations, engineering, notifications, dashboard, skills, reviews, insights, copilot
+from app.api.v1 import setup, users, ideas, validation, innovations, engineering, notifications, dashboard, skills, reviews, insights, copilot, people
 
 api_router = APIRouter()
 api_router.include_router(setup.router)
 api_router.include_router(users.router)
+api_router.include_router(people.router)
 api_router.include_router(validation.router)
 api_router.include_router(ideas.router)
 api_router.include_router(innovations.router)

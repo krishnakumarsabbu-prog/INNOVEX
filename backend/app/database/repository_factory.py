@@ -24,6 +24,11 @@ from app.repositories.memory.user_repo import InMemoryUserRepository
 from app.repositories.memory.validation_repo import InMemoryValidationSprintRepository
 from app.repositories.memory.validation_evidence_repo import InMemoryValidationEvidenceRepository
 from app.repositories.memory.work_item_repo import InMemoryWorkItemRepository
+from app.repositories.memory.technology_taxonomy_repo import InMemoryTechnologyTaxonomyRepository
+from app.repositories.memory.business_area_repo import InMemoryBusinessAreaRepository
+from app.repositories.memory.review_panel_repo import InMemoryReviewPanelRepository
+from app.repositories.memory.workflow_repo import InMemoryWorkflowRepository
+from app.repositories.memory.policy_repo import InMemoryPolicyRepository
 
 from app.repositories.interfaces import (
     OrganizationRepositoryInterface,
@@ -38,6 +43,7 @@ from app.repositories.interfaces import (
     ActivityRepositoryInterface,
     NotificationRepositoryInterface,
     AuditRepositoryInterface,
+    TechnologyTaxonomyRepositoryInterface,
 )
 from app.repositories.interfaces.base import BaseRepository
 
@@ -70,6 +76,11 @@ class RepositoryFactory:
         self._notification = InMemoryNotificationRepository(self._db)
         self._follow = InMemoryFollowRepository(self._db)
         self._audit = InMemoryAuditRepository(self._db)
+        self._technology_taxonomy = InMemoryTechnologyTaxonomyRepository(self._db)
+        self._business_area = InMemoryBusinessAreaRepository(self._db)
+        self._review_panel = InMemoryReviewPanelRepository(self._db)
+        self._workflow = InMemoryWorkflowRepository(self._db)
+        self._policy = InMemoryPolicyRepository(self._db)
 
     @property
     def organization(self) -> OrganizationRepositoryInterface:
@@ -178,6 +189,26 @@ class RepositoryFactory:
     @property
     def audit(self) -> AuditRepositoryInterface:
         return self._audit
+
+    @property
+    def technology_taxonomy(self) -> TechnologyTaxonomyRepositoryInterface:
+        return self._technology_taxonomy
+
+    @property
+    def business_area(self) -> BaseRepository:
+        return self._business_area
+
+    @property
+    def review_panel(self) -> BaseRepository:
+        return self._review_panel
+
+    @property
+    def workflow(self) -> BaseRepository:
+        return self._workflow
+
+    @property
+    def policy(self) -> BaseRepository:
+        return self._policy
 
 
 _factory_instance: RepositoryFactory | None = None

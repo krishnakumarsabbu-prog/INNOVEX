@@ -18,6 +18,7 @@ from app.repositories.interfaces.notification import (
     NotificationRepositoryInterface,
 )
 from app.repositories.interfaces.audit import AuditRepositoryInterface
+from app.repositories.interfaces.administration import TechnologyTaxonomyRepositoryInterface
 
 __all__ = [
     "BaseRepository",
@@ -34,4 +35,5 @@ __all__ = [
     "ActivityRepositoryInterface",
     "NotificationRepositoryInterface",
     "AuditRepositoryInterface",
+    "TechnologyTaxonomyRepositoryInterface",
 ]

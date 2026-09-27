@@ -373,6 +373,54 @@ CREATE TABLE IF NOT EXISTS idea_evidence (
     FOREIGN KEY (idea_id) REFERENCES ideas(id),
     FOREIGN KEY (created_by) REFERENCES users(id)
 );
+
+CREATE TABLE IF NOT EXISTS technology_taxonomy (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    category TEXT NOT NULL DEFAULT '',
+    description TEXT DEFAULT '',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS business_areas (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    description TEXT DEFAULT '',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS review_panels (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT DEFAULT '',
+    member_ids TEXT DEFAULT '[]',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS workflows (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT DEFAULT '',
+    stages TEXT DEFAULT '[]',
+    is_active INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS policies (
+    id TEXT PRIMARY KEY,
+    key TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
+    description TEXT DEFAULT '',
+    value TEXT NOT NULL DEFAULT '',
+    policy_type TEXT NOT NULL DEFAULT 'string',
+    is_active INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
 """
 
 
@@ -382,6 +430,66 @@ def init_db() -> None:
     _migrate_validation_sprints(db)
     _migrate_innovation_roles(db)
     _migrate_join_requests(db)
+    _seed_technology_taxonomy(db)
+    _seed_default_policies(db)
+
+
+TECHNOLOGY_TAXONOMY_SEED = [
+    ("AI / ML", "Artificial Intelligence & Machine Learning"),
+    ("React", "Frontend"),
+    ("Angular", "Frontend"),
+    ("Java", "Backend"),
+    ("Spring", "Backend"),
+    ("Python", "Backend"),
+    ("Node", "Backend"),
+    ("Cloud", "Infrastructure"),
+    ("AWS", "Cloud Provider"),
+    ("Azure", "Cloud Provider"),
+    ("GCP", "Cloud Provider"),
+    ("Data", "Data Engineering"),
+    ("Security", "Security"),
+    ("DevOps", "DevOps"),
+    ("Testing", "Quality Assurance"),
+    ("Observability", "Monitoring"),
+    ("Architecture", "Architecture"),
+]
+
+
+DEFAULT_POLICIES = [
+    ("required_review", "Required Review", "Whether a formal review is required before an idea advances", "true", "boolean"),
+    ("validation_requirement", "Validation Requirement", "Whether a validation sprint is required before approval", "true", "boolean"),
+    ("security_review", "Security Review", "Whether a security review is required during validation", "true", "boolean"),
+    ("evidence_requirement", "Evidence Requirement", "Minimum number of evidence items required for validation", "3", "integer"),
+    ("team_size", "Team Size", "Maximum recommended team size for an innovation project", "8", "integer"),
+    ("poc_duration", "POC Duration", "Maximum duration in weeks for a proof-of-concept sprint", "4", "integer"),
+    ("approval_requirements", "Approval Requirements", "Comma-separated list of roles that must approve an idea", "principal_engineer,manager", "string"),
+]
+
+
+def _seed_technology_taxonomy(db: DatabaseConnection) -> None:
+    from app.core.security import generate_id, utc_now
+    existing = db.query_one("SELECT COUNT(*) as cnt FROM technology_taxonomy")
+    if existing and existing["cnt"] > 0:
+        return
+    now = utc_now()
+    for name, category in TECHNOLOGY_TAXONOMY_SEED:
+        db.execute(
+            "INSERT INTO technology_taxonomy (id, name, category, description, created_at, updated_at) VALUES (?, ?, ?, '', ?, ?)",
+            (generate_id(), name, category, now, now),
+        )
+
+
+def _seed_default_policies(db: DatabaseConnection) -> None:
+    from app.core.security import generate_id, utc_now
+    existing = db.query_one("SELECT COUNT(*) as cnt FROM policies")
+    if existing and existing["cnt"] > 0:
+        return
+    now = utc_now()
+    for key, name, desc, value, ptype in DEFAULT_POLICIES:
+        db.execute(
+            "INSERT INTO policies (id, key, name, description, value, policy_type, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)",
+            (generate_id(), key, name, desc, value, ptype, now, now),
+        )
 
 
 def _migrate_validation_sprints(db: DatabaseConnection) -> None:

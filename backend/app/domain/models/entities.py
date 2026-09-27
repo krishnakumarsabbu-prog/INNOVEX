@@ -332,3 +332,56 @@ class PositionApplication:
     status: str
     created_at: str
     updated_at: str
+
+
+@dataclass
+class TechnologyTaxonomyItem:
+    id: str
+    name: str
+    category: str = ""
+    description: str = ""
+    created_at: str = ""
+    updated_at: str = ""
+
+
+@dataclass
+class BusinessArea:
+    id: str
+    name: str
+    description: str = ""
+    created_at: str = ""
+    updated_at: str = ""
+
+
+@dataclass
+class ReviewPanel:
+    id: str
+    name: str
+    description: str = ""
+    member_ids: list[str] = field(default_factory=list)
+    created_at: str = ""
+    updated_at: str = ""
+
+
+@dataclass
+class Workflow:
+    id: str
+    name: str
+    description: str = ""
+    stages: list[str] = field(default_factory=list)
+    is_active: bool = True
+    created_at: str = ""
+    updated_at: str = ""
+
+
+@dataclass
+class Policy:
+    id: str
+    key: str
+    name: str
+    description: str = ""
+    value: str = ""
+    policy_type: str = "string"
+    is_active: bool = True
+    created_at: str = ""
+    updated_at: str = ""

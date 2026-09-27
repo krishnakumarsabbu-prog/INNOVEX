@@ -361,6 +361,54 @@ export interface Dashboard {
   pipeline: Record<string, number>;
 }
 
+export interface FunnelStage {
+  stage: string;
+  label: string;
+  count: number;
+}
+
+export interface ChartDatum {
+  name: string;
+  value: number;
+}
+
+export interface TeamFormationMetrics {
+  open_positions: number;
+  filled_positions: number;
+  total_teams: number;
+  team_members: number;
+  join_requests_pending: number;
+  innovations_with_teams: number;
+}
+
+export interface AdoptionMetrics {
+  adopted: number;
+  production_candidates: number;
+  demos: number;
+  pocs_completed: number;
+  adoption_rate: number;
+}
+
+export interface InsightsOverview {
+  metrics: {
+    ideas_submitted: number;
+    under_review: number;
+    in_validation: number;
+    approved: number;
+    team_forming: number;
+    building: number;
+    pocs_completed: number;
+    production_candidates: number;
+    adopted: number;
+  };
+  innovation_funnel: FunnelStage[];
+  ideas_by_business_area: ChartDatum[];
+  ideas_by_technology: ChartDatum[];
+  team_formation_metrics: TeamFormationMetrics;
+  adoption_metrics: AdoptionMetrics;
+  recent_activity: Activity[];
+}
+
 export interface ApiError {
   error: {
     code: string;

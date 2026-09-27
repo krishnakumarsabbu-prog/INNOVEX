@@ -665,3 +665,41 @@ class DashboardResponse(BaseModel):
     metrics: dict
     recent_activities: list[ActivityResponse]
     pipeline: dict
+
+
+class FunnelStageResponse(BaseModel):
+    stage: str
+    label: str
+    count: int
+
+
+class ChartDatumResponse(BaseModel):
+    name: str
+    value: int
+
+
+class TeamFormationMetricsResponse(BaseModel):
+    open_positions: int = 0
+    filled_positions: int = 0
+    total_teams: int = 0
+    team_members: int = 0
+    join_requests_pending: int = 0
+    innovations_with_teams: int = 0
+
+
+class AdoptionMetricsResponse(BaseModel):
+    adopted: int = 0
+    production_candidates: int = 0
+    demos: int = 0
+    pocs_completed: int = 0
+    adoption_rate: float = 0.0
+
+
+class InsightsOverviewResponse(BaseModel):
+    metrics: dict
+    innovation_funnel: list[FunnelStageResponse]
+    ideas_by_business_area: list[ChartDatumResponse]
+    ideas_by_technology: list[ChartDatumResponse]
+    team_formation_metrics: TeamFormationMetricsResponse
+    adoption_metrics: AdoptionMetricsResponse
+    recent_activity: list[ActivityResponse]

@@ -5,7 +5,7 @@ import type {
   ValidationSprint, ValidationEvidence, Innovation, Position, Application, Team, Project,
   Milestone, Evidence, Activity, Notification, Dashboard, WorkItem,
   MarketplaceInnovation, MarketplaceInnovationDetail,
-  JoinRequest, SkillMatch,
+  JoinRequest, SkillMatch, InsightsOverview,
 } from '../types';
 
 export const setupApi = {
@@ -143,4 +143,8 @@ export const activityApi = {
 
 export const dashboardApi = {
   get: () => api.get<Dashboard>('/dashboard').then(r => r.data),
+};
+
+export const insightsApi = {
+  getOverview: () => api.get<InsightsOverview>('/insights/overview').then(r => r.data),
 };

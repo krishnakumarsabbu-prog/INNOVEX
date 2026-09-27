@@ -2,6 +2,7 @@ from app.core.security import generate_id, utc_now
 from app.core.exceptions import NotFoundError, ConflictError
 from app.database.repository_factory import RepositoryFactory
 from app.domain.models.entities import User, Activity, AuditEvent
+from app.domain.enums.types import AuditEventType
 from app.schemas.models import UserCreate, UserUpdate
 
 
@@ -36,7 +37,7 @@ class UserService:
 
         self._repos.audit.create(AuditEvent(
             id=generate_id(), entity_type="user", entity_id=user.id,
-            action="created", user_id=created_by,
+            action="USER_CREATED", user_id=created_by,
             details=f"User '{user.name}' created", created_at=now,
         ))
         return user

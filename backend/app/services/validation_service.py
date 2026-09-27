@@ -7,7 +7,7 @@ from app.domain.models.entities import ValidationSprint, ValidationEvidence, Act
 from app.domain.enums.types import (
     ValidationStatus, ValidationDecision, ValidationEvidenceType,
     VALIDATION_OBJECTIVES, VALIDATION_CHECKLIST,
-    IdeaStatus,
+    IdeaStatus, AuditEventType,
 )
 from app.schemas.models import (
     ValidationSprintCreate, ValidationSprintUpdate,
@@ -84,9 +84,22 @@ class ValidationService:
 
         self._repos.audit.create(AuditEvent(
             id=generate_id(), entity_type="validation", entity_id=sprint.id,
-            action="started", user_id=None,
+            action=AuditEventType.VALIDATION_STARTED.value, user_id=None,
             details=f"Validation sprint started for idea '{idea.title}'", created_at=now,
         ))
+
+        if data.principal_engineer_id:
+            self._repos.audit.create(AuditEvent(
+                id=generate_id(), entity_type="validation", entity_id=sprint.id,
+                action=AuditEventType.PRINCIPAL_ENGINEER_ASSIGNED.value, user_id=data.principal_engineer_id,
+                details=f"Principal Engineer assigned for '{idea.title}'", created_at=now,
+            ))
+        if data.manager_id:
+            self._repos.audit.create(AuditEvent(
+                id=generate_id(), entity_type="validation", entity_id=sprint.id,
+                action=AuditEventType.MANAGER_ASSIGNED.value, user_id=data.manager_id,
+                details=f"Manager assigned for '{idea.title}'", created_at=now,
+            ))
 
         if data.principal_engineer_id:
             self._repos.notification.create(Notification(

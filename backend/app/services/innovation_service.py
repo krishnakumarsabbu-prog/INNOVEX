@@ -5,7 +5,7 @@ from app.domain.models.entities import (
     Innovation, Activity, Notification, InnovationRole, JoinRequest,
     TeamMembership, AuditEvent,
 )
-from app.domain.enums.types import InnovationStage, RoleStatus, JoinRequestStatus, IdeaStatus
+from app.domain.enums.types import InnovationStage, RoleStatus, JoinRequestStatus, IdeaStatus, AuditEventType
 from app.schemas.models import (
     InnovationCreate, InnovationUpdate, PositionCreate, PositionUpdate,
     ApplicationCreate, JoinRequestCreate,
@@ -51,7 +51,7 @@ class InnovationService:
 
         self._repos.audit.create(AuditEvent(
             id=generate_id(), entity_type="innovation", entity_id=innovation.id,
-            action="created", user_id=None,
+            action=AuditEventType.INNOVATION_OPENED.value, user_id=None,
             details=f"Innovation created from idea '{idea.title}'", created_at=now,
         ))
         return innovation
@@ -79,6 +79,19 @@ class InnovationService:
 
         if data.is_open:
             self._repos.idea.update(innovation.idea_id, status=IdeaStatus.APPROVED.value, updated_at=now)
+
+        if data.stage == InnovationStage.ADOPTED.value:
+            self._repos.audit.create(AuditEvent(
+                id=generate_id(), entity_type="innovation", entity_id=innovation.id,
+                action=AuditEventType.INNOVATION_ADOPTED.value, user_id=None,
+                details=f"Innovation '{innovation.summary[:50]}' adopted", created_at=now,
+            ))
+        elif data.stage == InnovationStage.DEMO.value:
+            self._repos.audit.create(AuditEvent(
+                id=generate_id(), entity_type="innovation", entity_id=innovation.id,
+                action=AuditEventType.DEMO_SCHEDULED.value, user_id=None,
+                details=f"Demo scheduled for innovation", created_at=now,
+            ))
 
         self._repos.activity.create(Activity(
             id=generate_id(), entity_type="innovation", entity_id=innovation.id,
@@ -117,6 +130,11 @@ class InnovationService:
             id=generate_id(), entity_type="position", entity_id=role.id,
             action="created", description=f"Role '{data.title}' opened for innovation",
             user_id=None, created_at=now,
+        ))
+        self._repos.audit.create(AuditEvent(
+            id=generate_id(), entity_type="position", entity_id=role.id,
+            action=AuditEventType.ROLE_CREATED.value, user_id=None,
+            details=f"Role '{data.title}' opened for innovation", created_at=now,
         ))
         return role
 
@@ -206,6 +224,11 @@ class InnovationService:
             action="requested", description=f"User requested to join role '{role.title}'",
             user_id=user_id, created_at=now,
         ))
+        self._repos.audit.create(AuditEvent(
+            id=generate_id(), entity_type="join_request", entity_id=join_req.id,
+            action=AuditEventType.JOIN_REQUESTED.value, user_id=user_id,
+            details=f"User requested to join role '{role.title}'", created_at=now,
+        ))
 
         if innovation.founder_id:
             self._repos.notification.create(Notification(
@@ -258,6 +281,17 @@ class InnovationService:
             action="approved", description=f"Join request approved for role '{join_req.role}'",
             user_id=join_req.user_id, created_at=now,
         ))
+        self._repos.audit.create(AuditEvent(
+            id=generate_id(), entity_type="join_request", entity_id=join_req.id,
+            action=AuditEventType.JOIN_REQUEST_APPROVED.value, user_id=join_req.user_id,
+            details=f"Join request approved for role '{join_req.role}'", created_at=now,
+        ))
+        if role and role.status == RoleStatus.FILLED.value:
+            self._repos.audit.create(AuditEvent(
+                id=generate_id(), entity_type="position", entity_id=role.id,
+                action=AuditEventType.ROLE_FILLED.value, user_id=join_req.user_id,
+                details=f"Role '{join_req.role}' filled", created_at=now,
+            ))
 
         self._repos.notification.create(Notification(
             id=generate_id(), user_id=join_req.user_id,

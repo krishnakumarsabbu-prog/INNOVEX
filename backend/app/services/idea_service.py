@@ -5,7 +5,7 @@ from app.domain.models.entities import (
     Idea, Activity, Notification, IdeaTechnology, AuditEvent,
     IdeaEvidence, IdeaFollow, Review,
 )
-from app.domain.enums.types import IdeaStatus, ReviewDecision
+from app.domain.enums.types import IdeaStatus, ReviewDecision, AuditEventType
 from app.schemas.models import IdeaCreate, IdeaUpdate, ReviewCreate
 
 
@@ -49,7 +49,7 @@ class IdeaService:
             ))
 
         self._log_activity(idea.id, "created", f"Idea '{idea.title}' created", data.founder_id, now)
-        self._log_audit(idea.id, "created", data.founder_id, f"Idea '{idea.title}' created", now)
+        self._log_audit(idea.id, AuditEventType.IDEA_CREATED.value, data.founder_id, f"Idea '{idea.title}' created", now)
         return idea
 
     def get_by_id(self, idea_id: str) -> Idea:
@@ -139,7 +139,7 @@ class IdeaService:
         idea.status = IdeaStatus.SUBMITTED.value
 
         self._log_activity(idea.id, "submitted", f"Idea '{idea.title}' submitted", user_id, now)
-        self._log_audit(idea.id, "submitted", user_id, f"Idea '{idea.title}' submitted", now)
+        self._log_audit(idea.id, AuditEventType.IDEA_SUBMITTED.value, user_id, f"Idea '{idea.title}' submitted", now)
 
         admins = self._repos.user.get_by_role("admin")
         for admin in admins:
@@ -159,7 +159,7 @@ class IdeaService:
         idea.status = IdeaStatus.PARKED.value
 
         self._log_activity(idea.id, "parked", f"Idea '{idea.title}' parked", user_id, now)
-        self._log_audit(idea.id, "parked", user_id, f"Idea '{idea.title}' parked", now)
+        self._log_audit(idea.id, AuditEventType.IDEA_SUBMITTED.value, user_id, f"Idea '{idea.title}' parked", now)
         return idea
 
     def reopen(self, idea_id: str, user_id: str) -> Idea:
@@ -171,7 +171,7 @@ class IdeaService:
         idea.status = IdeaStatus.SUBMITTED.value
 
         self._log_activity(idea.id, "reopened", f"Idea '{idea.title}' reopened", user_id, now)
-        self._log_audit(idea.id, "reopened", user_id, f"Idea '{idea.title}' reopened", now)
+        self._log_audit(idea.id, AuditEventType.IDEA_SUBMITTED.value, user_id, f"Idea '{idea.title}' reopened", now)
         return idea
 
     # ---- Activity ----
@@ -204,6 +204,7 @@ class IdeaService:
         )
         self._repos.idea_evidence.create(evidence)
         self._log_activity(idea_id, "evidence_added", f"Evidence '{evidence.title}' added to idea", data.created_by, now)
+        self._log_audit(idea_id, AuditEventType.EVIDENCE_ADDED.value, data.created_by, f"Evidence '{evidence.title}' added to idea", now)
         return evidence
 
     # ---- Follow ----

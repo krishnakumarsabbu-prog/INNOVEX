@@ -6,7 +6,7 @@ from app.domain.models.entities import (
     ValidationSprint,
 )
 from app.domain.enums.types import (
-    IdeaStatus, ReviewDecision, ValidationStatus,
+    IdeaStatus, ReviewDecision, ValidationStatus, AuditEventType,
 )
 from app.schemas.models import (
     ReviewCreate, ReviewDecisionRequest,
@@ -95,6 +95,12 @@ class ReviewService:
                 comment=dim_data.comment,
                 created_at=now,
             ))
+
+        self._repos.audit.create(AuditEvent(
+            id=generate_id(), entity_type="review", entity_id=review.id,
+            action=AuditEventType.REVIEW_STARTED.value, user_id=data.reviewer_id,
+            details=f"Review started for idea '{idea.title}'", created_at=now,
+        ))
 
         self._apply_decision(idea, data.decision, data.reviewer_id, data.reason, now)
         self._log_side_effects(idea, review, data.decision, data.reviewer_id, data.reason, now)
@@ -243,9 +249,16 @@ class ReviewService:
 
         self._repos.audit.create(AuditEvent(
             id=generate_id(), entity_type="review", entity_id=review.id,
-            action=decision, user_id=reviewer_id,
+            action=AuditEventType.REVIEW_COMPLETED.value, user_id=reviewer_id,
             details=desc, created_at=now,
         ))
+
+        if decision == ReviewDecision.APPROVE.value:
+            self._repos.audit.create(AuditEvent(
+                id=generate_id(), entity_type="idea", entity_id=idea.id,
+                action=AuditEventType.IDEA_APPROVED.value, user_id=reviewer_id,
+                details=f"Idea '{idea.title}' approved", created_at=now,
+            ))
 
         notify_users = set()
         if idea.founder_id:

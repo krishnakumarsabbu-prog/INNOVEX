@@ -3,7 +3,7 @@ import type {
   SetupStatus, SetupRequest, SetupResponse, User, Idea, IdeaEvidence, IdeaFollow, Review,
   ReviewDimension, ReviewQueueItem, ReviewDecisionPayload,
   ValidationSprint, ValidationEvidence, Innovation, Position, Application, Team, Project,
-  Milestone, Evidence, Activity, Notification, Dashboard, WorkItem,
+  Milestone, Evidence, Activity, AuditEvent, Notification, Dashboard, WorkItem,
   MarketplaceInnovation, MarketplaceInnovationDetail,
   JoinRequest, SkillMatch, InsightsOverview,
   AIRecommendation, AIContextCapability, AICapabilities, AIEntityType,
@@ -12,6 +12,14 @@ import type {
 export const setupApi = {
   getStatus: () => api.get<SetupStatus>('/setup/status').then(r => r.data),
   createOrganization: (data: SetupRequest) => api.post<SetupResponse>('/setup/organization', data).then(r => r.data),
+};
+
+export const peopleApi = {
+  getAll: (params?: { role?: string; skill?: string; technology?: string; organization_id?: string; business_area?: string; search?: string }) =>
+    api.get<User[]>('/people', { params }).then(r => r.data),
+  getById: (id: string) => api.get<User>(`/people/${id}`).then(r => r.data),
+  create: (data: Partial<User>) => api.post<User>('/people', data).then(r => r.data),
+  update: (id: string, data: Partial<User>) => api.patch<User>(`/people/${id}`, data).then(r => r.data),
 };
 
 export const userApi = {
@@ -132,14 +140,21 @@ export const notificationApi = {
   getAll: () => api.get<Notification[]>('/notifications').then(r => r.data),
   getByUser: (userId: string) => api.get<Notification[]>(`/notifications/user/${userId}`).then(r => r.data),
   getUnreadCount: (userId: string) => api.get<{ count: number }>(`/notifications/user/${userId}/unread-count`).then(r => r.data),
-  markAsRead: (notifId: string) => api.put(`/notifications/${notifId}/read`).then(r => r.data),
-  markAllRead: (userId: string) => api.put(`/notifications/user/${userId}/read-all`).then(r => r.data),
+  markAsRead: (notifId: string) => api.post(`/notifications/${notifId}/read`).then(r => r.data),
+  markAllRead: (userId: string) => api.post(`/notifications/read-all`, { user_id: userId }).then(r => r.data),
   delete: (notifId: string) => api.delete(`/notifications/${notifId}`).then(r => r.data),
 };
 
 export const activityApi = {
-  getAll: () => api.get<Activity[]>('/activities').then(r => r.data),
+  getAll: (params?: { entity?: string; entity_id?: string; actor?: string; date_from?: string; date_to?: string }) =>
+    api.get<Activity[]>('/activity', { params }).then(r => r.data),
   getByEntity: (entityType: string, entityId: string) => api.get<Activity[]>(`/activities/${entityType}/${entityId}`).then(r => r.data),
+};
+
+export const auditApi = {
+  getAll: (params?: { entity?: string; entity_id?: string; actor?: string; date_from?: string; date_to?: string }) =>
+    api.get<AuditEvent[]>('/audit', { params }).then(r => r.data),
+  getByEntity: (entityType: string, entityId: string) => api.get<AuditEvent[]>(`/audit-events/${entityType}/${entityId}`).then(r => r.data),
 };
 
 export const dashboardApi = {

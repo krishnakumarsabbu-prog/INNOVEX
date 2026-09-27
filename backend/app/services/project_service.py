@@ -2,7 +2,7 @@ from app.core.security import generate_id, utc_now
 from app.core.exceptions import NotFoundError
 from app.database.repository_factory import RepositoryFactory
 from app.domain.models.entities import Team, Project, Milestone, Evidence, Activity, WorkItem, AuditEvent
-from app.domain.enums.types import ProjectStatus, MilestoneStatus, WorkItemStatus
+from app.domain.enums.types import ProjectStatus, MilestoneStatus, WorkItemStatus, AuditEventType
 from app.schemas.models import (
     TeamCreate, TeamUpdate, ProjectCreate, ProjectUpdate,
     MilestoneCreate, MilestoneUpdate, EvidenceCreate,
@@ -101,7 +101,7 @@ class ProjectService:
 
         self._repos.audit.create(AuditEvent(
             id=generate_id(), entity_type="project", entity_id=project.id,
-            action="created", user_id=None,
+            action=AuditEventType.PROJECT_CREATED.value, user_id=None,
             details=f"Project '{project.name}' created", created_at=now,
         ))
         return project
@@ -178,6 +178,11 @@ class ProjectService:
         milestone.updated_at = now
         if data.status == MilestoneStatus.DONE.value:
             milestone.completed_at = now
+            self._repos.audit.create(AuditEvent(
+                id=generate_id(), entity_type="milestone", entity_id=milestone_id,
+                action=AuditEventType.MILESTONE_COMPLETED.value, user_id=None,
+                details=f"Milestone '{milestone.title}' completed", created_at=now,
+            ))
         self._repos.milestone.update(milestone_id, **update_data, updated_at=now)
         return self._repos.milestone.get_by_id(milestone_id)
 
@@ -243,6 +248,11 @@ class ProjectService:
             id=generate_id(), entity_type="evidence", entity_id=evidence.id,
             action="uploaded", description=f"Evidence '{evidence.title}' added",
             user_id=data.created_by, created_at=now,
+        ))
+        self._repos.audit.create(AuditEvent(
+            id=generate_id(), entity_type="evidence", entity_id=evidence.id,
+            action=AuditEventType.EVIDENCE_ADDED.value, user_id=data.created_by,
+            details=f"Evidence '{evidence.title}' added", created_at=now,
         ))
         return evidence
 

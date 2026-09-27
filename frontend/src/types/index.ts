@@ -346,6 +346,16 @@ export interface Activity {
   created_at: string;
 }
 
+export interface AuditEvent {
+  id: string;
+  entity_type: string;
+  entity_id: string;
+  action: string;
+  user_id: string | null;
+  details: string;
+  created_at: string;
+}
+
 export interface Notification {
   id: string;
   user_id: string;

@@ -2,12 +2,15 @@ from fastapi import APIRouter, Depends
 from app.api.dependencies import get_repository_factory
 from app.database.repository_factory import RepositoryFactory
 from app.services.project_service import TeamService, ProjectService
+from app.services.innovation_service import InnovationService
+from app.services.notification_service import ActivityService
 from app.schemas.models import (
     TeamCreate, TeamUpdate, TeamResponse,
     ProjectCreate, ProjectUpdate, ProjectResponse,
     MilestoneCreate, MilestoneUpdate, MilestoneResponse,
     EvidenceCreate, EvidenceResponse,
     WorkItemCreate, WorkItemUpdate, WorkItemResponse,
+    ActivityResponse,
 )
 
 router = APIRouter(tags=["engineering"])
@@ -19,6 +22,14 @@ def get_team_service(repos: RepositoryFactory = Depends(get_repository_factory))
 
 def get_project_service(repos: RepositoryFactory = Depends(get_repository_factory)) -> ProjectService:
     return ProjectService(repos)
+
+
+def get_innovation_service(repos: RepositoryFactory = Depends(get_repository_factory)) -> InnovationService:
+    return InnovationService(repos)
+
+
+def get_activity_service(repos: RepositoryFactory = Depends(get_repository_factory)) -> ActivityService:
+    return ActivityService(repos)
 
 
 @router.post("/teams", response_model=TeamResponse)
@@ -85,10 +96,37 @@ async def update_project(project_id: str, data: ProjectUpdate, service: ProjectS
     return ProjectResponse(**_project_dict(project))
 
 
+@router.patch("/projects/{project_id}", response_model=ProjectResponse)
+async def patch_project(project_id: str, data: ProjectUpdate, service: ProjectService = Depends(get_project_service)):
+    project = service.update(project_id, data)
+    return ProjectResponse(**_project_dict(project))
+
+
 @router.delete("/projects/{project_id}")
 async def delete_project(project_id: str, service: ProjectService = Depends(get_project_service)):
     service.delete(project_id)
     return {"deleted": True}
+
+
+@router.post("/innovations/{innovation_id}/project", response_model=ProjectResponse)
+async def create_project_for_innovation(
+    innovation_id: str,
+    data: ProjectCreate,
+    service: ProjectService = Depends(get_project_service),
+    innovation_service: InnovationService = Depends(get_innovation_service),
+):
+    data.innovation_id = innovation_id
+    project = service.create(data)
+    return ProjectResponse(**_project_dict(project))
+
+
+@router.get("/projects/{project_id}/activities", response_model=list[ActivityResponse])
+async def get_project_activities(
+    project_id: str,
+    service: ActivityService = Depends(get_activity_service),
+):
+    activities = service.get_by_entity("project", project_id)
+    return [ActivityResponse(**_activity_dict(a)) for a in activities]
 
 
 @router.post("/projects/{project_id}/milestones", response_model=MilestoneResponse)
@@ -106,6 +144,12 @@ async def get_milestones(project_id: str, service: ProjectService = Depends(get_
 
 @router.put("/milestones/{milestone_id}", response_model=MilestoneResponse)
 async def update_milestone(milestone_id: str, data: MilestoneUpdate, service: ProjectService = Depends(get_project_service)):
+    milestone = service.update_milestone(milestone_id, data)
+    return MilestoneResponse(**_milestone_dict(milestone))
+
+
+@router.patch("/projects/{project_id}/milestones/{milestone_id}", response_model=MilestoneResponse)
+async def patch_milestone(project_id: str, milestone_id: str, data: MilestoneUpdate, service: ProjectService = Depends(get_project_service)):
     milestone = service.update_milestone(milestone_id, data)
     return MilestoneResponse(**_milestone_dict(milestone))
 
@@ -131,6 +175,12 @@ async def get_work_items(project_id: str, service: ProjectService = Depends(get_
 
 @router.put("/work-items/{work_item_id}", response_model=WorkItemResponse)
 async def update_work_item(work_item_id: str, data: WorkItemUpdate, service: ProjectService = Depends(get_project_service)):
+    item = service.update_work_item(work_item_id, data)
+    return WorkItemResponse(**_work_item_dict(item))
+
+
+@router.patch("/projects/{project_id}/work-items/{work_item_id}", response_model=WorkItemResponse)
+async def patch_work_item(project_id: str, work_item_id: str, data: WorkItemUpdate, service: ProjectService = Depends(get_project_service)):
     item = service.update_work_item(work_item_id, data)
     return WorkItemResponse(**_work_item_dict(item))
 
@@ -202,4 +252,11 @@ def _evidence_dict(evidence) -> dict:
         "title": evidence.title, "description": evidence.description,
         "evidence_type": evidence.evidence_type, "url": evidence.url,
         "created_by": evidence.created_by, "created_at": evidence.created_at, "updated_at": evidence.updated_at,
+    }
+
+
+def _activity_dict(a) -> dict:
+    return {
+        "id": a.id, "entity_type": a.entity_type, "entity_id": a.entity_id,
+        "action": a.action, "description": a.description, "user_id": a.user_id, "created_at": a.created_at,
     }

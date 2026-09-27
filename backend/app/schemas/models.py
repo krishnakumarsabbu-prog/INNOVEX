@@ -703,3 +703,105 @@ class InsightsOverviewResponse(BaseModel):
     team_formation_metrics: TeamFormationMetricsResponse
     adoption_metrics: AdoptionMetricsResponse
     recent_activity: list[ActivityResponse]
+
+
+# ---- Administration & Governance ----
+
+class TechnologyTaxonomyCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+    category: str = ""
+    description: str = ""
+
+
+class TechnologyTaxonomyUpdate(BaseModel):
+    name: Optional[str] = None
+    category: Optional[str] = None
+    description: Optional[str] = None
+
+
+class TechnologyTaxonomyResponse(BaseModel):
+    id: str
+    name: str
+    category: str
+    description: str
+    created_at: str
+    updated_at: str
+
+
+class BusinessAreaCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=200)
+    description: str = ""
+
+
+class BusinessAreaUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+
+
+class BusinessAreaResponse(BaseModel):
+    id: str
+    name: str
+    description: str
+    created_at: str
+    updated_at: str
+
+
+class ReviewPanelCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=200)
+    description: str = ""
+    member_ids: list[str] = []
+
+
+class ReviewPanelUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    member_ids: Optional[list[str]] = None
+
+
+class ReviewPanelResponse(BaseModel):
+    id: str
+    name: str
+    description: str
+    member_ids: list[str]
+    created_at: str
+    updated_at: str
+
+
+class WorkflowCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=200)
+    description: str = ""
+    stages: list[str] = []
+
+
+class WorkflowUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    stages: Optional[list[str]] = None
+    is_active: Optional[bool] = None
+
+
+class WorkflowResponse(BaseModel):
+    id: str
+    name: str
+    description: str
+    stages: list[str]
+    is_active: bool
+    created_at: str
+    updated_at: str
+
+
+class PolicyUpdate(BaseModel):
+    value: Optional[str] = None
+    is_active: Optional[bool] = None
+
+
+class PolicyResponse(BaseModel):
+    id: str
+    key: str
+    name: str
+    description: str
+    value: str
+    policy_type: str
+    is_active: bool
+    created_at: str
+    updated_at: str

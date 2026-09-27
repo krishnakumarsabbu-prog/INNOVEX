@@ -451,3 +451,58 @@ export interface ApiError {
     request_id: string;
   };
 }
+
+// ---- Administration & Governance ----
+
+export interface TechnologyTaxonomyItem {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BusinessArea {
+  id: string;
+  name: string;
+  description: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ReviewPanel {
+  id: string;
+  name: string;
+  description: string;
+  member_ids: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Workflow {
+  id: string;
+  name: string;
+  description: string;
+  stages: string[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Policy {
+  id: string;
+  key: string;
+  name: string;
+  description: string;
+  value: string;
+  policy_type: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RoleDefinition {
+  key: string;
+  label: string;
+}

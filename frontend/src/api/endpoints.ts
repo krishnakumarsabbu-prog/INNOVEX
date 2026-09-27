@@ -7,6 +7,7 @@ import type {
   MarketplaceInnovation, MarketplaceInnovationDetail,
   JoinRequest, SkillMatch, InsightsOverview,
   AIRecommendation, AIContextCapability, AICapabilities, AIEntityType,
+  TechnologyTaxonomyItem, BusinessArea, ReviewPanel, Workflow, Policy, RoleDefinition,
 } from '../types';
 
 export const setupApi = {
@@ -175,4 +176,28 @@ export const copilotApi = {
       entity_type: entityType,
       entity_id: entityId,
     }).then(r => r.data),
+};
+
+export const adminApi = {
+  getOrganization: () => api.get<{ id: string; name: string; created_at: string; updated_at: string }>('/administration/organization').then(r => r.data),
+  updateOrganization: (orgId: string, name: string) => api.put('/administration/organization/' + orgId, { name }).then(r => r.data),
+  getRoles: () => api.get<RoleDefinition[]>('/administration/roles').then(r => r.data),
+  getTechnologies: () => api.get<TechnologyTaxonomyItem[]>('/administration/technologies').then(r => r.data),
+  createTechnology: (data: { name: string; category: string; description: string }) => api.post<TechnologyTaxonomyItem>('/administration/technologies', data).then(r => r.data),
+  updateTechnology: (id: string, data: Partial<TechnologyTaxonomyItem>) => api.put<TechnologyTaxonomyItem>(`/administration/technologies/${id}`, data).then(r => r.data),
+  deleteTechnology: (id: string) => api.delete(`/administration/technologies/${id}`).then(r => r.data),
+  getBusinessAreas: () => api.get<BusinessArea[]>('/administration/business-areas').then(r => r.data),
+  createBusinessArea: (data: { name: string; description: string }) => api.post<BusinessArea>('/administration/business-areas', data).then(r => r.data),
+  updateBusinessArea: (id: string, data: Partial<BusinessArea>) => api.put<BusinessArea>(`/administration/business-areas/${id}`, data).then(r => r.data),
+  deleteBusinessArea: (id: string) => api.delete(`/administration/business-areas/${id}`).then(r => r.data),
+  getReviewPanels: () => api.get<ReviewPanel[]>('/administration/review-panels').then(r => r.data),
+  createReviewPanel: (data: { name: string; description: string; member_ids: string[] }) => api.post<ReviewPanel>('/administration/review-panels', data).then(r => r.data),
+  updateReviewPanel: (id: string, data: Partial<ReviewPanel>) => api.put<ReviewPanel>(`/administration/review-panels/${id}`, data).then(r => r.data),
+  deleteReviewPanel: (id: string) => api.delete(`/administration/review-panels/${id}`).then(r => r.data),
+  getWorkflows: () => api.get<Workflow[]>('/administration/workflows').then(r => r.data),
+  createWorkflow: (data: { name: string; description: string; stages: string[] }) => api.post<Workflow>('/administration/workflows', data).then(r => r.data),
+  updateWorkflow: (id: string, data: Partial<Workflow>) => api.put<Workflow>(`/administration/workflows/${id}`, data).then(r => r.data),
+  deleteWorkflow: (id: string) => api.delete(`/administration/workflows/${id}`).then(r => r.data),
+  getPolicies: () => api.get<Policy[]>('/administration/policies').then(r => r.data),
+  updatePolicy: (id: string, data: { value?: string; is_active?: boolean }) => api.put<Policy>(`/administration/policies/${id}`, data).then(r => r.data),
 };

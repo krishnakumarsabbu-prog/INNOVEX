@@ -4,19 +4,20 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft, Plus, Users, Briefcase, Lock, Unlock, Sparkles, Building2, Cpu,
   UserCircle, Clock, Target, AlertCircle, CheckCircle2, FileText, Wrench,
-  TrendingUp, Shield, Zap, UserPlus, Star, MessageSquare,
+  TrendingUp, Shield, Zap, UserPlus, Star, MessageSquare, Check, X,
 } from 'lucide-react';
 import { innovationApi, userApi } from '../api/endpoints';
 import { useForm } from 'react-hook-form';
 import { Loading, ErrorState, StatusBadge, Modal, EmptyState } from '../components/ui';
-import type { User, Position, MarketplaceInnovationDetail } from '../types';
+import type { User, Position, MarketplaceInnovationDetail, SkillMatch, JoinRequest } from '../types';
 
 export function InnovationDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [showPosition, setShowPosition] = useState(false);
-  const [showApply, setShowApply] = useState<Position | null>(null);
-  const [showJoin, setShowJoin] = useState(false);
+  const queryClient = useQueryClient();
+  const [showCreateRole, setShowCreateRole] = useState(false);
+  const [showJoinRole, setShowJoinRole] = useState<Position | null>(null);
+  const [showJoinRequests, setShowJoinRequests] = useState(false);
 
   const { data: innovation, isLoading, isError } = useQuery({
     queryKey: ['innovation', id],
@@ -24,9 +25,9 @@ export function InnovationDetailPage() {
     enabled: !!id,
   });
 
-  const { data: positions } = useQuery({
-    queryKey: ['innovation-positions', id],
-    queryFn: () => innovationApi.getPositions(id!),
+  const { data: roles } = useQuery({
+    queryKey: ['innovation-roles', id],
+    queryFn: () => innovationApi.getRoles(id!),
     enabled: !!id,
   });
 
@@ -50,12 +51,10 @@ export function InnovationDetailPage() {
     },
   });
 
-  const queryClient = useQueryClient();
-
   if (isLoading) return <Loading />;
   if (isError || !innovation) return <ErrorState message="Failed to load innovation" />;
 
-  const openPositions = positions?.filter((p) => p.status === 'open') || [];
+  const openRoles = roles?.filter((r) => r.status === 'open') || [];
 
   return (
     <div>
@@ -111,11 +110,10 @@ export function InnovationDetailPage() {
               <Star className="w-4 h-4" /> Follow
             </button>
             <button
-              className="btn-primary text-sm"
-              onClick={() => setShowJoin(true)}
-              disabled={!innovation.is_open}
+              className="btn-secondary text-sm"
+              onClick={() => setShowJoinRequests(true)}
             >
-              <UserPlus className="w-4 h-4" /> Join Innovation
+              <MessageSquare className="w-4 h-4" /> Join Requests
             </button>
           </div>
         </div>
@@ -123,7 +121,7 @@ export function InnovationDetailPage() {
         {/* Stats Bar */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 pt-4 border-t border-enterprise-gray-border">
           <StatBlock icon={<Users className="w-4 h-4" />} label="Team Size" value={innovation.team_size} />
-          <StatBlock icon={<Briefcase className="w-4 h-4" />} label="Open Roles" value={openPositions.length} />
+          <StatBlock icon={<Briefcase className="w-4 h-4" />} label="Open Roles" value={openRoles.length} />
           <StatBlock icon={<Sparkles className="w-4 h-4" />} label="Followers" value={innovation.followers} />
           <StatBlock icon={<TrendingUp className="w-4 h-4" />} label="Team Progress" value={`${innovation.team_progress}%`} />
           <StatBlock icon={<Clock className="w-4 h-4" />} label="Last Activity" value={innovation.last_activity ? formatDate(innovation.last_activity) : '—'} />
@@ -191,61 +189,31 @@ export function InnovationDetailPage() {
             </div>
           )}
 
-          {/* Open Engineering Opportunities */}
+          {/* Team Formation - Roles with Capacity */}
           <div className="card p-5">
             <div className="flex items-center justify-between mb-4">
               <h2 className="section-title flex items-center gap-2 text-lg">
-                <Briefcase className="w-5 h-5 text-enterprise-red" /> Open Engineering Opportunities
+                <Briefcase className="w-5 h-5 text-enterprise-red" /> Team Formation
               </h2>
-              <button className="btn-secondary text-sm" onClick={() => setShowPosition(true)}>
+              <button className="btn-secondary text-sm" onClick={() => setShowCreateRole(true)}>
                 <Plus className="w-4 h-4" /> Add Role
               </button>
             </div>
-            {positions && positions.length > 0 ? (
+            {roles && roles.length > 0 ? (
               <div className="space-y-3">
-                {positions.map((pos) => {
-                  const assignee = userMap.get(pos.innovation_id);
-                  return (
-                    <div key={pos.id} className="border border-enterprise-gray-border rounded-md p-4 hover:border-enterprise-red/20 transition-colors">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <p className="font-medium text-sm text-enterprise-charcoal">{pos.title}</p>
-                          <div className="flex items-center gap-2 mt-1 text-xs text-enterprise-charcoal/60">
-                            <span>{pos.role}</span>
-                            {pos.technology && (
-                              <>
-                                <span className="text-enterprise-charcoal/30">·</span>
-                                <span className="flex items-center gap-1">
-                                  <Cpu className="w-3 h-3" /> {pos.technology}
-                                </span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                        <StatusBadge status={pos.status} />
-                      </div>
-                      <div className="flex items-center justify-between text-xs mt-2">
-                        <span className="text-enterprise-charcoal/50">
-                          Filled: {pos.filled}/{pos.capacity}
-                        </span>
-                        {pos.status === 'open' && (
-                          <button
-                            className="text-enterprise-red font-medium hover:underline flex items-center gap-1"
-                            onClick={() => setShowApply(pos)}
-                          >
-                            <UserPlus className="w-3 h-3" /> Join as Contributor
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+                {roles.map((role) => (
+                  <RoleCard
+                    key={role.id}
+                    role={role}
+                    onJoin={() => setShowJoinRole(role)}
+                  />
+                ))}
               </div>
             ) : (
               <EmptyState
                 icon={<Briefcase className="w-6 h-6" />}
-                title="No contributor roles"
-                message="Open engineering opportunities for contributors will appear here."
+                title="No roles defined yet"
+                message="Add roles to start forming your innovation team."
               />
             )}
           </div>
@@ -332,7 +300,7 @@ export function InnovationDetailPage() {
               />
             </div>
             <div className="mt-3 text-xs text-enterprise-charcoal/50">
-              {innovation.team_size} team member{innovation.team_size !== 1 ? 's' : ''} · {openPositions.length} open role{openPositions.length !== 1 ? 's' : ''}
+              {innovation.team_size} team member{innovation.team_size !== 1 ? 's' : ''} · {openRoles.length} open role{openRoles.length !== 1 ? 's' : ''}
             </div>
           </div>
 
@@ -351,18 +319,431 @@ export function InnovationDetailPage() {
         </div>
       </div>
 
-      {showPosition && (
-        <CreatePositionModal innovationId={innovation.id} onClose={() => setShowPosition(false)} />
+      {showCreateRole && (
+        <CreateRoleModal innovationId={innovation.id} onClose={() => setShowCreateRole(false)} />
       )}
-      {showApply && users && (
-        <ApplyModal position={showApply} users={users} onClose={() => setShowApply(null)} />
+      {showJoinRole && users && (
+        <JoinRoleModal
+          innovationId={innovation.id}
+          role={showJoinRole}
+          users={users}
+          onClose={() => setShowJoinRole(null)}
+        />
       )}
-      {showJoin && users && (
-        <JoinInnovationModal innovationId={innovation.id} users={users} onClose={() => setShowJoin(false)} />
+      {showJoinRequests && (
+        <JoinRequestsModal innovationId={innovation.id} users={users || []} onClose={() => setShowJoinRequests(false)} />
       )}
     </div>
   );
 }
+
+// ---- Role Card with Capacity Indicator ----
+
+function RoleCard({ role, onJoin }: { role: Position; onJoin: () => void }) {
+  const isFilled = role.status === 'filled' || role.filled >= role.capacity;
+  const openSlots = role.capacity - role.filled;
+  const capacityPct = role.capacity > 0 ? (role.filled / role.capacity) * 100 : 0;
+
+  return (
+    <div className={`border rounded-md p-4 transition-colors ${isFilled ? 'border-enterprise-gray-border bg-gray-50' : 'border-enterprise-gray-border hover:border-enterprise-red/20'}`}>
+      <div className="flex items-start justify-between mb-2">
+        <div className="flex-1">
+          <p className="font-medium text-sm text-enterprise-charcoal">{role.title}</p>
+          {role.description && (
+            <p className="text-xs text-enterprise-charcoal/60 mt-1">{role.description}</p>
+          )}
+          <div className="flex items-center gap-2 mt-1.5 text-xs text-enterprise-charcoal/60">
+            <span>{role.role}</span>
+            {role.technology && (
+              <>
+                <span className="text-enterprise-charcoal/30">·</span>
+                <span className="flex items-center gap-1">
+                  <Cpu className="w-3 h-3" /> {role.technology}
+                </span>
+              </>
+            )}
+            {role.commitment && (
+              <>
+                <span className="text-enterprise-charcoal/30">·</span>
+                <span>{role.commitment}</span>
+              </>
+            )}
+          </div>
+        </div>
+        {isFilled ? (
+          <span className="badge bg-blue-100 text-blue-800 font-semibold whitespace-nowrap">
+            <Check className="w-3 h-3 inline mr-1" /> POSITION FILLED
+          </span>
+        ) : (
+          <StatusBadge status={role.status} />
+        )}
+      </div>
+
+      {/* Capacity Indicator */}
+      <div className="mt-3">
+        <div className="flex items-center justify-between text-xs mb-1">
+          <span className="text-enterprise-charcoal/60">
+            <span className="font-semibold text-enterprise-charcoal">{role.filled}</span>
+            {' / '}
+            <span className="font-semibold text-enterprise-charcoal">{role.capacity}</span>
+            {isFilled ? (
+              <span className="ml-2 text-blue-700 font-medium">FILLED</span>
+            ) : (
+              <span className="ml-2 text-green-700 font-medium">{openSlots} OPEN</span>
+            )}
+          </span>
+        </div>
+        <div className="h-2 bg-enterprise-gray-warm rounded-full overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-300 ${isFilled ? 'bg-blue-500' : 'bg-enterprise-red'}`}
+            style={{ width: `${capacityPct}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Skills */}
+      {(role.required_skills.length > 0 || role.preferred_skills.length > 0) && (
+        <div className="mt-3 space-y-1.5">
+          {role.required_skills.length > 0 && (
+            <div className="flex flex-wrap gap-1 items-center">
+              <span className="text-xs font-medium text-enterprise-charcoal/50">Required:</span>
+              {role.required_skills.map((s) => (
+                <span key={s} className="badge bg-red-50 text-red-700 text-xs">{s}</span>
+              ))}
+            </div>
+          )}
+          {role.preferred_skills.length > 0 && (
+            <div className="flex flex-wrap gap-1 items-center">
+              <span className="text-xs font-medium text-enterprise-charcoal/50">Preferred:</span>
+              {role.preferred_skills.map((s) => (
+                <span key={s} className="badge bg-amber-50 text-amber-700 text-xs">{s}</span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Join Button */}
+      <div className="mt-3 flex justify-end">
+        {isFilled ? (
+          <span className="text-xs text-enterprise-charcoal/40 font-medium flex items-center gap-1">
+            <Check className="w-3 h-3" /> Position Filled
+          </span>
+        ) : (
+          <button
+            className="text-enterprise-red font-medium hover:underline flex items-center gap-1 text-sm"
+            onClick={onJoin}
+          >
+            <UserPlus className="w-3.5 h-3.5" /> Request to Join
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ---- Create Role Modal ----
+
+function CreateRoleModal({ innovationId, onClose }: { innovationId: string; onClose: () => void }) {
+  const queryClient = useQueryClient();
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    defaultValues: { title: '', role: '', technology: '', description: '', required_skills: '', preferred_skills: '', capacity: 1, commitment: '' },
+  });
+
+  const mutation = useMutation({
+    mutationFn: (data: any) => {
+      const payload = {
+        ...data,
+        required_skills: data.required_skills ? data.required_skills.split(',').map((s: string) => s.trim()).filter(Boolean) : [],
+        preferred_skills: data.preferred_skills ? data.preferred_skills.split(',').map((s: string) => s.trim()).filter(Boolean) : [],
+        capacity: Number(data.capacity),
+      };
+      return innovationApi.createRole(innovationId, payload);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['innovation-roles', innovationId] });
+      queryClient.invalidateQueries({ queryKey: ['innovation', innovationId] });
+      queryClient.invalidateQueries({ queryKey: ['innovations'] });
+      onClose();
+    },
+  });
+
+  return (
+    <Modal open={true} onClose={onClose} title="Add Team Role">
+      <form onSubmit={handleSubmit((data) => mutation.mutate(data))} className="space-y-4">
+        <div>
+          <label className="label">Role Title</label>
+          <input {...register('title', { required: 'Required' })} className="input" placeholder="e.g. AI Engineer" />
+          {errors.title && <p className="text-xs text-red-600 mt-1">{errors.title.message as string}</p>}
+        </div>
+        <div>
+          <label className="label">Role Category</label>
+          <input {...register('role', { required: 'Required' })} className="input" placeholder="e.g. Engineer, Architect, DevOps" />
+          {errors.role && <p className="text-xs text-red-600 mt-1">{errors.role.message as string}</p>}
+        </div>
+        <div>
+          <label className="label">Description</label>
+          <textarea {...register('description')} className="input min-h-[60px]" placeholder="Describe the role responsibilities..." />
+        </div>
+        <div>
+          <label className="label">Required Skills (comma-separated)</label>
+          <input {...register('required_skills')} className="input" placeholder="e.g. Python, TensorFlow, NLP" />
+        </div>
+        <div>
+          <label className="label">Preferred Skills (comma-separated)</label>
+          <input {...register('preferred_skills')} className="input" placeholder="e.g. Docker, Kubernetes" />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="label">Capacity</label>
+            <input type="number" {...register('capacity', { valueAsNumber: true, min: 1 })} className="input" defaultValue={1} />
+          </div>
+          <div>
+            <label className="label">Commitment</label>
+            <input {...register('commitment')} className="input" placeholder="e.g. Full-time, 20h/week" />
+          </div>
+        </div>
+        <div className="flex gap-2 justify-end">
+          <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn-primary" disabled={mutation.isPending}>
+            {mutation.isPending ? 'Creating...' : 'Create Role'}
+          </button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+// ---- Join Role Modal with Skill Matching ----
+
+function JoinRoleModal({ innovationId, role, users, onClose }: { innovationId: string; role: Position; users: User[]; onClose: () => void }) {
+  const queryClient = useQueryClient();
+  const [selectedUserId, setSelectedUserId] = useState('');
+  const [showMatch, setShowMatch] = useState(false);
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    defaultValues: { user_id: '', message: '' },
+  });
+
+  const { data: skillMatch, isLoading: matchLoading } = useQuery({
+    queryKey: ['skill-match', innovationId, role.id, selectedUserId],
+    queryFn: () => innovationApi.getSkillMatch(innovationId, role.id, selectedUserId),
+    enabled: !!selectedUserId && showMatch,
+  });
+
+  const mutation = useMutation({
+    mutationFn: (data: { user_id: string; message: string }) =>
+      innovationApi.requestJoinRole(innovationId, role.id, { user_id: data.user_id, role: role.title, message: data.message }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['innovation-roles', innovationId] });
+      queryClient.invalidateQueries({ queryKey: ['innovation', innovationId] });
+      queryClient.invalidateQueries({ queryKey: ['innovations'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      onClose();
+    },
+  });
+
+  return (
+    <Modal open={true} onClose={onClose} title={`Join as: ${role.title}`}>
+      <form onSubmit={handleSubmit((data) => mutation.mutate(data))} className="space-y-4">
+        <div>
+          <label className="label">Select Contributor</label>
+          <select
+            {...register('user_id', { required: 'Required' })}
+            className="input"
+            onChange={(e) => { setSelectedUserId(e.target.value); setShowMatch(true); }}
+          >
+            <option value="">Select a contributor...</option>
+            {users.map((u) => (
+              <option key={u.id} value={u.id}>{u.name} - {u.department || 'No department'}</option>
+            ))}
+          </select>
+          {errors.user_id && <p className="text-xs text-red-600 mt-1">{errors.user_id.message as string}</p>}
+        </div>
+
+        {/* Skill Match Display */}
+        {showMatch && selectedUserId && (
+          <div className="border border-enterprise-gray-border rounded-md p-3 bg-gray-50">
+            {matchLoading ? (
+              <p className="text-xs text-enterprise-charcoal/50">Calculating skill match...</p>
+            ) : skillMatch ? (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-enterprise-charcoal/60">Skill Match</span>
+                  <span className={`text-sm font-bold ${skillMatch.match_percentage >= 75 ? 'text-green-600' : skillMatch.match_percentage >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
+                    {skillMatch.match_percentage}%
+                  </span>
+                </div>
+                <div className="h-2 bg-enterprise-gray-warm rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-300 ${skillMatch.match_percentage >= 75 ? 'bg-green-500' : skillMatch.match_percentage >= 50 ? 'bg-amber-500' : 'bg-red-500'}`}
+                    style={{ width: `${skillMatch.match_percentage}%` }}
+                  />
+                </div>
+                {skillMatch.matched_skills.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-green-700 mb-1">Matched Skills</p>
+                    <div className="flex flex-wrap gap-1">
+                      {skillMatch.matched_skills.map((s) => (
+                        <span key={s} className="badge bg-green-50 text-green-700 text-xs">{s}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {skillMatch.missing_skills.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-red-700 mb-1">Missing Skills</p>
+                    <div className="flex flex-wrap gap-1">
+                      {skillMatch.missing_skills.map((s) => (
+                        <span key={s} className="badge bg-red-50 text-red-700 text-xs">{s}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {skillMatch.required_skills.length === 0 && (
+                  <p className="text-xs text-enterprise-charcoal/50">No specific skills required for this role.</p>
+                )}
+              </div>
+            ) : null}
+          </div>
+        )}
+
+        {/* Role Info */}
+        {role.description && (
+          <div className="text-xs text-enterprise-charcoal/60 bg-enterprise-gray-warm/50 rounded-md p-2">
+            {role.description}
+          </div>
+        )}
+
+        <div>
+          <label className="label">Message (Optional)</label>
+          <textarea {...register('message')} className="input min-h-[60px]" placeholder="Describe your interest and relevant experience..." />
+        </div>
+
+        <div className="flex gap-2 justify-end">
+          <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn-primary" disabled={mutation.isPending}>
+            {mutation.isPending ? 'Submitting...' : 'Request to Join'}
+          </button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+// ---- Join Requests Management Modal ----
+
+function JoinRequestsModal({ innovationId, users, onClose }: { innovationId: string; users: User[]; onClose: () => void }) {
+  const queryClient = useQueryClient();
+  const { data: requests, isLoading } = useQuery({
+    queryKey: ['join-requests', innovationId],
+    queryFn: () => innovationApi.getJoinRequests(innovationId),
+  });
+
+  const approveMutation = useMutation({
+    mutationFn: (requestId: string) => innovationApi.approveJoinRequest(requestId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['join-requests', innovationId] });
+      queryClient.invalidateQueries({ queryKey: ['innovation-roles', innovationId] });
+      queryClient.invalidateQueries({ queryKey: ['innovation', innovationId] });
+      queryClient.invalidateQueries({ queryKey: ['innovations'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    },
+  });
+
+  const declineMutation = useMutation({
+    mutationFn: (requestId: string) => innovationApi.declineJoinRequest(requestId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['join-requests', innovationId] });
+    },
+  });
+
+  const userMap = new Map<string, User>();
+  users.forEach((u) => userMap.set(u.id, u));
+
+  const pendingRequests = requests?.filter((r) => r.status === 'requested') || [];
+  const processedRequests = requests?.filter((r) => r.status !== 'requested') || [];
+
+  return (
+    <Modal open={true} onClose={onClose} title="Join Requests">
+      {isLoading ? (
+        <Loading message="Loading requests..." />
+      ) : (
+        <div className="space-y-4">
+          {pendingRequests.length === 0 && processedRequests.length === 0 ? (
+            <EmptyState icon={<MessageSquare className="w-6 h-6" />} title="No join requests" message="Join requests from contributors will appear here." />
+          ) : (
+            <>
+              {pendingRequests.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-enterprise-charcoal/50 uppercase tracking-wide">Pending ({pendingRequests.length})</p>
+                  {pendingRequests.map((req) => {
+                    const user = userMap.get(req.user_id);
+                    return (
+                      <div key={req.id} className="border border-enterprise-gray-border rounded-md p-3">
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <p className="text-sm font-medium text-enterprise-charcoal">{user?.name || 'Unknown'}</p>
+                            <p className="text-xs text-enterprise-charcoal/50">
+                              {user?.department || 'No department'}
+                              {req.role && <span> · Role: {req.role}</span>}
+                            </p>
+                            {req.message && (
+                              <p className="text-xs text-enterprise-charcoal/60 mt-1 italic">"{req.message}"</p>
+                            )}
+                          </div>
+                          <div className="flex gap-1">
+                            <button
+                              className="btn-primary text-xs px-2 py-1"
+                              onClick={() => approveMutation.mutate(req.id)}
+                              disabled={approveMutation.isPending}
+                            >
+                              <Check className="w-3 h-3" /> Approve
+                            </button>
+                            <button
+                              className="btn-secondary text-xs px-2 py-1"
+                              onClick={() => declineMutation.mutate(req.id)}
+                              disabled={declineMutation.isPending}
+                            >
+                              <X className="w-3 h-3" /> Decline
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {processedRequests.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-enterprise-charcoal/50 uppercase tracking-wide">Processed ({processedRequests.length})</p>
+                  {processedRequests.slice(0, 10).map((req) => {
+                    const user = userMap.get(req.user_id);
+                    return (
+                      <div key={req.id} className="border border-enterprise-gray-border rounded-md p-3 opacity-60">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-enterprise-charcoal">{user?.name || 'Unknown'}</p>
+                            <p className="text-xs text-enterprise-charcoal/50">
+                              {req.role && <span>{req.role}</span>}
+                            </p>
+                          </div>
+                          <StatusBadge status={req.status} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+    </Modal>
+  );
+}
+
+// ---- Helper Components ----
 
 function StatBlock({ icon, label, value }: { icon: React.ReactNode; label: string; value: number | string }) {
   return (
@@ -391,138 +772,6 @@ function MetaRow({ label, value }: { label: string; value: string }) {
       <span className="text-enterprise-charcoal/50">{label}</span>
       <span className="text-enterprise-charcoal font-medium capitalize">{value}</span>
     </div>
-  );
-}
-
-function CreatePositionModal({ innovationId, onClose }: { innovationId: string; onClose: () => void }) {
-  const queryClient = useQueryClient();
-  const { register, handleSubmit, formState: { errors } } = useForm({
-    defaultValues: { title: '', role: '', technology: '', capacity: 1 },
-  });
-
-  const mutation = useMutation({
-    mutationFn: (data: any) => innovationApi.createPosition(innovationId, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['innovation-positions', innovationId] });
-      queryClient.invalidateQueries({ queryKey: ['innovation', innovationId] });
-      queryClient.invalidateQueries({ queryKey: ['innovations'] });
-      onClose();
-    },
-  });
-
-  return (
-    <Modal open={true} onClose={onClose} title="Add Contributor Role">
-      <form onSubmit={handleSubmit((data) => mutation.mutate(data))} className="space-y-4">
-        <div>
-          <label className="label">Role Title</label>
-          <input {...register('title', { required: 'Required' })} className="input" placeholder="e.g. Senior Backend Engineer" />
-          {errors.title && <p className="text-xs text-red-600 mt-1">{errors.title.message as string}</p>}
-        </div>
-        <div>
-          <label className="label">Contributor Role</label>
-          <input {...register('role', { required: 'Required' })} className="input" placeholder="e.g. Engineer, Designer, Architect" />
-          {errors.role && <p className="text-xs text-red-600 mt-1">{errors.role.message as string}</p>}
-        </div>
-        <div>
-          <label className="label">Technology</label>
-          <input {...register('technology')} className="input" placeholder="e.g. Python, React, Kubernetes" />
-        </div>
-        <div>
-          <label className="label">Capacity</label>
-          <input type="number" {...register('capacity', { valueAsNumber: true, min: 1 })} className="input" defaultValue={1} />
-        </div>
-        <div className="flex gap-2 justify-end">
-          <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
-          <button type="submit" className="btn-primary" disabled={mutation.isPending}>
-            {mutation.isPending ? 'Creating...' : 'Create Role'}
-          </button>
-        </div>
-      </form>
-    </Modal>
-  );
-}
-
-function ApplyModal({ position, users, onClose }: { position: Position; users: User[]; onClose: () => void }) {
-  const queryClient = useQueryClient();
-  const { register, handleSubmit, formState: { errors } } = useForm({ defaultValues: { user_id: '' } });
-
-  const mutation = useMutation({
-    mutationFn: (data: { user_id: string }) => innovationApi.applyForPosition(position.id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['innovation-positions', position.innovation_id] });
-      queryClient.invalidateQueries({ queryKey: ['innovation', position.innovation_id] });
-      queryClient.invalidateQueries({ queryKey: ['innovations'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-      onClose();
-    },
-  });
-
-  return (
-    <Modal open={true} onClose={onClose} title={`Join as: ${position.title}`}>
-      <form onSubmit={handleSubmit((data) => mutation.mutate(data))} className="space-y-4">
-        <div>
-          <label className="label">Select Contributor</label>
-          <select {...register('user_id', { required: 'Required' })} className="input">
-            <option value="">Select a contributor...</option>
-            {users.map((u) => <option key={u.id} value={u.id}>{u.name} - {u.department || 'No department'}</option>)}
-          </select>
-          {errors.user_id && <p className="text-xs text-red-600 mt-1">{errors.user_id.message as string}</p>}
-        </div>
-        <div className="flex gap-2 justify-end">
-          <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
-          <button type="submit" className="btn-primary" disabled={mutation.isPending}>
-            {mutation.isPending ? 'Joining...' : 'Join Innovation'}
-          </button>
-        </div>
-      </form>
-    </Modal>
-  );
-}
-
-function JoinInnovationModal({ innovationId, users, onClose }: { innovationId: string; users: User[]; onClose: () => void }) {
-  const queryClient = useQueryClient();
-  const { register, handleSubmit, formState: { errors } } = useForm({
-    defaultValues: { user_id: '', role: '', message: '' },
-  });
-
-  const mutation = useMutation({
-    mutationFn: (data: { user_id: string; role: string; message: string }) =>
-      innovationApi.joinInnovation(innovationId, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['innovation', innovationId] });
-      queryClient.invalidateQueries({ queryKey: ['innovations'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-      onClose();
-    },
-  });
-
-  return (
-    <Modal open={true} onClose={onClose} title="Join Innovation Team">
-      <form onSubmit={handleSubmit((data) => mutation.mutate(data))} className="space-y-4">
-        <div>
-          <label className="label">Select Contributor</label>
-          <select {...register('user_id', { required: 'Required' })} className="input">
-            <option value="">Select a contributor...</option>
-            {users.map((u) => <option key={u.id} value={u.id}>{u.name} - {u.department || 'No department'}</option>)}
-          </select>
-          {errors.user_id && <p className="text-xs text-red-600 mt-1">{errors.user_id.message as string}</p>}
-        </div>
-        <div>
-          <label className="label">Contributor Role</label>
-          <input {...register('role')} className="input" placeholder="e.g. Engineer, Designer, Architect" />
-        </div>
-        <div>
-          <label className="label">Message</label>
-          <textarea {...register('message')} className="input min-h-[80px]" placeholder="Describe your interest and relevant skills..." />
-        </div>
-        <div className="flex gap-2 justify-end">
-          <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
-          <button type="submit" className="btn-primary" disabled={mutation.isPending}>
-            {mutation.isPending ? 'Submitting...' : 'Submit Request'}
-          </button>
-        </div>
-      </form>
-    </Modal>
   );
 }
 

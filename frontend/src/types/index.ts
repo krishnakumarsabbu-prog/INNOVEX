@@ -174,9 +174,13 @@ export interface MarketplaceRole {
   title: string;
   role: string;
   technology: string;
+  description: string;
+  required_skills: string[];
+  preferred_skills: string[];
   capacity: number;
   filled: number;
   status: string;
+  commitment: string;
   created_at: string;
   updated_at: string;
 }
@@ -234,9 +238,13 @@ export interface Position {
   title: string;
   role: string;
   technology: string;
+  description: string;
+  required_skills: string[];
+  preferred_skills: string[];
   capacity: number;
   filled: number;
   status: string;
+  commitment: string;
   created_at: string;
   updated_at: string;
 }
@@ -248,6 +256,25 @@ export interface Application {
   status: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface JoinRequest {
+  id: string;
+  innovation_id: string;
+  user_id: string;
+  role: string;
+  role_id: string;
+  status: string;
+  message: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SkillMatch {
+  required_skills: string[];
+  matched_skills: string[];
+  missing_skills: string[];
+  match_percentage: number;
 }
 
 export interface Team {

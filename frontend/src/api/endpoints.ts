@@ -5,6 +5,7 @@ import type {
   ValidationSprint, ValidationEvidence, Innovation, Position, Application, Team, Project,
   Milestone, Evidence, Activity, Notification, Dashboard,
   MarketplaceInnovation, MarketplaceInnovationDetail,
+  JoinRequest, SkillMatch,
 } from '../types';
 
 export const setupApi = {
@@ -76,6 +77,17 @@ export const innovationApi = {
   getOpenPositions: () => api.get<Position[]>('/innovations/positions/open').then(r => r.data),
   joinInnovation: (innovationId: string, data: { user_id: string; role: string; message: string }) =>
     api.post(`/innovations/${innovationId}/join-requests`, data).then(r => r.data),
+  getRoles: (innovationId: string) => api.get<Position[]>(`/innovations/${innovationId}/roles`).then(r => r.data),
+  createRole: (innovationId: string, data: Partial<Position>) => api.post<Position>(`/innovations/${innovationId}/roles`, data).then(r => r.data),
+  patchRole: (innovationId: string, roleId: string, data: Partial<Position>) => api.patch<Position>(`/innovations/${innovationId}/roles/${roleId}`, data).then(r => r.data),
+  getSkillMatch: (innovationId: string, roleId: string, userId: string) =>
+    api.get<SkillMatch>(`/innovations/${innovationId}/roles/${roleId}/skill-match`, { params: { user_id: userId } }).then(r => r.data),
+  requestJoinRole: (innovationId: string, roleId: string, data: { user_id: string; role: string; message: string }) =>
+    api.post<JoinRequest>(`/innovations/${innovationId}/roles/${roleId}/join-request`, data).then(r => r.data),
+  getJoinRequests: (innovationId: string) => api.get<JoinRequest[]>(`/innovations/${innovationId}/join-requests`).then(r => r.data),
+  approveJoinRequest: (requestId: string) => api.post<JoinRequest>(`/innovations/join-requests/${requestId}/approve`).then(r => r.data),
+  declineJoinRequest: (requestId: string) => api.post<JoinRequest>(`/innovations/join-requests/${requestId}/decline`).then(r => r.data),
+  getTeam: (innovationId: string) => api.get(`/innovations/${innovationId}/team`).then(r => r.data),
   follow: (innovationId: string, userId: string) => api.post(`/innovations/${innovationId}/follow?user_id=${userId}`).then(r => r.data),
   unfollow: (innovationId: string, userId: string) => api.delete(`/innovations/${innovationId}/follow?user_id=${userId}`).then(r => r.data),
   getFollowers: (innovationId: string) => api.get(`/innovations/${innovationId}/followers`).then(r => r.data),

@@ -11,6 +11,7 @@ from app.schemas.models import (
     ApplicationCreate, JoinRequestCreate,
     MarketplaceInnovationResponse, MarketplaceInnovationDetailResponse,
     MarketplaceRoleResponse, MarketplaceTeamMemberResponse,
+    SkillMatchResponse,
 )
 
 
@@ -89,6 +90,8 @@ class InnovationService:
     def delete(self, innovation_id: str) -> bool:
         return self._repos.innovation.delete(innovation_id)
 
+    # ---- Roles ----
+
     def create_position(self, data: PositionCreate) -> InnovationRole:
         innovation = self.get_by_id(data.innovation_id)
         now = utc_now()
@@ -98,9 +101,13 @@ class InnovationService:
             title=data.title,
             role=data.role,
             technology=data.technology,
+            description=getattr(data, "description", ""),
+            required_skills=getattr(data, "required_skills", []),
+            preferred_skills=getattr(data, "preferred_skills", []),
             capacity=data.capacity,
             filled=0,
             status=RoleStatus.OPEN.value,
+            commitment=getattr(data, "commitment", ""),
             created_at=now,
             updated_at=now,
         )
@@ -108,7 +115,7 @@ class InnovationService:
 
         self._repos.activity.create(Activity(
             id=generate_id(), entity_type="position", entity_id=role.id,
-            action="created", description=f"Position '{data.title}' opened for innovation",
+            action="created", description=f"Role '{data.title}' opened for innovation",
             user_id=None, created_at=now,
         ))
         return role
@@ -131,6 +138,165 @@ class InnovationService:
     def delete_position(self, position_id: str) -> bool:
         return self._repos.innovation_role.delete(position_id)
 
+    # ---- Skill Matching ----
+
+    def get_skill_match(self, role_id: str, user_id: str) -> SkillMatchResponse:
+        role = self._repos.innovation_role.get_by_id(role_id)
+        if not role:
+            raise NotFoundError("Role not found")
+        user = self._repos.user.get_by_id(user_id)
+        if not user:
+            raise NotFoundError("User not found")
+
+        required = [s.lower().strip() for s in role.required_skills]
+        user_skills_lower = [s.lower().strip() for s in user.skills]
+        user_skills_set = set(user_skills_lower)
+
+        matched = [s for s in role.required_skills if s.lower().strip() in user_skills_set]
+        missing = [s for s in role.required_skills if s.lower().strip() not in user_skills_set]
+
+        if len(required) == 0:
+            match_pct = 100
+        else:
+            match_pct = int((len(matched) / len(required)) * 100)
+
+        return SkillMatchResponse(
+            required_skills=role.required_skills,
+            matched_skills=matched,
+            missing_skills=missing,
+            match_percentage=match_pct,
+        )
+
+    # ---- Join Flow ----
+
+    def request_to_join_role(self, innovation_id: str, role_id: str, user_id: str, message: str = "") -> JoinRequest:
+        innovation = self.get_by_id(innovation_id)
+        user = self._repos.user.get_by_id(user_id)
+        if not user:
+            raise NotFoundError("User not found")
+
+        role = self._repos.innovation_role.get_by_id(role_id)
+        if not role:
+            raise NotFoundError("Role not found")
+        if role.innovation_id != innovation_id:
+            raise ValidationError("Role does not belong to this innovation")
+        if role.status == RoleStatus.FILLED.value:
+            raise ValidationError("This role is filled")
+
+        existing = self._repos.join_request.get_by_innovation_and_user(innovation_id, user_id)
+        if existing and existing.status == JoinRequestStatus.REQUESTED.value:
+            raise ValidationError("Already requested to join this innovation")
+
+        now = utc_now()
+        join_req = JoinRequest(
+            id=generate_id(),
+            innovation_id=innovation_id,
+            user_id=user_id,
+            role=role.title,
+            role_id=role_id,
+            status=JoinRequestStatus.REQUESTED.value,
+            message=message,
+            created_at=now,
+            updated_at=now,
+        )
+        self._repos.join_request.create(join_req)
+
+        self._repos.activity.create(Activity(
+            id=generate_id(), entity_type="join_request", entity_id=join_req.id,
+            action="requested", description=f"User requested to join role '{role.title}'",
+            user_id=user_id, created_at=now,
+        ))
+
+        if innovation.founder_id:
+            self._repos.notification.create(Notification(
+                id=generate_id(), user_id=innovation.founder_id,
+                message=f"New join request for role '{role.title}'",
+                read=False, created_at=now,
+            ))
+        if innovation.manager_id and innovation.manager_id != innovation.founder_id:
+            self._repos.notification.create(Notification(
+                id=generate_id(), user_id=innovation.manager_id,
+                message=f"New join request for role '{role.title}'",
+                read=False, created_at=now,
+            ))
+        return join_req
+
+    def approve_join_request(self, request_id: str) -> JoinRequest:
+        join_req = self._repos.join_request.get_by_id(request_id)
+        if not join_req:
+            raise NotFoundError("Join request not found")
+        if join_req.status != JoinRequestStatus.REQUESTED.value:
+            raise ValidationError("Join request is not pending")
+
+        role = None
+        if join_req.role_id:
+            role = self._repos.innovation_role.get_by_id(join_req.role_id)
+            if role and role.status == RoleStatus.FILLED.value:
+                raise ValidationError("Role is already filled")
+            if role and role.filled >= role.capacity:
+                raise ValidationError("Role has reached capacity")
+
+        now = utc_now()
+        self._repos.join_request.update(request_id, status=JoinRequestStatus.APPROVED.value, updated_at=now)
+
+        self._repos.team_membership.create(TeamMembership(
+            id=generate_id(),
+            innovation_id=join_req.innovation_id,
+            user_id=join_req.user_id,
+            role=join_req.role,
+            joined_at=now,
+        ))
+
+        if role:
+            role.filled += 1
+            if role.filled >= role.capacity:
+                role.status = RoleStatus.FILLED.value
+            self._repos.innovation_role.update(role.id, filled=role.filled, status=role.status, updated_at=now)
+
+        self._repos.activity.create(Activity(
+            id=generate_id(), entity_type="join_request", entity_id=join_req.id,
+            action="approved", description=f"Join request approved for role '{join_req.role}'",
+            user_id=join_req.user_id, created_at=now,
+        ))
+
+        self._repos.notification.create(Notification(
+            id=generate_id(), user_id=join_req.user_id,
+            message=f"Your join request has been approved. You are now part of the team as '{join_req.role}'.",
+            read=False, created_at=now,
+        ))
+        return self._repos.join_request.get_by_id(request_id)
+
+    def decline_join_request(self, request_id: str) -> JoinRequest:
+        join_req = self._repos.join_request.get_by_id(request_id)
+        if not join_req:
+            raise NotFoundError("Join request not found")
+        if join_req.status != JoinRequestStatus.REQUESTED.value:
+            raise ValidationError("Join request is not pending")
+
+        now = utc_now()
+        self._repos.join_request.update(request_id, status=JoinRequestStatus.DECLINED.value, updated_at=now)
+
+        self._repos.activity.create(Activity(
+            id=generate_id(), entity_type="join_request", entity_id=join_req.id,
+            action="declined", description=f"Join request declined for role '{join_req.role}'",
+            user_id=join_req.user_id, created_at=now,
+        ))
+
+        self._repos.notification.create(Notification(
+            id=generate_id(), user_id=join_req.user_id,
+            message="Your join request has been declined",
+            read=False, created_at=now,
+        ))
+        return self._repos.join_request.get_by_id(request_id)
+
+    def get_join_requests(self, innovation_id: str) -> list[JoinRequest]:
+        return self._repos.join_request.get_by_innovation(innovation_id)
+
+    def get_team_members(self, innovation_id: str) -> list[TeamMembership]:
+        return self._repos.team_membership.get_by_innovation(innovation_id)
+
+    # ---- Legacy join (no role_id) ----
+
     def apply_for_position(self, data: ApplicationCreate) -> JoinRequest:
         position = self._repos.innovation_role.get_by_id(data.position_id)
         if not position:
@@ -150,6 +316,7 @@ class InnovationService:
             innovation_id=position.innovation_id,
             user_id=data.user_id,
             role=position.role,
+            role_id=position.id,
             status=JoinRequestStatus.APPROVED.value,
             message=f"Auto-approved for position '{position.title}'",
             created_at=now,
@@ -199,7 +366,7 @@ class InnovationService:
         if not user:
             raise NotFoundError("User not found")
         existing = self._repos.join_request.get_by_innovation_and_user(data.innovation_id, data.user_id)
-        if existing:
+        if existing and existing.status == JoinRequestStatus.REQUESTED.value:
             raise ValidationError("Already requested to join this innovation")
 
         now = utc_now()
@@ -208,6 +375,7 @@ class InnovationService:
             innovation_id=data.innovation_id,
             user_id=data.user_id,
             role=data.role,
+            role_id=data.role_id,
             status=JoinRequestStatus.REQUESTED.value,
             message=data.message,
             created_at=now,
@@ -229,50 +397,7 @@ class InnovationService:
             ))
         return join_req
 
-    def approve_join_request(self, request_id: str) -> JoinRequest:
-        join_req = self._repos.join_request.get_by_id(request_id)
-        if not join_req:
-            raise NotFoundError("Join request not found")
-        if join_req.status != JoinRequestStatus.REQUESTED.value:
-            raise ValidationError("Join request is not pending")
-
-        now = utc_now()
-        self._repos.join_request.update(request_id, status=JoinRequestStatus.APPROVED.value, updated_at=now)
-
-        self._repos.team_membership.create(TeamMembership(
-            id=generate_id(),
-            innovation_id=join_req.innovation_id,
-            user_id=join_req.user_id,
-            role=join_req.role,
-            joined_at=now,
-        ))
-
-        self._repos.notification.create(Notification(
-            id=generate_id(), user_id=join_req.user_id,
-            message="Your join request has been approved",
-            read=False, created_at=now,
-        ))
-        return self._repos.join_request.get_by_id(request_id)
-
-    def decline_join_request(self, request_id: str) -> JoinRequest:
-        join_req = self._repos.join_request.get_by_id(request_id)
-        if not join_req:
-            raise NotFoundError("Join request not found")
-        if join_req.status != JoinRequestStatus.REQUESTED.value:
-            raise ValidationError("Join request is not pending")
-
-        now = utc_now()
-        self._repos.join_request.update(request_id, status=JoinRequestStatus.DECLINED.value, updated_at=now)
-
-        self._repos.notification.create(Notification(
-            id=generate_id(), user_id=join_req.user_id,
-            message="Your join request has been declined",
-            read=False, created_at=now,
-        ))
-        return self._repos.join_request.get_by_id(request_id)
-
-    def get_team_members(self, innovation_id: str) -> list[TeamMembership]:
-        return self._repos.team_membership.get_by_innovation(innovation_id)
+    # ---- Follow ----
 
     def follow(self, innovation_id: str, user_id: str) -> dict:
         from app.domain.models.entities import Follow
@@ -300,6 +425,8 @@ class InnovationService:
     def get_follower_count(self, innovation_id: str) -> int:
         return self._repos.follow.count_by_innovation(innovation_id)
 
+    # ---- Marketplace enrichment ----
+
     def _user_name(self, user_id: str | None) -> str:
         if not user_id:
             return ""
@@ -317,8 +444,10 @@ class InnovationService:
         return [
             MarketplaceRoleResponse(
                 id=r.id, innovation_id=r.innovation_id, title=r.title,
-                role=r.role, technology=r.technology, capacity=r.capacity,
-                filled=r.filled, status=r.status, created_at=r.created_at, updated_at=r.updated_at,
+                role=r.role, technology=r.technology, description=r.description,
+                required_skills=r.required_skills, preferred_skills=r.preferred_skills,
+                capacity=r.capacity, filled=r.filled, status=r.status,
+                commitment=r.commitment, created_at=r.created_at, updated_at=r.updated_at,
             )
             for r in roles
         ]

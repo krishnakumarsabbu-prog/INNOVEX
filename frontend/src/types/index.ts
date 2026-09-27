@@ -409,6 +409,31 @@ export interface InsightsOverview {
   recent_activity: Activity[];
 }
 
+export interface AIRecommendation {
+  capability: string;
+  recommendation: string;
+  reason: string;
+  evidence: string;
+  confidence: number;
+  created_at: string;
+  items: Record<string, unknown>[];
+}
+
+export interface AIContextCapability {
+  capability: string;
+  label: string;
+}
+
+export interface AICapabilities {
+  idea: string[];
+  review: string[];
+  validation: string[];
+  team: string[];
+  engineering: string[];
+}
+
+export type AIEntityType = 'idea' | 'review' | 'validation' | 'innovation' | 'project';
+
 export interface ApiError {
   error: {
     code: string;

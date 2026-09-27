@@ -6,6 +6,7 @@ import type {
   Milestone, Evidence, Activity, Notification, Dashboard, WorkItem,
   MarketplaceInnovation, MarketplaceInnovationDetail,
   JoinRequest, SkillMatch, InsightsOverview,
+  AIRecommendation, AIContextCapability, AICapabilities, AIEntityType,
 } from '../types';
 
 export const setupApi = {
@@ -147,4 +148,16 @@ export const dashboardApi = {
 
 export const insightsApi = {
   getOverview: () => api.get<InsightsOverview>('/insights/overview').then(r => r.data),
+};
+
+export const copilotApi = {
+  getCapabilities: () => api.get<AICapabilities>('/ai/capabilities').then(r => r.data),
+  getContextCapabilities: (entityType: AIEntityType, entityId: string) =>
+    api.get<AIContextCapability[]>(`/ai/context/${entityType}/${entityId}`).then(r => r.data),
+  analyze: (capability: string, entityType: AIEntityType, entityId: string) =>
+    api.post<AIRecommendation[]>('/ai/analyze', {
+      capability,
+      entity_type: entityType,
+      entity_id: entityId,
+    }).then(r => r.data),
 };

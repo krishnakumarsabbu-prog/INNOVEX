@@ -3,6 +3,7 @@ import { Search, Bell, HelpCircle, User, Lightbulb } from 'lucide-react';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { dashboardApi } from '../api/endpoints';
+import { IntelligencePanel } from '../components/IntelligencePanel';
 
 const navItems = [
   { to: '/', label: 'Home' },
@@ -119,7 +120,12 @@ export function AppLayout() {
         <div className="mb-4">
           <span className="text-xs text-enterprise-charcoal/50">{orgName}</span>
         </div>
-        <Outlet />
+        <div className="flex gap-6">
+          <div className="flex-1 min-w-0">
+            <Outlet />
+          </div>
+          <IntelligencePanel />
+        </div>
       </main>
 
       <footer className="bg-white border-t border-enterprise-gray-border py-4">

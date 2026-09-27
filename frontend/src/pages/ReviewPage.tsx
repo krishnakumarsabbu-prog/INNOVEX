@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   ClipboardList, FileText, AlertTriangle, Link2, Shield, Layers,
@@ -31,7 +32,20 @@ const DECISIONS = [
 const DECISIONS_REQUIRING_REASON = ['park', 'reject'];
 
 export function ReviewPage() {
-  const [selectedIdeaId, setSelectedIdeaId] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [selectedIdeaId, setSelectedIdeaId] = useState<string | null>(searchParams.get('idea'));
+
+  useEffect(() => {
+    const idea = searchParams.get('idea');
+    if (idea !== selectedIdeaId) {
+      setSelectedIdeaId(idea);
+    }
+  }, [searchParams]);
+
+  const handleSelect = (id: string) => {
+    setSelectedIdeaId(id);
+    setSearchParams({ idea: id }, { replace: true });
+  };
 
   const { data: queue, isLoading: queueLoading, isError: queueError } = useQuery({
     queryKey: ['review-queue'],
@@ -68,7 +82,7 @@ export function ReviewPage() {
             queue={queue || []}
             userMap={userMap}
             selectedId={selectedIdeaId}
-            onSelect={setSelectedIdeaId}
+            onSelect={handleSelect}
           />
         </div>
 

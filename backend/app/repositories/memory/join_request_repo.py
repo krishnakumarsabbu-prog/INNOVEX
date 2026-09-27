@@ -9,8 +9,9 @@ class InMemoryJoinRequestRepository(BaseRepository):
 
     def create(self, request: JoinRequest) -> JoinRequest:
         self._db.execute(
-            "INSERT INTO join_requests (id, innovation_id, user_id, role, status, message, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            (request.id, request.innovation_id, request.user_id, request.role, request.status, request.message, request.created_at, request.updated_at),
+            "INSERT INTO join_requests (id, innovation_id, user_id, role, role_id, status, message, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (request.id, request.innovation_id, request.user_id, request.role, request.role_id,
+             request.status, request.message, request.created_at, request.updated_at),
         )
         return request
 
@@ -34,6 +35,13 @@ class InMemoryJoinRequestRepository(BaseRepository):
         row = self._db.query_one(
             "SELECT * FROM join_requests WHERE innovation_id = ? AND user_id = ?",
             (innovation_id, user_id),
+        )
+        return JoinRequest(**dict(row)) if row else None
+
+    def get_by_role_and_user(self, role_id: str, user_id: str) -> JoinRequest | None:
+        row = self._db.query_one(
+            "SELECT * FROM join_requests WHERE role_id = ? AND user_id = ?",
+            (role_id, user_id),
         )
         return JoinRequest(**dict(row)) if row else None
 

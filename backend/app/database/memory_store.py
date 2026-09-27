@@ -212,9 +212,13 @@ CREATE TABLE IF NOT EXISTS innovation_roles (
     title TEXT NOT NULL,
     role TEXT NOT NULL,
     technology TEXT DEFAULT '',
+    description TEXT DEFAULT '',
+    required_skills TEXT DEFAULT '[]',
+    preferred_skills TEXT DEFAULT '[]',
     capacity INTEGER NOT NULL DEFAULT 1,
     filled INTEGER NOT NULL DEFAULT 0,
     status TEXT NOT NULL DEFAULT 'open',
+    commitment TEXT DEFAULT '',
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
     FOREIGN KEY (innovation_id) REFERENCES innovations(id)
@@ -235,6 +239,7 @@ CREATE TABLE IF NOT EXISTS join_requests (
     innovation_id TEXT NOT NULL,
     user_id TEXT NOT NULL,
     role TEXT DEFAULT '',
+    role_id TEXT DEFAULT '',
     status TEXT NOT NULL DEFAULT 'requested',
     message TEXT DEFAULT '',
     created_at TEXT NOT NULL,
@@ -375,6 +380,8 @@ def init_db() -> None:
     db = DatabaseConnection.get_instance()
     db.execute_script(SCHEMA_SQL)
     _migrate_validation_sprints(db)
+    _migrate_innovation_roles(db)
+    _migrate_join_requests(db)
 
 
 def _migrate_validation_sprints(db: DatabaseConnection) -> None:
@@ -387,3 +394,21 @@ def _migrate_validation_sprints(db: DatabaseConnection) -> None:
     ]:
         if col not in cols:
             db.execute(f"ALTER TABLE validation_sprints ADD COLUMN {col} {col_type}")
+
+
+def _migrate_innovation_roles(db: DatabaseConnection) -> None:
+    cols = {row["name"] for row in db.query_all("PRAGMA table_info(innovation_roles)")}
+    for col, col_type in [
+        ("description", "TEXT DEFAULT ''"),
+        ("required_skills", "TEXT DEFAULT '[]'"),
+        ("preferred_skills", "TEXT DEFAULT '[]'"),
+        ("commitment", "TEXT DEFAULT ''"),
+    ]:
+        if col not in cols:
+            db.execute(f"ALTER TABLE innovation_roles ADD COLUMN {col} {col_type}")
+
+
+def _migrate_join_requests(db: DatabaseConnection) -> None:
+    cols = {row["name"] for row in db.query_all("PRAGMA table_info(join_requests)")}
+    if "role_id" not in cols:
+        db.execute("ALTER TABLE join_requests ADD COLUMN role_id TEXT DEFAULT ''")

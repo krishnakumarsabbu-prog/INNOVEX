@@ -1,6 +1,15 @@
+import json
+
 from app.database.memory_store import DatabaseConnection
 from app.domain.models.entities import InnovationRole
 from app.repositories.interfaces import BaseRepository
+
+
+def _row_to_role(row) -> InnovationRole:
+    d = dict(row)
+    d["required_skills"] = json.loads(d.get("required_skills") or "[]")
+    d["preferred_skills"] = json.loads(d.get("preferred_skills") or "[]")
+    return InnovationRole(**d)
 
 
 class InMemoryInnovationRoleRepository(BaseRepository):
@@ -9,28 +18,33 @@ class InMemoryInnovationRoleRepository(BaseRepository):
 
     def create(self, role: InnovationRole) -> InnovationRole:
         self._db.execute(
-            """INSERT INTO innovation_roles (id, innovation_id, title, role, technology, capacity, filled, status, created_at, updated_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            """INSERT INTO innovation_roles
+               (id, innovation_id, title, role, technology, description,
+                required_skills, preferred_skills, capacity, filled, status,
+                commitment, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (role.id, role.innovation_id, role.title, role.role, role.technology,
-             role.capacity, role.filled, role.status, role.created_at, role.updated_at),
+             role.description, json.dumps(role.required_skills), json.dumps(role.preferred_skills),
+             role.capacity, role.filled, role.status, role.commitment,
+             role.created_at, role.updated_at),
         )
         return role
 
     def get_by_id(self, role_id: str) -> InnovationRole | None:
         row = self._db.query_one("SELECT * FROM innovation_roles WHERE id = ?", (role_id,))
-        return InnovationRole(**dict(row)) if row else None
+        return _row_to_role(row) if row else None
 
     def get_all(self) -> list[InnovationRole]:
         rows = self._db.query_all("SELECT * FROM innovation_roles ORDER BY created_at DESC")
-        return [InnovationRole(**dict(r)) for r in rows]
+        return [_row_to_role(r) for r in rows]
 
     def get_by_innovation(self, innovation_id: str) -> list[InnovationRole]:
         rows = self._db.query_all("SELECT * FROM innovation_roles WHERE innovation_id = ? ORDER BY created_at DESC", (innovation_id,))
-        return [InnovationRole(**dict(r)) for r in rows]
+        return [_row_to_role(r) for r in rows]
 
     def get_open(self) -> list[InnovationRole]:
         rows = self._db.query_all("SELECT * FROM innovation_roles WHERE status = 'open' ORDER BY created_at DESC")
-        return [InnovationRole(**dict(r)) for r in rows]
+        return [_row_to_role(r) for r in rows]
 
     def update(self, role_id: str, **kwargs) -> InnovationRole | None:
         role = self.get_by_id(role_id)
@@ -40,8 +54,14 @@ class InMemoryInnovationRoleRepository(BaseRepository):
             if hasattr(role, k):
                 setattr(role, k, v)
         self._db.execute(
-            "UPDATE innovation_roles SET title = ?, role = ?, technology = ?, capacity = ?, filled = ?, status = ?, updated_at = ? WHERE id = ?",
-            (role.title, role.role, role.technology, role.capacity, role.filled, role.status, role.updated_at, role.id),
+            """UPDATE innovation_roles
+               SET title = ?, role = ?, technology = ?, description = ?,
+                   required_skills = ?, preferred_skills = ?, capacity = ?,
+                   filled = ?, status = ?, commitment = ?, updated_at = ?
+               WHERE id = ?""",
+            (role.title, role.role, role.technology, role.description,
+             json.dumps(role.required_skills), json.dumps(role.preferred_skills),
+             role.capacity, role.filled, role.status, role.commitment, role.updated_at, role.id),
         )
         return role
 

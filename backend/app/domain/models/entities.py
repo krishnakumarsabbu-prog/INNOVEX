@@ -176,9 +176,13 @@ class InnovationRole:
     title: str
     role: str
     technology: str = ""
+    description: str = ""
+    required_skills: list[str] = field(default_factory=list)
+    preferred_skills: list[str] = field(default_factory=list)
     capacity: int = 1
     filled: int = 0
     status: str = "open"
+    commitment: str = ""
     created_at: str = ""
     updated_at: str = ""
 
@@ -198,6 +202,7 @@ class JoinRequest:
     innovation_id: str
     user_id: str
     role: str = ""
+    role_id: str = ""
     status: str = "requested"
     message: str = ""
     created_at: str = ""

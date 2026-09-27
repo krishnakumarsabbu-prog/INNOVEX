@@ -358,14 +358,22 @@ class PositionCreate(BaseModel):
     title: str
     role: str
     technology: str = ""
+    description: str = ""
+    required_skills: list[str] = []
+    preferred_skills: list[str] = []
     capacity: int = 1
+    commitment: str = ""
 
 
 class PositionUpdate(BaseModel):
     title: Optional[str] = None
     role: Optional[str] = None
     technology: Optional[str] = None
+    description: Optional[str] = None
+    required_skills: Optional[list[str]] = None
+    preferred_skills: Optional[list[str]] = None
     capacity: Optional[int] = None
+    commitment: Optional[str] = None
 
 
 class PositionResponse(BaseModel):
@@ -374,11 +382,22 @@ class PositionResponse(BaseModel):
     title: str
     role: str
     technology: str
+    description: str
+    required_skills: list[str]
+    preferred_skills: list[str]
     capacity: int
     filled: int
     status: str
+    commitment: str
     created_at: str
     updated_at: str
+
+
+class SkillMatchResponse(BaseModel):
+    required_skills: list[str]
+    matched_skills: list[str]
+    missing_skills: list[str]
+    match_percentage: int
 
 
 class ApplicationCreate(BaseModel):
@@ -399,6 +418,7 @@ class JoinRequestCreate(BaseModel):
     innovation_id: str
     user_id: str
     role: str = ""
+    role_id: str = ""
     message: str = ""
 
 
@@ -407,6 +427,7 @@ class JoinRequestResponse(BaseModel):
     innovation_id: str
     user_id: str
     role: str
+    role_id: str
     status: str
     message: str
     created_at: str
@@ -571,9 +592,13 @@ class MarketplaceRoleResponse(BaseModel):
     title: str
     role: str
     technology: str = ""
+    description: str = ""
+    required_skills: list[str] = []
+    preferred_skills: list[str] = []
     capacity: int = 1
     filled: int = 0
     status: str = "open"
+    commitment: str = ""
     created_at: str = ""
     updated_at: str = ""
 

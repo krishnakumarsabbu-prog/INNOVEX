@@ -4,10 +4,12 @@ import { Lightbulb, Plus, ArrowRight } from 'lucide-react';
 import { ideaApi, userApi } from '../api/endpoints';
 import { PageHeader, EmptyState, Loading, ErrorState, StatusBadge } from '../components/ui';
 import type { User } from '../types';
+import { useAuth } from '../context/AuthContext';
 
 export function MyIdeasPage() {
   const [searchParams] = useSearchParams();
-  const founderId = searchParams.get('founder_id') || '';
+  const { currentUser } = useAuth();
+  const founderId = searchParams.get('founder_id') || currentUser?.id || '';
 
   const { data: users } = useQuery({
     queryKey: ['users'],

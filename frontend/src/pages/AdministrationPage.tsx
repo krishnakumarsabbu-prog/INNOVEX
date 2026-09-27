@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { adminApi, peopleApi, notificationApi, auditApi } from '../api/endpoints';
-import type { TechnologyTaxonomyItem, BusinessArea, ReviewPanel, Workflow, Policy, RoleDefinition, User, AuditEvent, Notification } from '../types';
+import { adminApi, peopleApi, notificationApi, auditApi, skillApi } from '../api/endpoints';
+import type { TechnologyTaxonomyItem, BusinessArea, ReviewPanel, Workflow, Policy, RoleDefinition, User, Skill, AuditEvent, Notification } from '../types';
 import { PageHeader, Loading, ErrorState, Modal, StatusBadge, EmptyState } from '../components/ui';
 import {
   Building2, Users, Shield, Cpu, Layers, ClipboardList, GitBranch, Settings,
@@ -85,13 +85,20 @@ function OrganizationsSection() {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState('');
 
+  const updateMut = useMutation({
+    mutationFn: (newName: string) => {
+      if (!org?.id) throw new Error('No organization found');
+      return adminApi.updateOrganization(org.id, newName);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-org'] });
+      qc.invalidateQueries({ queryKey: ['dashboard'] });
+      setEditing(false);
+    },
+  });
+
   if (isLoading) return <Loading />;
   if (!org || !org.id) return <EmptyState icon={<Building2 className="w-8 h-8" />} title="No organization" message="Create an organization via setup." />;
-
-  const updateMut = useMutation({
-    mutationFn: (newName: string) => adminApi.updateOrganization(org.id, newName),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-org'] }); qc.invalidateQueries({ queryKey: ['dashboard'] }); setEditing(false); },
-  });
 
   return (
     <div className="space-y-4">
@@ -198,29 +205,203 @@ function RolesSection() {
 // ============ SKILLS ============
 
 function SkillsSection() {
-  const { data: users, isLoading } = useQuery({ queryKey: ['admin-people'], queryFn: () => peopleApi.getAll() });
-  if (isLoading) return <Loading />;
-  if (!users) return <ErrorState message="Failed to load skills data" />;
+  const qc = useQueryClient();
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [search, setSearch] = useState('');
+  const [showAdd, setShowAdd] = useState(false);
+  const [newSkill, setNewSkill] = useState({ name: '', category: 'Backend' });
 
-  const skillMap = new Map<string, number>();
-  users.forEach((u: User) => u.skills.forEach((s) => skillMap.set(s, (skillMap.get(s) || 0) + 1)));
-  const skills = Array.from(skillMap.entries()).sort((a, b) => b[1] - a[1]);
+  const { data: skills, isLoading: skillsLoading } = useQuery({
+    queryKey: ['skills'],
+    queryFn: () => skillApi.getAll(),
+  });
 
-  if (skills.length === 0) return <EmptyState icon={<Cpu className="w-8 h-8" />} title="No skills" message="Skills appear here once users have them." />;
+  const { data: users } = useQuery({
+    queryKey: ['admin-people'],
+    queryFn: () => peopleApi.getAll(),
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data: { name: string; category?: string }) => skillApi.create(data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['skills'] });
+      setShowAdd(false);
+      setNewSkill({ name: '', category: 'Backend' });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => skillApi.delete(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['skills'] });
+    },
+  });
+
+  if (skillsLoading) return <Loading message="Loading skills registry..." />;
+
+  const userSkillCounts = new Map<string, number>();
+  users?.forEach((u: User) => {
+    u.skills?.forEach((s) => {
+      const lower = s.toLowerCase();
+      userSkillCounts.set(lower, (userSkillCounts.get(lower) || 0) + 1);
+    });
+  });
+
+  const allSkills = skills || [];
+  const categories = ['All', ...Array.from(new Set(allSkills.map((s) => s.category || 'General')))];
+
+  const filteredSkills = allSkills.filter((s) => {
+    const matchesCat = selectedCategory === 'All' || (s.category || 'General') === selectedCategory;
+    const matchesSearch = !search || s.name.toLowerCase().includes(search.toLowerCase());
+    return matchesCat && matchesSearch;
+  });
 
   return (
-    <div className="space-y-3">
-      <h2 className="text-lg font-semibold text-enterprise-charcoal-800">Skills Registry ({skills.length})</h2>
-      <div className="card p-4">
-        <div className="flex flex-wrap gap-2">
-          {skills.map(([skill, count]) => (
-            <div key={skill} className="flex items-center gap-2 bg-enterprise-gray-warm rounded-enterprise px-3 py-1.5">
-              <span className="text-sm font-medium text-enterprise-charcoal-800">{skill}</span>
-              <span className="text-xs text-enterprise-charcoal-500 bg-white rounded-full px-2 py-0.5">{count}</span>
-            </div>
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold text-enterprise-charcoal-800">
+            Skills Registry ({allSkills.length})
+          </h2>
+          <p className="text-xs text-enterprise-charcoal-500">
+            Standardized corporate skill catalog used for talent matching and innovation staffing
+          </p>
+        </div>
+        <button onClick={() => setShowAdd(true)} className="btn-primary text-sm self-start">
+          <Plus className="w-4 h-4" /> Add Skill
+        </button>
+      </div>
+
+      {/* Filter and Search */}
+      <div className="flex flex-wrap items-center gap-3">
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search skills..."
+          className="input max-w-xs text-sm"
+        />
+        <div className="flex flex-wrap gap-1.5">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-3 py-1 rounded-enterprise text-xs font-medium transition-colors ${
+                selectedCategory === cat
+                  ? 'bg-enterprise-charcoal-900 text-white'
+                  : 'bg-enterprise-gray-warm text-enterprise-charcoal-600 hover:bg-enterprise-gray-border'
+              }`}
+            >
+              {cat}
+            </button>
           ))}
         </div>
       </div>
+
+      {/* Skills Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+        {filteredSkills.map((s) => {
+          const userCount = userSkillCounts.get(s.name.toLowerCase()) || 0;
+          return (
+            <div
+              key={s.id}
+              className="card p-3.5 flex items-center justify-between hover:border-enterprise-gray-border transition-all"
+            >
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-sm text-enterprise-charcoal-900 truncate">
+                    {s.name}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="badge bg-enterprise-blue-50 text-enterprise-blue-700 text-[10px]">
+                    {s.category || 'General'}
+                  </span>
+                  <span className="text-[11px] text-enterprise-charcoal-400">
+                    {userCount} {userCount === 1 ? 'member' : 'members'}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  if (confirm(`Delete skill "${s.name}" from the registry?`)) {
+                    deleteMutation.mutate(s.id);
+                  }
+                }}
+                className="text-enterprise-charcoal-300 hover:text-enterprise-error-600 p-1 rounded transition-colors"
+                title="Delete skill"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          );
+        })}
+      </div>
+
+      {filteredSkills.length === 0 && (
+        <EmptyState
+          icon={<Cpu className="w-8 h-8" />}
+          title="No skills found"
+          message={search ? `No skills match "${search}"` : 'No skills in this category.'}
+        />
+      )}
+
+      {showAdd && (
+        <Modal open={true} onClose={() => setShowAdd(false)} title="Add Standard Skill">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (newSkill.name.trim()) {
+                createMutation.mutate(newSkill);
+              }
+            }}
+            className="space-y-4"
+          >
+            <div>
+              <label className="label">Skill Name *</label>
+              <input
+                type="text"
+                required
+                value={newSkill.name}
+                onChange={(e) => setNewSkill({ ...newSkill, name: e.target.value })}
+                placeholder="e.g. Rust, PyTorch, GraphQL"
+                className="input"
+              />
+            </div>
+            <div>
+              <label className="label">Category</label>
+              <select
+                value={newSkill.category}
+                onChange={(e) => setNewSkill({ ...newSkill, category: e.target.value })}
+                className="input"
+              >
+                <option value="Frontend">Frontend</option>
+                <option value="Backend">Backend</option>
+                <option value="DevOps">DevOps</option>
+                <option value="Cloud">Cloud</option>
+                <option value="AI / ML">AI / ML</option>
+                <option value="Architecture">Architecture</option>
+                <option value="Database">Database</option>
+                <option value="Security">Security</option>
+                <option value="Quality Assurance">Quality Assurance</option>
+                <option value="General">General</option>
+              </select>
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <button type="button" onClick={() => setShowAdd(false)} className="btn-secondary">
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={createMutation.isPending || !newSkill.name.trim()}
+                className="btn-primary"
+              >
+                {createMutation.isPending ? 'Adding...' : 'Add Skill'}
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
     </div>
   );
 }

@@ -432,6 +432,11 @@ def init_db() -> None:
     _migrate_join_requests(db)
     _seed_technology_taxonomy(db)
     _seed_default_policies(db)
+    _seed_business_areas(db)
+    _seed_review_panels(db)
+    _seed_skills(db)
+    _seed_workflows(db)
+    _seed_personas(db)
 
 
 TECHNOLOGY_TAXONOMY_SEED = [
@@ -520,3 +525,138 @@ def _migrate_join_requests(db: DatabaseConnection) -> None:
     cols = {row["name"] for row in db.query_all("PRAGMA table_info(join_requests)")}
     if "role_id" not in cols:
         db.execute("ALTER TABLE join_requests ADD COLUMN role_id TEXT DEFAULT ''")
+
+
+BUSINESS_AREAS_SEED = [
+    ("Core Banking", "Core transaction processing, accounts, ledgers, and settlement engines"),
+    ("Payments & Transfers", "Domestic and cross-border payment rails, instant transfers, card acquiring"),
+    ("Digital Channels", "Web, mobile applications, conversational interfaces, and customer self-service"),
+    ("Risk & Compliance", "Fraud detection, regulatory compliance, credit decisioning, AML"),
+    ("Data & AI", "Data warehousing, streaming analytics, machine learning platforms, LLM tooling"),
+    ("Cloud & Infrastructure", "Kubernetes platform engineering, cloud security, network automation"),
+    ("Developer Experience", "CI/CD pipelines, testing automation, developer tools, telemetry and observability"),
+]
+
+REVIEW_PANELS_SEED = [
+    ("Architecture Review Board (ARB)", "Evaluates high-level technical architecture, feasibility, and scalability"),
+    ("Security & Compliance Panel", "Assesses data privacy, security posture, compliance, and threat surfaces"),
+    ("Executive Innovation Council", "Evaluates strategic alignment, commercial impact, and budget allocation"),
+]
+
+SKILLS_SEED = [
+    ("Python", "Backend"),
+    ("TypeScript", "Frontend"),
+    ("React", "Frontend"),
+    ("FastAPI", "Backend"),
+    ("Java", "Backend"),
+    ("Spring Boot", "Backend"),
+    ("Docker", "DevOps"),
+    ("Kubernetes", "DevOps"),
+    ("AWS", "Cloud"),
+    ("Azure", "Cloud"),
+    ("GCP", "Cloud"),
+    ("Machine Learning", "AI / ML"),
+    ("Deep Learning", "AI / ML"),
+    ("System Design", "Architecture"),
+    ("Microservices", "Architecture"),
+    ("PostgreSQL", "Database"),
+    ("Redis", "Database"),
+    ("Kafka", "Messaging"),
+    ("GraphQL", "API"),
+    ("Cybersecurity", "Security"),
+    ("DevOps & CI/CD", "DevOps"),
+]
+
+
+def _seed_business_areas(db: DatabaseConnection) -> None:
+    from app.core.security import generate_id, utc_now
+    existing = db.query_one("SELECT COUNT(*) as cnt FROM business_areas")
+    if existing and existing["cnt"] > 0:
+        return
+    now = utc_now()
+    for name, desc in BUSINESS_AREAS_SEED:
+        db.execute(
+            "INSERT INTO business_areas (id, name, description, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
+            (generate_id(), name, desc, now, now),
+        )
+
+
+def _seed_review_panels(db: DatabaseConnection) -> None:
+    from app.core.security import generate_id, utc_now
+    existing = db.query_one("SELECT COUNT(*) as cnt FROM review_panels")
+    if existing and existing["cnt"] > 0:
+        return
+    now = utc_now()
+    # Try to include the first user (admin) if available
+    admin = db.query_one("SELECT id FROM users LIMIT 1")
+    member_ids = f'["{admin["id"]}"]' if admin else '[]'
+    for name, desc in REVIEW_PANELS_SEED:
+        db.execute(
+            "INSERT INTO review_panels (id, name, description, member_ids, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+            (generate_id(), name, desc, member_ids, now, now),
+        )
+
+
+def _seed_skills(db: DatabaseConnection) -> None:
+    from app.core.security import generate_id, utc_now
+    existing = db.query_one("SELECT COUNT(*) as cnt FROM skills")
+    if existing and existing["cnt"] > 0:
+        return
+    now = utc_now()
+    for name, category in SKILLS_SEED:
+        db.execute(
+            "INSERT INTO skills (id, name, category, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
+            (generate_id(), name, category, now, now),
+        )
+
+
+def _seed_workflows(db: DatabaseConnection) -> None:
+    import json
+    from app.core.security import generate_id, utc_now
+    existing = db.query_one("SELECT COUNT(*) as cnt FROM workflows")
+    if existing and existing["cnt"] > 0:
+        return
+    now = utc_now()
+    stages = json.dumps([
+        "draft", "submitted", "under_review", "validation", "approved",
+        "open_for_team", "building", "poc", "demo", "adopted"
+    ])
+    db.execute(
+        "INSERT INTO workflows (id, name, description, stages, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, 1, ?, ?)",
+        (
+            generate_id(),
+            "Standard Innovation Lifecycle",
+            "End-to-end innovation pipeline from idea drafting to enterprise adoption",
+            stages,
+            now,
+            now,
+        ),
+    )
+
+
+def _seed_personas(db: DatabaseConnection) -> None:
+    import json
+    from app.core.security import generate_id, utc_now
+
+    existing = db.query_all("SELECT email, role FROM users")
+    existing_roles = {r["role"] for r in existing} if existing else set()
+    existing_emails = {r["email"] for r in existing} if existing else set()
+
+    # If principal_engineer or admin does not exist, seed standard personas
+    if "principal_engineer" not in existing_roles or "admin" not in existing_roles:
+        now = utc_now()
+        personas = [
+            ("Dr. Marcus Vance", "marcus.vance@innovex.corp", "principal_engineer", "Principal Systems Engineer", "Core Architecture", ["Architecture", "AI / ML", "Cloud", "Security", "Distributed Systems"]),
+            ("Sarah Chen", "sarah.chen@innovex.corp", "admin", "Chief Technology Officer & Admin", "Executive Innovation", ["Architecture", "Governance", "Cloud", "DevOps"]),
+            ("Elena Rostova", "elena.rostova@innovex.corp", "manager", "Engineering Director", "Platform Engineering", ["Leadership", "Cloud", "Agile", "Testing"]),
+            ("David Kim", "david.kim@innovex.corp", "panel_member", "Innovation Panel Chair & Staff Eng", "Emerging Technologies", ["AI / ML", "Python", "React", "Data"]),
+            ("Alex Morgan", "alex.morgan@innovex.corp", "engineer", "Senior Software Engineer", "Applications & Services", ["React", "Node", "Python", "Observability"]),
+            ("Priya Sharma", "priya.sharma@innovex.corp", "contributor", "Product & Innovation Specialist", "Product Management", ["Business Strategy", "Product Design", "Testing"]),
+        ]
+        for name, email, role, title, dept, skills in personas:
+            if email not in existing_emails:
+                db.execute(
+                    """INSERT INTO users (id, name, email, role, title, department, skills, created_at, updated_at)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (generate_id(), name, email, role, title, dept, json.dumps(skills), now, now),
+                )

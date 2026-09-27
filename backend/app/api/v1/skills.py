@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Query
-from app.api.dependencies import get_repository_factory
+from app.api.dependencies import get_repository_factory, require_role
 from app.database.repository_factory import RepositoryFactory
+from app.domain.models.entities import Skill, User
 from app.core.security import generate_id, utc_now
 from app.schemas.models import SkillCreate, SkillResponse
 
@@ -12,9 +13,12 @@ def get_repos(repos: RepositoryFactory = Depends(get_repository_factory)) -> Rep
 
 
 @router.post("", response_model=SkillResponse)
-async def create_skill(data: SkillCreate, repos: RepositoryFactory = Depends(get_repos)):
+async def create_skill(
+    data: SkillCreate,
+    repos: RepositoryFactory = Depends(get_repos),
+    current_user: User = Depends(require_role("admin")),
+):
     now = utc_now()
-    from app.domain.models.entities import Skill
     skill = Skill(
         id=generate_id(),
         name=data.name,
@@ -48,7 +52,12 @@ async def get_skill(skill_id: str, repos: RepositoryFactory = Depends(get_repos)
 
 
 @router.put("/{skill_id}", response_model=SkillResponse)
-async def update_skill(skill_id: str, data: SkillCreate, repos: RepositoryFactory = Depends(get_repos)):
+async def update_skill(
+    skill_id: str,
+    data: SkillCreate,
+    repos: RepositoryFactory = Depends(get_repos),
+    current_user: User = Depends(require_role("admin")),
+):
     from app.core.exceptions import NotFoundError
     skill = repos.skill.get_by_id(skill_id)
     if not skill:
@@ -60,6 +69,10 @@ async def update_skill(skill_id: str, data: SkillCreate, repos: RepositoryFactor
 
 
 @router.delete("/{skill_id}")
-async def delete_skill(skill_id: str, repos: RepositoryFactory = Depends(get_repos)):
+async def delete_skill(
+    skill_id: str,
+    repos: RepositoryFactory = Depends(get_repos),
+    current_user: User = Depends(require_role("admin")),
+):
     repos.skill.delete(skill_id)
     return {"deleted": True}

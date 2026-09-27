@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Sparkles, ChevronRight, ChevronLeft, Check, X, Edit3,
-  Loader2, Info, AlertTriangle, Lightbulb,
+  Loader2, Info, AlertTriangle, Lightbulb, CheckCircle2,
 } from 'lucide-react';
-import { copilotApi } from '../api/endpoints';
+import { copilotApi, ideaApi, validationApi } from '../api/endpoints';
 import type { AIRecommendation, AIContextCapability, AIEntityType } from '../types';
 
 interface RecommendationState {
@@ -91,6 +91,63 @@ export function IntelligencePanel() {
     analyzeMutation.mutate({ capability, et: entityType, eid: entityId });
   }, [entityType, entityId, analyzeMutation]);
 
+  const queryClient = useQueryClient();
+  const [appliedMessage, setAppliedMessage] = useState<string | null>(null);
+
+  const applyMutation = useMutation({
+    mutationFn: async ({ rec, capability, key }: { rec: AIRecommendation; capability: string; key: string }) => {
+      if (!entityId) return;
+      if (entityType === 'idea') {
+        if (capability === 'identify_technologies' && rec.items?.length) {
+          const idea = await ideaApi.getById(entityId);
+          const newTechs = rec.items
+            .map((i: any) => i.technology || i.name || Object.values(i)[0])
+            .filter((x): x is string => typeof x === 'string' && !!x.trim());
+          const combined = Array.from(new Set([...(idea.technologies || []), ...newTechs]));
+          await ideaApi.update(entityId, { technologies: combined });
+          queryClient.invalidateQueries({ queryKey: ['idea', entityId] });
+          queryClient.invalidateQueries({ queryKey: ['ideas'] });
+          setRecStates(prev => ({ ...prev, [key]: 'accepted' }));
+          return `Applied ${newTechs.length} technologies to idea`;
+        }
+        if (capability === 'identify_risks' && (rec.items?.length || rec.recommendation)) {
+          const idea = await ideaApi.getById(entityId);
+          const riskNotes = rec.items?.length
+            ? rec.items.map((i: any) => `- ${i.risk || Object.values(i)[0]}`).join('\n')
+            : rec.recommendation;
+          const combined = idea.risks ? `${idea.risks}\n\n[AI Identified Risks]:\n${riskNotes}` : riskNotes;
+          await ideaApi.update(entityId, { risks: combined });
+          queryClient.invalidateQueries({ queryKey: ['idea', entityId] });
+          setRecStates(prev => ({ ...prev, [key]: 'accepted' }));
+          return 'Applied identified risks to idea';
+        }
+      } else if (entityType === 'validation') {
+        if ((capability === 'generate_validation_checklist' || capability === 'suggest_poc_scope') && rec.items?.length) {
+          const sprint = await validationApi.getByIdea(entityId);
+          if (sprint) {
+            const currentChecklist = Array.isArray(sprint.checklist) ? sprint.checklist : [];
+            const newItems = rec.items
+              .map((i: any) => i.item || i.question || Object.values(i)[0])
+              .filter((x): x is string => typeof x === 'string' && !!x.trim());
+            const combined = Array.from(new Set([...currentChecklist, ...newItems]));
+            await validationApi.update(entityId, { checklist: combined });
+            queryClient.invalidateQueries({ queryKey: ['idea-validation', entityId] });
+            setRecStates(prev => ({ ...prev, [key]: 'accepted' }));
+            return `Added ${newItems.length} items to validation checklist`;
+          }
+        }
+      }
+      setRecStates(prev => ({ ...prev, [key]: 'accepted' }));
+      return 'Recommendation accepted';
+    },
+    onSuccess: (msg) => {
+      if (msg) {
+        setAppliedMessage(msg);
+        setTimeout(() => setAppliedMessage(null), 4000);
+      }
+    },
+  });
+
   const setRecState = (key: string, state: 'accepted' | 'modified' | 'dismissed') => {
     setRecStates(prev => ({ ...prev, [key]: state }));
   };
@@ -149,6 +206,14 @@ export function IntelligencePanel() {
               Recommendations are advisory. All decisions require human approval.
             </p>
           </div>
+
+          {/* Applied feedback banner */}
+          {appliedMessage && (
+            <div className="px-3 py-2 bg-enterprise-success-50 border-b border-enterprise-success-200 flex items-center gap-1.5 animate-fade-in">
+              <CheckCircle2 className="w-3.5 h-3.5 text-enterprise-success-600 flex-shrink-0" />
+              <p className="text-xs text-enterprise-success-800 font-medium">{appliedMessage}</p>
+            </div>
+          )}
 
           {/* Content */}
           <div className="flex-1 overflow-y-auto">
@@ -218,11 +283,18 @@ export function IntelligencePanel() {
                     {recommendations.map((rec: AIRecommendation, idx: number) => {
                       const key = `${activeCapability}-${idx}`;
                       const state = recStates[key] || 'pending';
+                      const canApply =
+                        (entityType === 'idea' && (activeCapability === 'identify_technologies' || activeCapability === 'identify_risks')) ||
+                        (entityType === 'validation' && (activeCapability === 'generate_validation_checklist' || activeCapability === 'suggest_poc_scope'));
+
                       return (
                         <RecommendationCard
                           key={key}
                           rec={rec}
                           state={state}
+                          canApply={canApply}
+                          isApplying={applyMutation.isPending}
+                          onApply={() => applyMutation.mutate({ rec, capability: activeCapability!, key })}
                           onAccept={() => setRecState(key, 'accepted')}
                           onModify={() => setRecState(key, 'modified')}
                           onDismiss={() => setRecState(key, 'dismissed')}
@@ -255,12 +327,18 @@ export function IntelligencePanel() {
 function RecommendationCard({
   rec,
   state,
+  canApply,
+  isApplying,
+  onApply,
   onAccept,
   onModify,
   onDismiss,
 }: {
   rec: AIRecommendation;
   state: string;
+  canApply?: boolean;
+  isApplying?: boolean;
+  onApply?: () => void;
   onAccept: () => void;
   onModify: () => void;
   onDismiss: () => void;
@@ -331,7 +409,16 @@ function RecommendationCard({
 
       {/* Actions */}
       {state === 'pending' && (
-        <div className="flex items-center gap-1.5 mt-3 pt-2 border-t border-enterprise-gray-border">
+        <div className="flex items-center gap-1.5 mt-3 pt-2 border-t border-enterprise-gray-border flex-wrap">
+          {canApply && onApply && (
+            <button
+              onClick={onApply}
+              disabled={isApplying}
+              className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-white bg-enterprise-red-600 hover:bg-enterprise-red-700 disabled:opacity-50 rounded-enterprise transition-colors"
+            >
+              <Sparkles className="w-3 h-3" /> Apply to Record
+            </button>
+          )}
           <button
             onClick={onAccept}
             className="flex items-center gap-1 px-2 py-1 text-[11px] font-medium text-enterprise-success-700 bg-enterprise-success-50 hover:bg-enterprise-success-100 rounded-enterprise transition-colors"

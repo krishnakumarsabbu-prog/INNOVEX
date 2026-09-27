@@ -13,8 +13,17 @@ class InMemoryReviewPanelRepository(BaseRepository):
         if not row:
             return None
         d = dict(row)
-        d["member_ids"] = json.loads(d.get("member_ids", "[]"))
-        d["is_active"] = True
+        raw_members = d.get("member_ids")
+        if isinstance(raw_members, str):
+            try:
+                d["member_ids"] = json.loads(raw_members)
+            except Exception:
+                d["member_ids"] = []
+        elif isinstance(raw_members, list):
+            d["member_ids"] = raw_members
+        else:
+            d["member_ids"] = []
+        d.pop("is_active", None)
         return ReviewPanel(**d)
 
     def create(self, panel: ReviewPanel) -> ReviewPanel:

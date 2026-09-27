@@ -8,9 +8,11 @@ import {
   ArrowLeft, ArrowRight, Check, Lightbulb, Code, Wrench,
   FileText, Eye, Send, Plus, X,
 } from 'lucide-react';
-import { ideaApi, userApi } from '../api/endpoints';
+import { ideaApi, userApi, adminApi } from '../api/endpoints';
 import { Loading, ErrorState } from '../components/ui';
-import type { User } from '../types';
+import type { User, BusinessArea } from '../types';
+import { useAuth } from '../context/AuthContext';
+import { useEffect } from 'react';
 
 const STEPS = [
   { id: 1, label: 'Problem', icon: Lightbulb },
@@ -49,10 +51,16 @@ export function NewIdeaPage() {
   const [techInput, setTechInput] = useState('');
   const [submitError, setSubmitError] = useState('');
   const [createdIdeaId, setCreatedIdeaId] = useState<string | null>(null);
+  const { currentUser } = useAuth();
 
   const { data: users, isLoading: usersLoading } = useQuery({
     queryKey: ['users'],
     queryFn: () => userApi.getAll(),
+  });
+
+  const { data: businessAreas } = useQuery({
+    queryKey: ['business-areas'],
+    queryFn: () => adminApi.getBusinessAreas(),
   });
 
   const {
@@ -68,10 +76,16 @@ export function NewIdeaPage() {
       title: '', problem_statement: '', proposed_solution: '',
       business_impact: '', engineering_impact: '', expected_benefits: '',
       business_area: '', technologies: [], dependencies: '', risks: '',
-      estimated_complexity: '', estimated_duration: '', founder_id: '',
+      estimated_complexity: '', estimated_duration: '', founder_id: currentUser?.id || '',
     },
     mode: 'onChange',
   });
+
+  useEffect(() => {
+    if (currentUser?.id && !watch('founder_id')) {
+      setValue('founder_id', currentUser.id);
+    }
+  }, [currentUser, setValue, watch]);
 
   const technologies = watch('technologies');
 
@@ -204,7 +218,17 @@ export function NewIdeaPage() {
             </div>
             <div>
               <label className="label">Business Area</label>
-              <input {...register('business_area')} className="input" placeholder="e.g. Engineering, Operations, Finance" />
+              <input
+                {...register('business_area')}
+                list="business-areas-datalist"
+                className="input"
+                placeholder="e.g. Core Banking, Payments, Digital Channels..."
+              />
+              <datalist id="business-areas-datalist">
+                {businessAreas?.map((ba: BusinessArea) => (
+                  <option key={ba.id} value={ba.name} />
+                ))}
+              </datalist>
             </div>
           </div>
         )}

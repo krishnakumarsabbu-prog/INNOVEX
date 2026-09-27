@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
-from app.api.dependencies import get_repository_factory
+from app.api.dependencies import get_repository_factory, require_role
 from app.database.repository_factory import RepositoryFactory
+from app.domain.models.entities import User
 from app.services.review_service import ReviewService
 from app.schemas.models import (
     ReviewCreate, ReviewResponse, ReviewDecisionRequest,
@@ -24,6 +25,7 @@ async def create_review(
     idea_id: str,
     data: ReviewCreate,
     service: ReviewService = Depends(get_review_service),
+    current_user: User = Depends(require_role("principal_engineer", "manager", "panel_member", "reviewer", "admin", "engineer")),
 ):
     data.idea_id = idea_id
     result = service.create_review(idea_id, data)
@@ -45,6 +47,7 @@ async def make_review_decision(
     review_id: str,
     data: ReviewDecisionRequest,
     service: ReviewService = Depends(get_review_service),
+    current_user: User = Depends(require_role("principal_engineer", "manager", "panel_member", "reviewer", "admin", "engineer")),
 ):
     result = service.make_decision(idea_id, review_id, data)
     return ReviewResponse(**result)

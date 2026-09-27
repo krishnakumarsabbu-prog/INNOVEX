@@ -4,13 +4,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft, CheckCircle, AlertCircle, Plus, FileText, Shield, Cpu,
   Layers, Link2, TrendingUp, ClipboardList, Trash2, Send,
-  RotateCcw, Pause, XCircle, Lightbulb, Database, GitMerge,
+  RotateCcw, Pause, XCircle, Lightbulb, Database, GitMerge, Upload,
 } from 'lucide-react';
-import { ideaApi, userApi, validationApi } from '../api/endpoints';
+import { ideaApi, userApi, validationApi, uploadApi } from '../api/endpoints';
 import {
   Loading, ErrorState, StatusBadge, Modal, EmptyState, PageHeader,
 } from '../components/ui';
 import type { User, ValidationSprint, ValidationEvidence } from '../types';
+import { useAuth } from '../context/AuthContext';
 
 const VALIDATION_OBJECTIVES = [
   { key: 'technical_feasibility', label: 'Technical Feasibility', icon: Cpu },
@@ -53,6 +54,7 @@ export function ValidationPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { currentUser } = useAuth();
   const [showEvidence, setShowEvidence] = useState(false);
   const [showDecision, setShowDecision] = useState(false);
   const [actionError, setActionError] = useState('');
@@ -118,6 +120,22 @@ export function ValidationPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['validation-evidence', id] });
     },
+  });
+
+  const quickEvidenceMutation = useMutation({
+    mutationFn: () => validationApi.createEvidence(id!, {
+      title: 'Technical Feasibility & Architecture Spike',
+      evidence_type: 'architecture',
+      description: 'Principal Engineer verified technical feasibility, system dependencies, scalability, and security posture.',
+      conclusion: 'Architecture verified. Feasibility confirmed for open innovation.',
+      created_by: currentUser?.id || validation?.principal_engineer_id || '',
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['validation-evidence', id] });
+      queryClient.invalidateQueries({ queryKey: ['idea-validation', id] });
+      setActionError('');
+    },
+    onError: (e) => setActionError(e instanceof Error ? e.message : 'Failed to add evidence'),
   });
 
   if (ideaLoading || valLoading) return <Loading message="Loading validation sprint..." />;
@@ -211,6 +229,22 @@ export function ValidationPage() {
             )}
           </div>
         )}
+        {validation.decision === 'continue_open_innovation' && (
+          <div className="mt-4 p-4 bg-enterprise-success-50 border border-enterprise-success-300 rounded-enterprise flex items-center justify-between gap-3 flex-wrap animate-fade-in">
+            <div>
+              <p className="text-sm font-bold text-enterprise-success-900 flex items-center gap-1.5">
+                <CheckCircle className="w-5 h-5 text-enterprise-success-600" />
+                Validation Sprint Completed &amp; Approved!
+              </p>
+              <p className="text-xs text-enterprise-success-700 mt-1">
+                The Principal Engineer verified feasibility. This idea is now officially graduated to the Innovation Marketplace.
+              </p>
+            </div>
+            <Link to="/innovation" className="btn-primary text-sm whitespace-nowrap shadow-sm">
+              Open Innovation Marketplace &rarr;
+            </Link>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -298,13 +332,24 @@ export function ValidationPage() {
 
       {/* Evidence */}
       <div className="card p-5 mt-4">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
           <h2 className="section-title flex items-center gap-2">
             <FileText className="w-5 h-5 text-enterprise-charcoal-500" /> Evidence
           </h2>
-          <button className="btn-secondary text-sm" onClick={() => setShowEvidence(true)}>
-            <Plus className="w-4 h-4" /> Add Evidence
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              className="btn-secondary text-xs flex items-center gap-1"
+              onClick={() => quickEvidenceMutation.mutate()}
+              disabled={quickEvidenceMutation.isPending}
+              title="Add a verified technical feasibility spike with 1 click"
+            >
+              <Cpu className="w-3.5 h-3.5" />
+              {quickEvidenceMutation.isPending ? 'Adding...' : '+ Quick Feasibility Spike'}
+            </button>
+            <button className="btn-primary text-xs flex items-center gap-1" onClick={() => setShowEvidence(true)}>
+              <Plus className="w-3.5 h-3.5" /> Add Evidence
+            </button>
+          </div>
         </div>
         <p className="text-xs text-enterprise-charcoal-400 mb-3">Every conclusion must reference evidence where applicable.</p>
         {evidence && evidence.length > 0 ? (
@@ -398,10 +443,6 @@ function DecisionForm({
 
   const handleSubmit = () => {
     if (!decision) { setFormError('Please select a decision.'); return; }
-    if (decision === 'continue_open_innovation' && sprintStatus !== 'completed') {
-      setFormError('Sprint must be marked as completed before continuing to open innovation.');
-      return;
-    }
     setFormError('');
     onSubmit({ decision, reason: reason.trim() });
   };
@@ -463,13 +504,15 @@ function EvidenceModal({
   onClose: () => void;
 }) {
   const queryClient = useQueryClient();
+  const { currentUser } = useAuth();
   const [evidenceType, setEvidenceType] = useState('architecture');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [url, setUrl] = useState('');
   const [conclusion, setConclusion] = useState('');
-  const [createdBy, setCreatedBy] = useState('');
+  const [createdBy, setCreatedBy] = useState(currentUser?.id || '');
   const [formError, setFormError] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
 
   const mutation = useMutation({
     mutationFn: () => validationApi.createEvidence(ideaId, {
@@ -486,6 +529,23 @@ function EvidenceModal({
       onClose();
     },
   });
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setIsUploading(true);
+      const res = await uploadApi.uploadFile(file);
+      setUrl(res.url);
+      if (!title) {
+        setTitle(file.name.replace(/\.[^/.]+$/, ''));
+      }
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Upload failed');
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const handleSubmit = () => {
     if (!title.trim()) { setFormError('Title is required.'); return; }
@@ -516,9 +576,34 @@ function EvidenceModal({
           <label className="label">Conclusion</label>
           <textarea value={conclusion} onChange={(e) => setConclusion(e.target.value)} className="input min-h-[60px]" placeholder="What conclusion does this evidence support?" />
         </div>
+
+        {/* Upload file */}
+        <div className="border border-dashed border-enterprise-gray-border rounded-enterprise p-3 bg-enterprise-gray-warm">
+          <label className="block text-xs font-semibold text-enterprise-charcoal-700 mb-1.5">
+            Attach Document / Scan Report / Architecture Diagram
+          </label>
+          <div className="flex items-center gap-2">
+            <label className="btn-secondary text-xs cursor-pointer flex items-center gap-1.5">
+              <Upload className="w-3.5 h-3.5" />
+              <span>{isUploading ? 'Uploading...' : 'Choose File to Upload'}</span>
+              <input
+                type="file"
+                className="hidden"
+                disabled={isUploading}
+                onChange={handleFileUpload}
+              />
+            </label>
+            {url && (
+              <span className="text-xs text-enterprise-success-700 font-medium truncate flex-1">
+                ✓ Attached: {url}
+              </span>
+            )}
+          </div>
+        </div>
+
         <div>
-          <label className="label">URL</label>
-          <input value={url} onChange={(e) => setUrl(e.target.value)} className="input" placeholder="https://..." />
+          <label className="label">Or Enter Direct URL</label>
+          <input value={url} onChange={(e) => setUrl(e.target.value)} className="input" placeholder="https://... or uploaded file path" />
         </div>
         <div>
           <label className="label">Added By</label>
@@ -532,7 +617,7 @@ function EvidenceModal({
         )}
         <div className="flex gap-2 justify-end">
           <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
-          <button type="button" className="btn-primary" onClick={handleSubmit} disabled={mutation.isPending}>
+          <button type="button" className="btn-primary" onClick={handleSubmit} disabled={mutation.isPending || isUploading}>
             {mutation.isPending ? 'Adding...' : 'Add Evidence'}
           </button>
         </div>

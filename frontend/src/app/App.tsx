@@ -1,8 +1,6 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
 import { setupApi } from '../api/endpoints';
-import type { SetupStatus } from '../types';
 import { AppLayout } from '../layouts/AppLayout';
 import { SetupPage } from '../pages/SetupPage';
 import { HomePage } from '../pages/HomePage';
@@ -20,6 +18,8 @@ import { InsightsPage } from '../pages/InsightsPage';
 import { AdministrationPage } from '../pages/AdministrationPage';
 import { ReviewPage } from '../pages/ReviewPage';
 import { ValidationPage } from '../pages/ValidationPage';
+import { ErrorBoundary } from '../components/ErrorBoundary';
+import { AuthProvider } from '../context/AuthContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -39,6 +39,7 @@ function AppRoutes() {
         <Route path="/ideas/:id" element={<IdeaDetailPage />} />
         <Route path="/ideas/:id/validation" element={<ValidationPage />} />
         <Route path="/innovation" element={<InnovationsPage />} />
+        <Route path="/innovation/:id" element={<InnovationDetailPage />} />
         <Route path="/innovation/:innovationId" element={<InnovationDetailPage />} />
         <Route path="/workspace" element={<MyWorkspacePage />} />
         <Route path="/teams" element={<TeamsPage />} />
@@ -53,18 +54,13 @@ function AppRoutes() {
   );
 }
 
-export default function App() {
-  const [setupStatus, setSetupStatus] = useState<SetupStatus | null>(null);
-  const [loading, setLoading] = useState(true);
+function AppContent() {
+  const { data: status, isLoading, refetch } = useQuery({
+    queryKey: ['setup-status'],
+    queryFn: setupApi.getStatus,
+  });
 
-  useEffect(() => {
-    setupApi.getStatus()
-      .then(setSetupStatus)
-      .catch(() => setSetupStatus({ setup_required: true, organization: null }))
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-enterprise-gray-warm">
         <div className="text-enterprise-charcoal-800 text-lg">Loading INNOVEX...</div>
@@ -73,16 +69,26 @@ export default function App() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        {setupStatus?.setup_required ? (
-          <Routes>
-            <Route path="*" element={<SetupPage />} />
-          </Routes>
-        ) : (
-          <AppRoutes />
-        )}
-      </BrowserRouter>
-    </QueryClientProvider>
+    <BrowserRouter>
+      {status?.setup_required ? (
+        <Routes>
+          <Route path="*" element={<SetupPage onSetupComplete={() => refetch()} />} />
+        </Routes>
+      ) : (
+        <AppRoutes />
+      )}
+    </BrowserRouter>
+  );
+}
+
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }

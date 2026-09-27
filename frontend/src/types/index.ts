@@ -38,6 +38,14 @@ export interface User {
   updated_at: string;
 }
 
+export interface Skill {
+  id: string;
+  name: string;
+  category: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Idea {
   id: string;
   title: string;

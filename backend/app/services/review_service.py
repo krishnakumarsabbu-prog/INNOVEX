@@ -103,6 +103,10 @@ class ReviewService:
         ))
 
         self._apply_decision(idea, data.decision, data.reviewer_id, data.reason, now)
+
+        if data.decision == ReviewDecision.SEND_TO_VALIDATION.value:
+            self._assign_validation(idea, data, now)
+
         self._log_side_effects(idea, review, data.decision, data.reviewer_id, data.reason, now)
 
         return self._review_to_dict(review)
@@ -113,9 +117,6 @@ class ReviewService:
         idea = self._repos.idea.get_by_id(idea_id)
         if not idea:
             raise NotFoundError("Idea not found")
-        review = self._repos.review.get_by_id(review_id)
-        if not review or review.idea_id != idea_id:
-            raise NotFoundError("Review not found for this idea")
         reviewer = self._repos.user.get_by_id(data.reviewer_id)
         if not reviewer:
             raise NotFoundError("Reviewer not found")
@@ -124,14 +125,31 @@ class ReviewService:
             raise ValidationError(f"A reason is required for '{data.decision}' decisions")
 
         now = utc_now()
-        self._repos.review.update(review_id,
-            decision=data.decision, comments=data.comments,
-            reason=data.reason, evidence=data.evidence, updated_at=now)
-        review.decision = data.decision
-        review.comments = data.comments
-        review.reason = data.reason
-        review.evidence = data.evidence
-        review.updated_at = now
+        review = self._repos.review.get_by_id(review_id) if review_id != "new" else None
+        if not review or review.idea_id != idea_id:
+            # Create a new review record for this decision
+            review_id = generate_id()
+            review = Review(
+                id=review_id,
+                idea_id=idea_id,
+                reviewer_id=data.reviewer_id,
+                decision=data.decision,
+                comments=data.comments,
+                reason=data.reason,
+                evidence=data.evidence,
+                created_at=now,
+                updated_at=now,
+            )
+            self._repos.review.create(review)
+        else:
+            self._repos.review.update(review_id,
+                decision=data.decision, comments=data.comments,
+                reason=data.reason, evidence=data.evidence, updated_at=now)
+            review.decision = data.decision
+            review.comments = data.comments
+            review.reason = data.reason
+            review.evidence = data.evidence
+            review.updated_at = now
 
         if data.dimensions:
             self._repos.review_dimension.delete_by_review(review_id)

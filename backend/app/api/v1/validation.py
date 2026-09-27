@@ -1,8 +1,9 @@
 import json
 
 from fastapi import APIRouter, Depends
-from app.api.dependencies import get_repository_factory
+from app.api.dependencies import get_repository_factory, require_role
 from app.database.repository_factory import RepositoryFactory
+from app.domain.models.entities import User
 from app.services.validation_service import ValidationService
 from app.schemas.models import (
     ValidationSprintCreate, ValidationSprintUpdate, ValidationSprintResponse,
@@ -118,7 +119,12 @@ async def delete_validation_evidence(idea_id: str, evidence_id: str, service: Va
 # ---- Decision endpoint ----
 
 @router.post("/{idea_id}/validation/decision", response_model=ValidationSprintResponse)
-async def make_validation_decision(idea_id: str, data: ValidationDecisionRequest, service: ValidationService = Depends(get_validation_service)):
+async def make_validation_decision(
+    idea_id: str,
+    data: ValidationDecisionRequest,
+    service: ValidationService = Depends(get_validation_service),
+    current_user: User = Depends(require_role("principal_engineer", "manager", "admin")),
+):
     sprint = service.get_by_idea(idea_id)
     if not sprint:
         from app.core.exceptions import NotFoundError

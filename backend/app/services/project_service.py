@@ -63,6 +63,17 @@ class TeamService:
     def add_member(self, team_id: str, user_id: str) -> Team:
         team = self.get_by_id(team_id)
         if user_id not in team.member_ids:
+            policy = self._repos.policy.get_by_key("team_size")
+            if policy and getattr(policy, "is_active", True):
+                try:
+                    max_size = int(policy.value)
+                    if len(team.member_ids) >= max_size:
+                        from app.core.exceptions import ValidationError
+                        raise ValidationError(
+                            f"Policy 'Team Size' violation: Team has reached the maximum permitted limit of {max_size} members."
+                        )
+                except ValueError:
+                    pass
             team.member_ids.append(user_id)
             self._repos.team.update(team_id, member_ids=team.member_ids, updated_at=utc_now())
         return self._repos.team.get_by_id(team_id)

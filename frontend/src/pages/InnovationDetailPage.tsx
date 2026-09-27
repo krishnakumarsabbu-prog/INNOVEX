@@ -10,15 +10,18 @@ import { innovationApi, userApi } from '../api/endpoints';
 import { useForm } from 'react-hook-form';
 import { Loading, ErrorState, StatusBadge, Modal, EmptyState } from '../components/ui';
 import type { User, Position, MarketplaceInnovationDetail, SkillMatch, JoinRequest } from '../types';
+import { useAuth } from '../context/AuthContext';
 
 export function InnovationDetailPage() {
-  const { id } = useParams<{ id: string }>();
+  const { id: paramId, innovationId } = useParams<{ id?: string; innovationId?: string }>();
+  const id = paramId || innovationId;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { currentUser } = useAuth();
   const [showCreateRole, setShowCreateRole] = useState(false);
   const [showJoinRole, setShowJoinRole] = useState<Position | null>(null);
   const [showJoinRequests, setShowJoinRequests] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState('');
+  const [currentUserId, setCurrentUserId] = useState(currentUser?.id || '');
   const [actionError, setActionError] = useState('');
 
   const { data: innovation, isLoading, isError } = useQuery({
@@ -48,7 +51,7 @@ export function InnovationDetailPage() {
   });
 
   const followMutation = useMutation({
-    mutationFn: () => innovationApi.follow(id!, currentUserId),
+    mutationFn: () => innovationApi.follow(id!, currentUser?.id || currentUserId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['innovation', id] });
       queryClient.invalidateQueries({ queryKey: ['innovations'] });
@@ -345,6 +348,7 @@ export function InnovationDetailPage() {
           innovationId={innovation.id}
           role={showJoinRole}
           users={users}
+          defaultUserId={currentUser?.id}
           onClose={() => setShowJoinRole(null)}
         />
       )}
@@ -534,12 +538,12 @@ function CreateRoleModal({ innovationId, onClose }: { innovationId: string; onCl
 
 // ---- Join Role Modal with Skill Matching ----
 
-function JoinRoleModal({ innovationId, role, users, onClose }: { innovationId: string; role: Position; users: User[]; onClose: () => void }) {
+function JoinRoleModal({ innovationId, role, users, defaultUserId, onClose }: { innovationId: string; role: Position; users: User[]; defaultUserId?: string; onClose: () => void }) {
   const queryClient = useQueryClient();
-  const [selectedUserId, setSelectedUserId] = useState('');
-  const [showMatch, setShowMatch] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState(defaultUserId || '');
+  const [showMatch, setShowMatch] = useState(!!defaultUserId);
   const { register, handleSubmit, formState: { errors } } = useForm({
-    defaultValues: { user_id: '', message: '' },
+    defaultValues: { user_id: defaultUserId || '', message: '' },
   });
 
   const { data: skillMatch, isLoading: matchLoading } = useQuery({

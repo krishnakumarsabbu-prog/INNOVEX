@@ -3,21 +3,120 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft, MessageSquare, CheckCircle, AlertCircle, Send, Pause, RotateCcw,
-  Star, StarOff, FileText, Activity as ActivityIcon, Plus,
+  Star, StarOff, FileText, Activity as ActivityIcon, Plus, Upload, ClipboardList,
 } from 'lucide-react';
-import { ideaApi, userApi, validationApi } from '../api/endpoints';
+import { ideaApi, userApi, validationApi, uploadApi } from '../api/endpoints';
 import { useForm } from 'react-hook-form';
 import { Loading, ErrorState, StatusBadge, Modal, EmptyState } from '../components/ui';
 import type { User } from '../types';
+import { useAuth } from '../context/AuthContext';
+
+function LifecycleStepper({
+  status,
+  principalEngineerName,
+}: {
+  status: string;
+  principalEngineerName?: string;
+}) {
+  const steps = [
+    {
+      num: 1,
+      name: '1. Inception',
+      desc: 'Idea Submission',
+      isCurrent: status === 'draft',
+      isCompleted: status !== 'draft',
+    },
+    {
+      num: 2,
+      name: '2. Review & Assign',
+      desc: 'Technical Review',
+      isCurrent: status === 'submitted' || status === 'under_review',
+      isCompleted: ['validation', 'approved', 'open_for_team', 'building', 'poc', 'demo', 'adopted'].includes(status),
+    },
+    {
+      num: 3,
+      name: '3. Validation',
+      desc: principalEngineerName ? `Lead: ${principalEngineerName.split(' ')[0]}` : 'Feasibility Sprint',
+      isCurrent: status === 'validation',
+      isCompleted: ['approved', 'open_for_team', 'building', 'poc', 'demo', 'adopted'].includes(status),
+    },
+    {
+      num: 4,
+      name: '4. Innovation',
+      desc: 'Marketplace & Roles',
+      isCurrent: status === 'approved' || status === 'open_for_team',
+      isCompleted: ['building', 'poc', 'demo', 'adopted'].includes(status),
+    },
+    {
+      num: 5,
+      name: '5. Project',
+      desc: 'Active Execution',
+      isCurrent: ['building', 'poc', 'demo', 'adopted'].includes(status),
+      isCompleted: false,
+    },
+  ];
+
+  return (
+    <div className="card p-3 sm:p-4 mb-4 bg-white shadow-enterprise-xs border border-enterprise-gray-border animate-fade-in">
+      <div className="flex items-center justify-between mb-2.5 pb-2 border-b border-enterprise-gray-border flex-wrap gap-2">
+        <span className="text-2xs font-bold uppercase tracking-wider text-enterprise-charcoal-400 flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-enterprise-red-600"></span>
+          End-to-End Innovation Lifecycle
+        </span>
+        <span className="text-xs text-enterprise-charcoal-600 font-medium">
+          Active Phase: <strong className="text-enterprise-red-700 capitalize">{status.replace(/_/g, ' ')}</strong>
+        </span>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+        {steps.map((s) => (
+          <div
+            key={s.name}
+            className={`p-2 rounded-enterprise border text-left transition-all ${
+              s.isCurrent
+                ? 'bg-enterprise-red-50 border-enterprise-red-500 ring-2 ring-enterprise-red-500/20 shadow-sm'
+                : s.isCompleted
+                ? 'bg-enterprise-gray-warm/50 border-enterprise-gray-border'
+                : 'bg-white border-dashed border-enterprise-gray-border opacity-65'
+            }`}
+          >
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <span
+                className={`w-4.5 h-4.5 rounded-full flex items-center justify-center text-3xs font-bold ${
+                  s.isCurrent
+                    ? 'bg-enterprise-red-600 text-white'
+                    : s.isCompleted
+                    ? 'bg-enterprise-charcoal-800 text-white'
+                    : 'bg-enterprise-charcoal-200 text-enterprise-charcoal-600'
+                }`}
+                style={{ width: 18, height: 18 }}
+              >
+                {s.isCompleted ? '✓' : s.num}
+              </span>
+              <span
+                className={`text-xs font-semibold truncate ${
+                  s.isCurrent ? 'text-enterprise-red-700' : 'text-enterprise-charcoal-800'
+                }`}
+              >
+                {s.name}
+              </span>
+            </div>
+            <p className="text-3xs text-enterprise-charcoal-500 truncate pl-6">{s.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export function IdeaDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { currentUser } = useAuth();
   const [showReview, setShowReview] = useState(false);
   const [showEvidence, setShowEvidence] = useState(false);
   const [actionError, setActionError] = useState('');
-  const [currentUserId, setCurrentUserId] = useState('');
+  const [currentUserId, setCurrentUserId] = useState(currentUser?.id || '');
 
   const { data: idea, isLoading, isError } = useQuery({
     queryKey: ['idea', id],
@@ -57,8 +156,10 @@ export function IdeaDetailPage() {
   const userMap = new Map<string, User>();
   users?.forEach((u) => userMap.set(u.id, u));
 
+  const activeUserId = currentUser?.id || currentUserId;
+
   const submitMutation = useMutation({
-    mutationFn: () => ideaApi.submit(id!, currentUserId),
+    mutationFn: () => ideaApi.submit(id!, activeUserId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['idea', id] });
       queryClient.invalidateQueries({ queryKey: ['ideas'] });
@@ -69,7 +170,7 @@ export function IdeaDetailPage() {
   });
 
   const parkMutation = useMutation({
-    mutationFn: () => ideaApi.park(id!, currentUserId),
+    mutationFn: () => ideaApi.park(id!, activeUserId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['idea', id] });
       queryClient.invalidateQueries({ queryKey: ['ideas'] });
@@ -79,7 +180,7 @@ export function IdeaDetailPage() {
   });
 
   const reopenMutation = useMutation({
-    mutationFn: () => ideaApi.reopen(id!, currentUserId),
+    mutationFn: () => ideaApi.reopen(id!, activeUserId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['idea', id] });
       queryClient.invalidateQueries({ queryKey: ['ideas'] });
@@ -89,12 +190,12 @@ export function IdeaDetailPage() {
   });
 
   const followMutation = useMutation({
-    mutationFn: () => ideaApi.follow(id!, currentUserId),
+    mutationFn: () => ideaApi.follow(id!, activeUserId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['idea-activity', id] }),
   });
 
   const unfollowMutation = useMutation({
-    mutationFn: () => ideaApi.unfollow(id!, currentUserId),
+    mutationFn: () => ideaApi.unfollow(id!, activeUserId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['idea-activity', id] }),
   });
 
@@ -111,6 +212,94 @@ export function IdeaDetailPage() {
       <Link to="/ideas" className="flex items-center gap-1 text-sm text-enterprise-charcoal-500 hover:text-enterprise-red-700 mb-4 transition-colors">
         <ArrowLeft className="w-4 h-4" /> Back to Ideas
       </Link>
+
+      {/* Lifecycle Progress Stepper */}
+      <LifecycleStepper
+        status={idea.status}
+        principalEngineerName={validation?.principal_engineer_id ? userMap.get(validation.principal_engineer_id)?.name : undefined}
+      />
+
+      {/* Stage-by-Stage Continuous Flow Action Banners */}
+      {idea.status === 'draft' && (
+        <div className="bg-enterprise-blue-50 border border-enterprise-blue-200 rounded-enterprise p-4 mb-4 flex items-center justify-between gap-4 flex-wrap animate-fade-in shadow-enterprise-xs">
+          <div>
+            <h3 className="text-sm font-semibold text-enterprise-blue-900 flex items-center gap-1.5">
+              <Send className="w-4 h-4 text-enterprise-blue-600" />
+              Stage 1: Idea is in Draft
+            </h3>
+            <p className="text-xs text-enterprise-blue-700 mt-0.5">
+              Ready for technical review? Submit this idea to enter the Innovation Review Queue.
+            </p>
+          </div>
+          <button
+            onClick={() => submitMutation.mutate()}
+            className="btn-primary text-sm flex items-center gap-1.5 whitespace-nowrap shadow-sm"
+            disabled={submitMutation.isPending}
+          >
+            <Send className="w-4 h-4" /> Submit for Review
+          </button>
+        </div>
+      )}
+
+      {(idea.status === 'submitted' || idea.status === 'under_review') && (
+        <div className="bg-enterprise-gold-50 border border-enterprise-gold-300 rounded-enterprise p-4 mb-4 flex items-center justify-between gap-4 flex-wrap animate-fade-in shadow-enterprise-xs">
+          <div>
+            <h3 className="text-sm font-semibold text-enterprise-charcoal-900 flex items-center gap-1.5">
+              <ClipboardList className="w-4 h-4 text-enterprise-gold-600" />
+              Stage 2: Awaiting Engineering Review &amp; Principal Engineer Assignment
+            </h3>
+            <p className="text-xs text-enterprise-charcoal-700 mt-0.5">
+              Reviewers evaluate technical feasibility across 7 dimensions and assign a Principal Engineer for a Validation Sprint.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={() => setShowReview(true)}
+              className="btn-primary text-sm flex items-center gap-1.5 shadow-sm"
+            >
+              <Send className="w-4 h-4" /> Review &amp; Assign Principal Engineer
+            </button>
+            <Link to={`/review?idea=${idea.id}`} className="btn-secondary text-sm">
+              Review Center Console &rarr;
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {idea.status === 'validation' && (
+        <div className="bg-enterprise-blue-50 border border-enterprise-blue-300 rounded-enterprise p-4 mb-4 flex items-center justify-between gap-4 flex-wrap animate-fade-in shadow-enterprise-xs">
+          <div>
+            <h3 className="text-sm font-semibold text-enterprise-blue-900 flex items-center gap-1.5">
+              <CheckCircle className="w-4 h-4 text-enterprise-blue-600" />
+              Stage 3: Active Validation Sprint (Feasibility &amp; POC)
+            </h3>
+            <p className="text-xs text-enterprise-blue-700 mt-0.5">
+              Lead Principal Engineer: <strong>{validation?.principal_engineer_id ? userMap.get(validation.principal_engineer_id)?.name : 'Assigned Lead'}</strong>.
+              Conducting architecture spikes, risk assessment, and POC benchmarking.
+            </p>
+          </div>
+          <Link to={`/ideas/${idea.id}/validation`} className="btn-primary text-sm flex items-center gap-1.5 whitespace-nowrap shadow-sm">
+            Open Validation Sprint &rarr;
+          </Link>
+        </div>
+      )}
+
+      {idea.status === 'approved' && (
+        <div className="bg-enterprise-success-50 border border-enterprise-success-200 rounded-enterprise p-4 mb-4 flex items-center justify-between gap-4 flex-wrap animate-fade-in shadow-enterprise-xs">
+          <div>
+            <h3 className="text-sm font-semibold text-enterprise-success-900 flex items-center gap-1.5">
+              <CheckCircle className="w-4 h-4 text-enterprise-success-600" />
+              Stage 4: Validation Approved &amp; Active in Innovation Marketplace
+            </h3>
+            <p className="text-xs text-enterprise-success-700 mt-0.5">
+              This initiative passed engineering validation! It is now live in the marketplace for cross-functional team assembly.
+            </p>
+          </div>
+          <Link to="/innovation" className="btn-primary text-sm flex items-center gap-1.5 whitespace-nowrap shadow-sm">
+            View in Innovation Marketplace &rarr;
+          </Link>
+        </div>
+      )}
 
       {actionError && (
         <div className="mb-4 p-3 bg-enterprise-error-50 border border-enterprise-error-200 rounded-enterprise text-sm text-enterprise-error-700 flex items-center justify-between">
@@ -199,11 +388,35 @@ export function IdeaDetailPage() {
           {canSubmit && (
             <button
               onClick={() => submitMutation.mutate()}
-              className="btn-primary text-sm"
+              className="btn-primary text-sm flex items-center gap-1.5"
               disabled={!currentUserId || submitMutation.isPending}
             >
               <Send className="w-4 h-4" /> Submit for Review
             </button>
+          )}
+          {(idea.status === 'submitted' || idea.status === 'under_review') && (
+            <button
+              onClick={() => setShowReview(true)}
+              className="btn-primary text-sm flex items-center gap-1.5"
+            >
+              <Send className="w-4 h-4" /> Review &amp; Assign Principal Engineer
+            </button>
+          )}
+          {idea.status === 'validation' && (
+            <Link
+              to={`/ideas/${id}/validation`}
+              className="btn-primary text-sm flex items-center gap-1.5"
+            >
+              <CheckCircle className="w-4 h-4" /> Open Validation Sprint &rarr;
+            </Link>
+          )}
+          {idea.status === 'approved' && (
+            <Link
+              to="/innovation"
+              className="btn-primary text-sm flex items-center gap-1.5"
+            >
+              View in Innovation Marketplace &rarr;
+            </Link>
           )}
           {canPark && (
             <button
@@ -380,49 +593,141 @@ function DetailSection({ label, content }: { label: string; content: string }) {
 
 function ReviewModal({ ideaId, users, onClose }: { ideaId: string; users: User[]; onClose: () => void }) {
   const queryClient = useQueryClient();
-  const { register, handleSubmit, formState: { errors } } = useForm({
-    defaultValues: { reviewer_id: '', decision: 'approve', comments: '' },
+  const { currentUser } = useAuth();
+  const principalEngineers = users.filter((u) => u.role === 'principal_engineer' || u.role === 'admin');
+  const peList = principalEngineers.length > 0 ? principalEngineers : users;
+  const managers = users.filter((u) => u.role === 'manager' || u.role === 'admin');
+  const mgrList = managers.length > 0 ? managers : users;
+
+  const [submitError, setSubmitError] = useState('');
+
+  const { register, handleSubmit, watch, formState: { errors } } = useForm({
+    defaultValues: {
+      reviewer_id: currentUser?.id || users[0]?.id || '',
+      decision: 'send_to_validation',
+      comments: '',
+      reason: '',
+      principal_engineer_id: peList[0]?.id || '',
+      manager_id: mgrList[0]?.id || '',
+    },
   });
 
+  const selectedDecision = watch('decision');
+
   const mutation = useMutation({
-    mutationFn: (data: any) => ideaApi.createReview(ideaId, data),
+    mutationFn: (data: any) => {
+      const payload: any = {
+        idea_id: ideaId,
+        reviewer_id: data.reviewer_id,
+        decision: data.decision,
+        comments: data.comments,
+        reason: data.reason || '',
+      };
+      if (data.decision === 'send_to_validation') {
+        payload.principal_engineer_id = data.principal_engineer_id || null;
+        payload.manager_id = data.manager_id || null;
+      }
+      return ideaApi.createReview(ideaId, payload);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['idea-reviews', ideaId] });
       queryClient.invalidateQueries({ queryKey: ['idea', ideaId] });
+      queryClient.invalidateQueries({ queryKey: ['idea-validation', ideaId] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['ideas'] });
       onClose();
+    },
+    onError: (err: any) => {
+      setSubmitError(err instanceof Error ? err.message : 'Failed to submit review');
     },
   });
 
   return (
-    <Modal open={true} onClose={onClose} title="Add Review">
+    <Modal open={true} onClose={onClose} title="Technical Review & Validation Assignment">
       <form onSubmit={handleSubmit((data) => mutation.mutate(data))} className="space-y-4">
+        {submitError && (
+          <div className="p-2.5 bg-enterprise-error-50 border border-enterprise-error-200 rounded-enterprise text-xs text-enterprise-error-700">
+            {submitError}
+          </div>
+        )}
         <div>
           <label className="label">Reviewer</label>
-          <select {...register('reviewer_id', { required: 'Required' })} className="input">
+          <select {...register('reviewer_id', { required: 'Reviewer is required' })} className="input">
             <option value="">Select reviewer...</option>
-            {users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
+            {users.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.name} ({u.role.replace(/_/g, ' ')})
+              </option>
+            ))}
           </select>
           {errors.reviewer_id && <p className="text-xs text-enterprise-error-600 mt-1">{errors.reviewer_id.message as string}</p>}
         </div>
+
         <div>
-          <label className="label">Decision</label>
-          <select {...register('decision')} className="input">
-            <option value="approve">Approve</option>
-            <option value="reject">Reject</option>
-            <option value="park">Park</option>
-            <option value="send_to_validation">Send to Validation</option>
-            <option value="request_information">Request More Info</option>
+          <label className="label">Review Decision</label>
+          <select {...register('decision')} className="input font-medium">
+            <option value="send_to_validation">🚀 Send to Validation Sprint (Assign PE)</option>
+            <option value="approve">✅ Direct Approve (Proceed to Innovation)</option>
+            <option value="request_information">💬 Request More Information</option>
+            <option value="park">⏸️ Park Idea</option>
+            <option value="reject">❌ Reject Idea</option>
           </select>
         </div>
+
+        {selectedDecision === 'send_to_validation' && (
+          <div className="bg-enterprise-blue-50 border border-enterprise-blue-200 rounded-enterprise p-3.5 space-y-3">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-enterprise-blue-900">
+              <span>🛠️</span> Technical Leadership Assignment
+            </div>
+            <p className="text-2xs text-enterprise-charcoal-600 leading-relaxed">
+              Assign the Principal Engineer to lead architecture feasibility spikes, risk evaluation, and proof-of-concept validation.
+            </p>
+            <div>
+              <label className="label text-xs">Principal Engineer</label>
+              <select {...register('principal_engineer_id')} className="input text-sm py-1.5 bg-white">
+                <option value="">Select Principal Engineer...</option>
+                {peList.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name} — {u.title || u.role}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="label text-xs">Engineering Manager</label>
+              <select {...register('manager_id')} className="input text-sm py-1.5 bg-white">
+                <option value="">Select Manager...</option>
+                {mgrList.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name} — {u.title || u.role}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
+
+        {(selectedDecision === 'park' || selectedDecision === 'reject') && (
+          <div>
+            <label className="label">Reason <span className="text-enterprise-error-600">*</span></label>
+            <textarea
+              {...register('reason', { required: 'A reason is required' })}
+              className="input min-h-[60px]"
+              placeholder="Explain why this decision is being made..."
+            />
+            {errors.reason && <p className="text-xs text-enterprise-error-600 mt-1">{errors.reason.message as string}</p>}
+          </div>
+        )}
+
         <div>
-          <label className="label">Comments</label>
-          <textarea {...register('comments')} className="input min-h-[80px]" placeholder="Review comments" />
+          <label className="label">Review Comments</label>
+          <textarea {...register('comments')} className="input min-h-[70px]" placeholder="Architectural considerations, dependencies, or feedback..." />
         </div>
-        <div className="flex gap-2 justify-end">
-          <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
-          <button type="submit" className="btn-primary" disabled={mutation.isPending}>
-            {mutation.isPending ? 'Submitting...' : 'Submit Review'}
+
+        <div className="flex gap-2 justify-end pt-2 border-t border-enterprise-gray-border">
+          <button type="button" className="btn-secondary text-sm" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn-primary text-sm flex items-center gap-1.5" disabled={mutation.isPending}>
+            {mutation.isPending ? 'Submitting...' : 'Confirm Decision & Launch Sprint'}
           </button>
         </div>
       </form>
@@ -432,8 +737,10 @@ function ReviewModal({ ideaId, users, onClose }: { ideaId: string; users: User[]
 
 function EvidenceModal({ ideaId, users, onClose }: { ideaId: string; users: User[]; onClose: () => void }) {
   const queryClient = useQueryClient();
-  const { register, handleSubmit, formState: { errors } } = useForm({
-    defaultValues: { title: '', description: '', evidence_type: 'document', url: '', created_by: '' },
+  const { currentUser } = useAuth();
+  const [isUploading, setIsUploading] = useState(false);
+  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm({
+    defaultValues: { title: '', description: '', evidence_type: 'document', url: '', created_by: currentUser?.id || '' },
   });
 
   const mutation = useMutation({
@@ -444,6 +751,28 @@ function EvidenceModal({ ideaId, users, onClose }: { ideaId: string; users: User
       onClose();
     },
   });
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setIsUploading(true);
+      const res = await uploadApi.uploadFile(file);
+      setValue('url', res.url);
+      if (!watch('title')) {
+        setValue('title', file.name.replace(/\.[^/.]+$/, ''));
+      }
+      if (file.type.includes('image')) {
+        setValue('evidence_type', 'diagram');
+      } else {
+        setValue('evidence_type', 'document');
+      }
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Upload failed');
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   return (
     <Modal open={true} onClose={onClose} title="Add Evidence">
@@ -457,31 +786,59 @@ function EvidenceModal({ ideaId, users, onClose }: { ideaId: string; users: User
           <label className="label">Description</label>
           <textarea {...register('description')} className="input min-h-[60px]" placeholder="Describe this evidence" />
         </div>
-        <div>
-          <label className="label">Type</label>
-          <select {...register('evidence_type')} className="input">
-            <option value="document">Document</option>
-            <option value="link">Link</option>
-            <option value="diagram">Diagram</option>
-            <option value="prototype">Prototype</option>
-            <option value="other">Other</option>
-          </select>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="label">Type</label>
+            <select {...register('evidence_type')} className="input">
+              <option value="document">Document</option>
+              <option value="link">Link</option>
+              <option value="diagram">Diagram / Architecture</option>
+              <option value="prototype">Prototype</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label className="label">Added By <span className="text-enterprise-error-500">*</span></label>
+            <select {...register('created_by', { required: 'Required' })} className="input">
+              <option value="">Select user...</option>
+              {users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
+            </select>
+            {errors.created_by && <p className="text-xs text-enterprise-error-600 mt-1">{errors.created_by.message as string}</p>}
+          </div>
         </div>
-        <div>
-          <label className="label">URL</label>
-          <input {...register('url')} className="input" placeholder="https://..." />
+
+        {/* Upload file or enter URL */}
+        <div className="border border-dashed border-enterprise-gray-border rounded-enterprise p-3 bg-enterprise-gray-warm">
+          <label className="block text-xs font-semibold text-enterprise-charcoal-700 mb-1.5">
+            Attach Document / Diagram (PDF, PNG, JPG, DOCX, ZIP)
+          </label>
+          <div className="flex items-center gap-2">
+            <label className="btn-secondary text-xs cursor-pointer flex items-center gap-1.5">
+              <Upload className="w-3.5 h-3.5" />
+              <span>{isUploading ? 'Uploading...' : 'Choose File to Upload'}</span>
+              <input
+                type="file"
+                className="hidden"
+                disabled={isUploading}
+                onChange={handleFileUpload}
+              />
+            </label>
+            {watch('url') && (
+              <span className="text-xs text-enterprise-success-700 font-medium truncate flex-1">
+                ✓ Attached: {watch('url')}
+              </span>
+            )}
+          </div>
         </div>
+
         <div>
-          <label className="label">Added By <span className="text-enterprise-error-500">*</span></label>
-          <select {...register('created_by', { required: 'Required' })} className="input">
-            <option value="">Select user...</option>
-            {users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
-          </select>
-          {errors.created_by && <p className="text-xs text-enterprise-error-600 mt-1">{errors.created_by.message as string}</p>}
+          <label className="label">Or Enter Direct URL</label>
+          <input {...register('url')} className="input" placeholder="https://... or uploaded path" />
         </div>
-        <div className="flex gap-2 justify-end">
+
+        <div className="flex gap-2 justify-end pt-2">
           <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
-          <button type="submit" className="btn-primary" disabled={mutation.isPending}>
+          <button type="submit" className="btn-primary" disabled={mutation.isPending || isUploading}>
             {mutation.isPending ? 'Adding...' : 'Add Evidence'}
           </button>
         </div>

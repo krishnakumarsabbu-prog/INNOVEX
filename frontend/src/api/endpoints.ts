@@ -1,6 +1,6 @@
 import { api } from './client';
 import type {
-  SetupStatus, SetupRequest, SetupResponse, User, Idea, IdeaEvidence, IdeaFollow, Review,
+  SetupStatus, SetupRequest, SetupResponse, User, Skill, Idea, IdeaEvidence, IdeaFollow, Review,
   ReviewDimension, ReviewQueueItem, ReviewDecisionPayload,
   ValidationSprint, ValidationEvidence, Innovation, Position, Application, Team, Project,
   Milestone, Evidence, Activity, AuditEvent, Notification, Dashboard, WorkItem,
@@ -200,4 +200,22 @@ export const adminApi = {
   deleteWorkflow: (id: string) => api.delete(`/administration/workflows/${id}`).then(r => r.data),
   getPolicies: () => api.get<Policy[]>('/administration/policies').then(r => r.data),
   updatePolicy: (id: string, data: { value?: string; is_active?: boolean }) => api.put<Policy>(`/administration/policies/${id}`, data).then(r => r.data),
+};
+
+export const skillApi = {
+  getAll: (category?: string) => api.get<Skill[]>('/skills', { params: { category } }).then(r => r.data),
+  getById: (id: string) => api.get<Skill>(`/skills/${id}`).then(r => r.data),
+  create: (data: { name: string; category?: string }) => api.post<Skill>('/skills', data).then(r => r.data),
+  update: (id: string, data: { name: string; category?: string }) => api.put<Skill>(`/skills/${id}`, data).then(r => r.data),
+  delete: (id: string) => api.delete(`/skills/${id}`).then(r => r.data),
+};
+
+export const uploadApi = {
+  uploadFile: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post<{ url: string; filename: string; size: number; content_type: string }>('/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }).then(r => r.data);
+  },
 };

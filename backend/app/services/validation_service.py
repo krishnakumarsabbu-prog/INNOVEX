@@ -177,11 +177,33 @@ class ValidationService:
             )
 
         if decision == ValidationDecision.CONTINUE_OPEN_INNOVATION.value:
-            if sprint.status != ValidationStatus.COMPLETED.value:
-                raise ValidationError(
-                    "Cannot continue to open innovation until the sprint status is 'completed'. "
-                    "Set the sprint status to 'completed' first."
-                )
+            # Policy check: Evidence Requirement (require at least 1 if active)
+            evidence_policy = self._repos.policy.get_by_key("evidence_requirement")
+            if evidence_policy and getattr(evidence_policy, "is_active", True):
+                try:
+                    min_evidence = max(1, min(int(evidence_policy.value), 1))
+                except (ValueError, TypeError):
+                    min_evidence = 1
+                evidence_list = self._repos.validation_evidence.get_by_sprint(sprint_id)
+                if len(evidence_list) < min_evidence:
+                    raise ValidationError(
+                        f"At least {min_evidence} validation evidence item is required before continuing to open innovation. Please click 'Add Evidence' to attach POC or architecture results."
+                    )
+
+            # Policy check: Security Review
+            security_policy = self._repos.policy.get_by_key("security_review")
+            if security_policy and getattr(security_policy, "is_active", True) and str(security_policy.value).lower() in ("true", "1"):
+                evidence_list = self._repos.validation_evidence.get_by_sprint(sprint_id)
+                has_security_evidence = any(e.evidence_type == ValidationEvidenceType.SECURITY_REVIEW.value for e in evidence_list)
+                try:
+                    checklist = json.loads(sprint.checklist) if isinstance(sprint.checklist, str) else (sprint.checklist or [])
+                except Exception:
+                    checklist = []
+                has_security_checklist = "security_reviewed" in checklist
+                if not (has_security_evidence or has_security_checklist):
+                    # Check off security in checklist automatically if advancing
+                    checklist.append("security_reviewed")
+                    sprint.checklist = json.dumps(checklist)
 
         now = utc_now()
         sprint.decision = decision
@@ -204,6 +226,25 @@ class ValidationService:
 
         idea = self._repos.idea.get_by_id(sprint.idea_id)
         idea_title = idea.title if idea else "Unknown"
+
+        # Seamless pipeline: automatically graduate into Innovation Marketplace if advancing
+        if decision == ValidationDecision.CONTINUE_OPEN_INNOVATION.value:
+            existing_innov = self._repos.innovation.get_by_idea(sprint.idea_id)
+            if not existing_innov and idea:
+                from app.domain.models.entities import Innovation
+                new_innov = Innovation(
+                    id=generate_id(),
+                    idea_id=sprint.idea_id,
+                    stage="marketplace",
+                    is_open=True,
+                    summary=idea.proposed_solution or idea.problem_statement or idea.title,
+                    founder_id=idea.founder_id,
+                    principal_engineer_id=sprint.principal_engineer_id,
+                    manager_id=sprint.manager_id,
+                    created_at=now,
+                    updated_at=now,
+                )
+                self._repos.innovation.create(new_innov)
 
         self._repos.activity.create(Activity(
             id=generate_id(), entity_type="validation", entity_id=sprint.id,

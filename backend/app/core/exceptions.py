@@ -24,3 +24,13 @@ class ValidationError(AppException):
 class SetupError(AppException):
     def __init__(self, message: str = "Setup required"):
         super().__init__(code="SETUP_REQUIRED", message=message, status_code=412)
+
+
+class UnauthorizedError(AppException):
+    def __init__(self, message: str = "Authentication required"):
+        super().__init__(code="UNAUTHORIZED", message=message, status_code=401)
+
+
+class ForbiddenError(AppException):
+    def __init__(self, message: str = "Permission denied"):
+        super().__init__(code="FORBIDDEN", message=message, status_code=403)

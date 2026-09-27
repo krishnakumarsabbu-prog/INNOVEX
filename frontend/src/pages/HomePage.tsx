@@ -26,24 +26,27 @@ export function HomePage() {
   });
 
   if (isLoading) return <Loading />;
-  if (isError || !insights) return <ErrorState message="Failed to load dashboard data" />;
+  if (isError || !insights || typeof insights !== 'object') return <ErrorState message="Failed to load dashboard data" />;
 
-  const m = insights.metrics;
-  const hasData = Object.values(m).some((v) => v > 0) || (dashboard?.metrics.users ?? 0) > 1;
+  const m = insights.metrics || ({} as any);
+  const hasData = (typeof m === 'object' && Object.values(m).some((v) => typeof v === 'number' && v > 0)) || ((dashboard?.metrics?.users ?? 0) > 1);
 
   const metricCards = [
-    { label: 'Ideas Submitted', value: m.ideas_submitted, icon: <Lightbulb className="w-4 h-4" />, color: 'text-enterprise-blue-600' },
-    { label: 'Under Review', value: m.under_review, icon: <Eye className="w-4 h-4" />, color: 'text-enterprise-warning-600' },
-    { label: 'In Validation', value: m.in_validation, icon: <FlaskConical className="w-4 h-4" />, color: 'text-purple-600' },
-    { label: 'Approved', value: m.approved, icon: <CheckCircle className="w-4 h-4" />, color: 'text-enterprise-success-600' },
-    { label: 'Team Formation', value: m.team_forming, icon: <Users className="w-4 h-4" />, color: 'text-enterprise-blue-600' },
-    { label: 'Building', value: m.building, icon: <Hammer className="w-4 h-4" />, color: 'text-indigo-600' },
-    { label: 'POCs', value: m.pocs_completed, icon: <Beaker className="w-4 h-4" />, color: 'text-enterprise-warning-600' },
-    { label: 'Production Candidates', value: m.production_candidates, icon: <Rocket className="w-4 h-4" />, color: 'text-teal-600' },
-    { label: 'Adopted', value: m.adopted, icon: <TrendingUp className="w-4 h-4" />, color: 'text-enterprise-success-700' },
+    { label: 'Ideas Submitted', value: m.ideas_submitted ?? 0, icon: <Lightbulb className="w-4 h-4" />, color: 'text-enterprise-blue-600' },
+    { label: 'Under Review', value: m.under_review ?? 0, icon: <Eye className="w-4 h-4" />, color: 'text-enterprise-warning-600' },
+    { label: 'In Validation', value: m.in_validation ?? 0, icon: <FlaskConical className="w-4 h-4" />, color: 'text-purple-600' },
+    { label: 'Approved', value: m.approved ?? 0, icon: <CheckCircle className="w-4 h-4" />, color: 'text-enterprise-success-600' },
+    { label: 'Team Formation', value: m.team_forming ?? 0, icon: <Users className="w-4 h-4" />, color: 'text-enterprise-blue-600' },
+    { label: 'Building', value: m.building ?? 0, icon: <Hammer className="w-4 h-4" />, color: 'text-indigo-600' },
+    { label: 'POCs', value: m.pocs_completed ?? 0, icon: <Beaker className="w-4 h-4" />, color: 'text-enterprise-warning-600' },
+    { label: 'Production Candidates', value: m.production_candidates ?? 0, icon: <Rocket className="w-4 h-4" />, color: 'text-teal-600' },
+    { label: 'Adopted', value: m.adopted ?? 0, icon: <TrendingUp className="w-4 h-4" />, color: 'text-enterprise-success-700' },
   ];
 
-  const maxFunnelCount = Math.max(...insights.innovation_funnel.map((s) => s.count), 1);
+  const innovationFunnel = insights.innovation_funnel || [];
+  const recentActivity = insights.recent_activity || [];
+  const adoptionMetrics = insights.adoption_metrics;
+  const maxFunnelCount = Math.max(...innovationFunnel.map((s) => s.count), 1);
 
   return (
     <div className="animate-fade-in">
@@ -57,6 +60,58 @@ export function HomePage() {
         }
       />
 
+      {/* Visual Workflow Guide Banner */}
+      <div className="card p-5 mb-6 bg-gradient-to-r from-enterprise-charcoal-900 to-enterprise-charcoal-800 text-white shadow-enterprise-md">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <div>
+            <h2 className="text-base font-bold text-white flex items-center gap-2">
+              <span className="text-enterprise-gold-400">⚡</span>
+              The Continuous Innovation Flow (End-to-End)
+            </h2>
+            <p className="text-xs text-white/70 mt-0.5">
+              How ideas move from concept through Principal Engineer validation to marketplace &amp; engineering execution.
+            </p>
+          </div>
+          <Link to="/review" className="btn-secondary text-xs flex items-center gap-1.5 bg-white/10 text-white border-white/20 hover:bg-white/20">
+            Open Review Center &rarr;
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <Link to="/ideas/new" className="bg-white/10 hover:bg-white/15 p-3 rounded-enterprise border border-white/10 transition-all group">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="w-5 h-5 rounded-full bg-enterprise-red-600 text-white font-bold text-3xs flex items-center justify-center">1</span>
+              <h3 className="text-xs font-semibold text-white group-hover:text-enterprise-gold-400 transition-colors">1. Submit Idea</h3>
+            </div>
+            <p className="text-3xs text-white/70 leading-relaxed">Any engineer creates an idea with problem, solution, and impacts.</p>
+          </Link>
+
+          <Link to="/review" className="bg-white/10 hover:bg-white/15 p-3 rounded-enterprise border border-white/10 transition-all group">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="w-5 h-5 rounded-full bg-enterprise-gold-500 text-enterprise-charcoal-900 font-bold text-3xs flex items-center justify-center">2</span>
+              <h3 className="text-xs font-semibold text-white group-hover:text-enterprise-gold-400 transition-colors">2. Review &amp; Assign PE</h3>
+            </div>
+            <p className="text-3xs text-white/70 leading-relaxed">Review panel evaluates feasibility and assigns a Principal Engineer.</p>
+          </Link>
+
+          <Link to="/ideas" className="bg-white/10 hover:bg-white/15 p-3 rounded-enterprise border border-white/10 transition-all group">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="w-5 h-5 rounded-full bg-enterprise-blue-500 text-white font-bold text-3xs flex items-center justify-center">3</span>
+              <h3 className="text-xs font-semibold text-white group-hover:text-enterprise-gold-400 transition-colors">3. Validation Sprint</h3>
+            </div>
+            <p className="text-3xs text-white/70 leading-relaxed">Principal Engineer leads architecture spikes, POCs, and security check.</p>
+          </Link>
+
+          <Link to="/innovation" className="bg-white/10 hover:bg-white/15 p-3 rounded-enterprise border border-white/10 transition-all group">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="w-5 h-5 rounded-full bg-enterprise-emerald-500 text-white font-bold text-3xs flex items-center justify-center">4</span>
+              <h3 className="text-xs font-semibold text-white group-hover:text-enterprise-gold-400 transition-colors">4. Marketplace &amp; Projects</h3>
+            </div>
+            <p className="text-3xs text-white/70 leading-relaxed">Approved initiatives recruit cross-functional teams into active delivery projects.</p>
+          </Link>
+        </div>
+      </div>
+
       {/* 9 Metric Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
         {metricCards.map((mc) => (
@@ -65,7 +120,7 @@ export function HomePage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-        {dashboard && (
+        {dashboard?.metrics && (
           <>
             <MetricCard label="Users" value={dashboard.metrics.users} icon={<Users className="w-4 h-4" />} color="text-enterprise-red-600" />
             <MetricCard label="Teams" value={dashboard.metrics.teams} icon={<Users className="w-4 h-4" />} color="text-enterprise-red-600" />
@@ -78,9 +133,9 @@ export function HomePage() {
         {/* Innovation Funnel */}
         <div className="card p-5">
           <h2 className="section-title mb-4">Innovation Funnel</h2>
-          {hasData && insights.innovation_funnel.some((s) => s.count > 0) ? (
+          {hasData && innovationFunnel.some((s) => s.count > 0) ? (
             <div className="space-y-2">
-              {insights.innovation_funnel.map((stage, i) => {
+              {innovationFunnel.map((stage, i) => {
                 const widthPercent = maxFunnelCount > 0 ? (stage.count / maxFunnelCount) * 100 : 0;
                 return (
                   <div key={stage.stage} className="flex items-center gap-3">
@@ -117,8 +172,8 @@ export function HomePage() {
         {/* Recent Activity */}
         <div className="card p-5">
           <h2 className="section-title mb-4">Recent Activity</h2>
-          {insights.recent_activity.length > 0 ? (
-            <ActivityFeed items={insights.recent_activity} />
+          {recentActivity.length > 0 ? (
+            <ActivityFeed items={recentActivity} />
           ) : (
             <EmptyState
               icon={<ActivityIcon className="w-7 h-7" />}
@@ -130,29 +185,29 @@ export function HomePage() {
       </div>
 
       {/* Adoption Summary */}
-      {hasData && (
+      {hasData && adoptionMetrics && (
         <div className="card p-5 mb-6">
           <h2 className="section-title mb-4">Adoption Summary</h2>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div>
               <p className="text-xs text-enterprise-charcoal-500 uppercase tracking-wide">Adoption Rate</p>
-              <p className="text-2xl font-bold text-enterprise-success-700 mt-1">{insights.adoption_metrics.adoption_rate}%</p>
+              <p className="text-2xl font-bold text-enterprise-success-700 mt-1">{adoptionMetrics.adoption_rate}%</p>
             </div>
             <div>
               <p className="text-xs text-enterprise-charcoal-500 uppercase tracking-wide">Adopted</p>
-              <p className="text-2xl font-bold text-enterprise-charcoal-900 mt-1">{insights.adoption_metrics.adopted}</p>
+              <p className="text-2xl font-bold text-enterprise-charcoal-900 mt-1">{adoptionMetrics.adopted}</p>
             </div>
             <div>
               <p className="text-xs text-enterprise-charcoal-500 uppercase tracking-wide">Production Candidates</p>
-              <p className="text-2xl font-bold text-enterprise-charcoal-900 mt-1">{insights.adoption_metrics.production_candidates}</p>
+              <p className="text-2xl font-bold text-enterprise-charcoal-900 mt-1">{adoptionMetrics.production_candidates}</p>
             </div>
             <div>
               <p className="text-xs text-enterprise-charcoal-500 uppercase tracking-wide">Demos</p>
-              <p className="text-2xl font-bold text-enterprise-charcoal-900 mt-1">{insights.adoption_metrics.demos}</p>
+              <p className="text-2xl font-bold text-enterprise-charcoal-900 mt-1">{adoptionMetrics.demos}</p>
             </div>
             <div>
               <p className="text-xs text-enterprise-charcoal-500 uppercase tracking-wide">POCs Completed</p>
-              <p className="text-2xl font-bold text-enterprise-charcoal-900 mt-1">{insights.adoption_metrics.pocs_completed}</p>
+              <p className="text-2xl font-bold text-enterprise-charcoal-900 mt-1">{adoptionMetrics.pocs_completed}</p>
             </div>
           </div>
         </div>

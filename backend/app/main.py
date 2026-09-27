@@ -56,6 +56,13 @@ async def validation_exception_handler(request, exc: RequestValidationError):
     )
 
 
+import os
+from fastapi.staticfiles import StaticFiles
+
+UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "uploads")
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
+
 app.include_router(api_router, prefix=settings.API_PREFIX)
 
 

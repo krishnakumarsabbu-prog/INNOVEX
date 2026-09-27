@@ -26,6 +26,21 @@ class InnovationService:
         existing = self._repos.innovation.get_by_idea(data.idea_id)
         if existing:
             raise ValidationError("Innovation already exists for this idea")
+
+        # Policy check: Required Review
+        review_policy = self._repos.policy.get_by_key("required_review")
+        if review_policy and getattr(review_policy, "is_active", True) and str(review_policy.value).lower() in ("true", "1"):
+            reviews = self._repos.review.get_by_idea(data.idea_id)
+            if not reviews:
+                raise ValidationError("Policy 'Required Review' violation: At least one formal engineering review is required before advancing this idea to an innovation.")
+
+        # Policy check: Validation Requirement
+        val_policy = self._repos.policy.get_by_key("validation_requirement")
+        if val_policy and getattr(val_policy, "is_active", True) and str(val_policy.value).lower() in ("true", "1"):
+            sprint = self._repos.validation.get_by_idea(data.idea_id)
+            if not sprint or getattr(sprint, "decision", None) != "continue_open_innovation":
+                raise ValidationError("Policy 'Validation Requirement' violation: A completed validation sprint with decision 'Continue to Open Innovation' is required before creating an open innovation.")
+
         now = utc_now()
         innovation = Innovation(
             id=generate_id(),

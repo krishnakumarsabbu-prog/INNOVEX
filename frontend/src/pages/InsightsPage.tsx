@@ -58,34 +58,37 @@ export function InsightsPage() {
   });
 
   if (isLoading) return <Loading />;
-  if (isError || !insights) return <ErrorState message="Failed to load insights" />;
+  if (isError || !insights || typeof insights !== 'object') return <ErrorState message="Failed to load insights" />;
 
-  const m = insights.metrics;
-  const hasData = Object.values(m).some((v) => v > 0) ||
-    insights.team_formation_metrics.total_teams > 0 ||
-    insights.adoption_metrics.adopted > 0;
+  const m = insights.metrics || ({} as any);
+  const tfm = insights.team_formation_metrics || ({} as any);
+  const am = insights.adoption_metrics || ({} as any);
 
-  const funnelData = insights.innovation_funnel.map((s, i) => ({
+  const hasData = (typeof m === 'object' && Object.values(m).some((v) => typeof v === 'number' && v > 0)) ||
+    (tfm.total_teams ?? 0) > 0 ||
+    (am.adopted ?? 0) > 0;
+
+  const funnelData = (insights.innovation_funnel || []).map((s, i) => ({
     name: s.label,
     count: s.count,
     fill: FUNNEL_COLORS[i % FUNNEL_COLORS.length],
   }));
 
-  const techData = insights.ideas_by_technology;
-  const areaData = insights.ideas_by_business_area;
+  const techData = insights.ideas_by_technology || [];
+  const areaData = insights.ideas_by_business_area || [];
   const teamData = [
-    { name: 'Open Positions', value: insights.team_formation_metrics.open_positions },
-    { name: 'Filled Positions', value: insights.team_formation_metrics.filled_positions },
-    { name: 'Total Teams', value: insights.team_formation_metrics.total_teams },
-    { name: 'Team Members', value: insights.team_formation_metrics.team_members },
-    { name: 'Pending Join Requests', value: insights.team_formation_metrics.join_requests_pending },
+    { name: 'Open Positions', value: tfm.open_positions ?? 0 },
+    { name: 'Filled Positions', value: tfm.filled_positions ?? 0 },
+    { name: 'Total Teams', value: tfm.total_teams ?? 0 },
+    { name: 'Team Members', value: tfm.team_members ?? 0 },
+    { name: 'Pending Join Requests', value: tfm.join_requests_pending ?? 0 },
   ];
 
   const adoptionData = [
-    { name: 'POCs Completed', value: insights.adoption_metrics.pocs_completed },
-    { name: 'Demos', value: insights.adoption_metrics.demos },
-    { name: 'Production Candidates', value: insights.adoption_metrics.production_candidates },
-    { name: 'Adopted', value: insights.adoption_metrics.adopted },
+    { name: 'POCs Completed', value: am.pocs_completed ?? 0 },
+    { name: 'Demos', value: am.demos ?? 0 },
+    { name: 'Production Candidates', value: am.production_candidates ?? 0 },
+    { name: 'Adopted', value: am.adopted ?? 0 },
   ];
 
   const maxFunnelCount = Math.max(...funnelData.map((d) => d.count), 1);

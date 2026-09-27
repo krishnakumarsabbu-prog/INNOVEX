@@ -180,13 +180,15 @@ class ReviewDimensionResponse(BaseModel):
 
 
 class ReviewCreate(BaseModel):
-    idea_id: str
+    idea_id: Optional[str] = None
     reviewer_id: str
     decision: str = "request_information"
     comments: str = ""
     reason: str = ""
     evidence: str = ""
     dimensions: list[ReviewDimensionInput] = []
+    principal_engineer_id: Optional[str] = None
+    manager_id: Optional[str] = None
 
 
 class ReviewUpdate(BaseModel):

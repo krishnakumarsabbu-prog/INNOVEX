@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '../context/AuthContext';
 import {
   ClipboardList, FileText, AlertTriangle, Link2, Shield, Layers,
   Lightbulb, RefreshCw, CheckCircle, XCircle, Pause, Send,
@@ -250,6 +251,39 @@ function ReviewWorkspace({ ideaId, userMap }: { ideaId: string; userMap: Map<str
 
   return (
     <div className="space-y-4 max-h-[calc(100vh-220px)] overflow-y-auto pr-1">
+      {idea.status === 'validation' && (
+        <div className="bg-enterprise-blue-50 border border-enterprise-blue-300 rounded-enterprise p-4 flex items-center justify-between gap-3 animate-fade-in">
+          <div>
+            <h4 className="text-sm font-semibold text-enterprise-blue-900 flex items-center gap-1.5">
+              <CheckCircle className="w-4 h-4 text-enterprise-blue-600" />
+              In Validation Sprint
+            </h4>
+            <p className="text-xs text-enterprise-blue-700 mt-0.5">
+              This idea has been reviewed and is undergoing architecture spikes with its assigned Principal Engineer.
+            </p>
+          </div>
+          <Link to={`/ideas/${idea.id}/validation`} className="btn-primary text-xs whitespace-nowrap">
+            Open Validation Sprint &rarr;
+          </Link>
+        </div>
+      )}
+      {idea.status === 'approved' && (
+        <div className="bg-enterprise-success-50 border border-enterprise-success-200 rounded-enterprise p-4 flex items-center justify-between gap-3 animate-fade-in">
+          <div>
+            <h4 className="text-sm font-semibold text-enterprise-success-900 flex items-center gap-1.5">
+              <CheckCircle className="w-4 h-4 text-enterprise-success-600" />
+              Graduated to Innovation Marketplace
+            </h4>
+            <p className="text-xs text-enterprise-success-700 mt-0.5">
+              Validation is complete! This initiative is now open for engineering team assembly.
+            </p>
+          </div>
+          <Link to="/innovation" className="btn-primary text-xs whitespace-nowrap">
+            View in Marketplace &rarr;
+          </Link>
+        </div>
+      )}
+
       {/* Idea header */}
       <div className="card p-4">
         <div className="flex items-start justify-between gap-3 mb-2">
@@ -432,16 +466,22 @@ function DecisionForm({
   onCancel: () => void;
   isPending: boolean;
 }) {
-  const [decision, setDecision] = useState('request_information');
-  const [reviewerId, setReviewerId] = useState('');
+  const { currentUser } = useAuth();
+  const principalEngineers = users.filter((u) => u.role === 'principal_engineer' || u.role === 'admin');
+  const peList = principalEngineers.length > 0 ? principalEngineers : users;
+  const managers = users.filter((u) => u.role === 'manager' || u.role === 'admin');
+  const mgrList = managers.length > 0 ? managers : users;
+
+  const [decision, setDecision] = useState('send_to_validation');
+  const [reviewerId, setReviewerId] = useState(currentUser?.id || users[0]?.id || '');
   const [reason, setReason] = useState('');
   const [comments, setComments] = useState('');
   const [evidence, setEvidence] = useState('');
   const [dimensions, setDimensions] = useState<Record<string, { rating: string; comment: string }>>(
     Object.fromEntries(REVIEW_DIMENSIONS.map((d) => [d.key, { rating: '', comment: '' }]))
   );
-  const [peId, setPeId] = useState('');
-  const [mgrId, setMgrId] = useState('');
+  const [peId, setPeId] = useState(peList[0]?.id || '');
+  const [mgrId, setMgrId] = useState(mgrList[0]?.id || '');
   const [formError, setFormError] = useState('');
 
   const requiresReason = DECISIONS_REQUIRING_REASON.includes(decision);
@@ -468,9 +508,6 @@ function DecisionForm({
     setFormError('');
     onSubmit(payload);
   };
-
-  const principalEngineers = users.filter((u) => u.role === 'principal_engineer' || u.role === 'admin');
-  const managers = users.filter((u) => u.role === 'manager' || u.role === 'admin');
 
   return (
     <div className="space-y-4">
@@ -593,14 +630,14 @@ function DecisionForm({
             <label className="label text-xs">Principal Engineer</label>
             <select value={peId} onChange={(e) => setPeId(e.target.value)} className="input py-1.5 text-sm">
               <option value="">Select Principal Engineer...</option>
-              {principalEngineers.map((u) => <option key={u.id} value={u.id}>{u.name} — {u.title || u.role}</option>)}
+              {peList.map((u) => <option key={u.id} value={u.id}>{u.name} — {u.title || u.role}</option>)}
             </select>
           </div>
           <div>
             <label className="label text-xs">Manager</label>
             <select value={mgrId} onChange={(e) => setMgrId(e.target.value)} className="input py-1.5 text-sm">
               <option value="">Select Manager...</option>
-              {managers.map((u) => <option key={u.id} value={u.id}>{u.name} — {u.title || u.role}</option>)}
+              {mgrList.map((u) => <option key={u.id} value={u.id}>{u.name} — {u.title || u.role}</option>)}
             </select>
           </div>
         </div>

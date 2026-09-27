@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from app.ai.provider import AIProvider, AIContext, AIRecommendation
 from app.ai.development_adapter import DevelopmentAdapter
+from app.ai.llm_adapter import LLMAdapter
 from app.database.repository_factory import RepositoryFactory
 from app.core.exceptions import NotFoundError
 
@@ -55,7 +56,7 @@ class AICopilotService:
 
     def __init__(self, repos: RepositoryFactory, provider: AIProvider | None = None):
         self._repos = repos
-        self._provider = provider or DevelopmentAdapter()
+        self._provider = provider or LLMAdapter()
 
     # ------------------------------------------------------------------ #
     # Public API

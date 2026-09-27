@@ -3,7 +3,7 @@ import type {
   SetupStatus, SetupRequest, SetupResponse, User, Idea, IdeaEvidence, IdeaFollow, Review,
   ReviewDimension, ReviewQueueItem, ReviewDecisionPayload,
   ValidationSprint, ValidationEvidence, Innovation, Position, Application, Team, Project,
-  Milestone, Evidence, Activity, Notification, Dashboard,
+  Milestone, Evidence, Activity, Notification, Dashboard, WorkItem,
   MarketplaceInnovation, MarketplaceInnovationDetail,
   JoinRequest, SkillMatch,
 } from '../types';
@@ -108,15 +108,23 @@ export const projectApi = {
   getAll: () => api.get<Project[]>('/projects').then(r => r.data),
   getById: (id: string) => api.get<Project>(`/projects/${id}`).then(r => r.data),
   create: (data: Partial<Project>) => api.post<Project>('/projects', data).then(r => r.data),
+  createForInnovation: (innovationId: string, data: Partial<Project>) => api.post<Project>(`/innovations/${innovationId}/project`, data).then(r => r.data),
   update: (id: string, data: Partial<Project>) => api.put<Project>(`/projects/${id}`, data).then(r => r.data),
+  patch: (id: string, data: Partial<Project>) => api.patch<Project>(`/projects/${id}`, data).then(r => r.data),
   delete: (id: string) => api.delete(`/projects/${id}`).then(r => r.data),
   getMilestones: (projectId: string) => api.get<Milestone[]>(`/projects/${projectId}/milestones`).then(r => r.data),
   createMilestone: (projectId: string, data: Partial<Milestone>) => api.post<Milestone>(`/projects/${projectId}/milestones`, data).then(r => r.data),
   updateMilestone: (milestoneId: string, data: Partial<Milestone>) => api.put<Milestone>(`/milestones/${milestoneId}`, data).then(r => r.data),
+  patchMilestone: (projectId: string, milestoneId: string, data: Partial<Milestone>) => api.patch<Milestone>(`/projects/${projectId}/milestones/${milestoneId}`, data).then(r => r.data),
   deleteMilestone: (milestoneId: string) => api.delete(`/milestones/${milestoneId}`).then(r => r.data),
+  getWorkItems: (projectId: string) => api.get<WorkItem[]>(`/projects/${projectId}/work-items`).then(r => r.data),
+  createWorkItem: (projectId: string, data: Partial<WorkItem>) => api.post<WorkItem>(`/projects/${projectId}/work-items`, data).then(r => r.data),
+  patchWorkItem: (projectId: string, workItemId: string, data: Partial<WorkItem>) => api.patch<WorkItem>(`/projects/${projectId}/work-items/${workItemId}`, data).then(r => r.data),
+  deleteWorkItem: (workItemId: string) => api.delete(`/work-items/${workItemId}`).then(r => r.data),
   getEvidence: (projectId: string) => api.get<Evidence[]>(`/projects/${projectId}/evidence`).then(r => r.data),
   createEvidence: (projectId: string, data: Partial<Evidence>) => api.post<Evidence>(`/projects/${projectId}/evidence`, data).then(r => r.data),
   deleteEvidence: (evidenceId: string) => api.delete(`/evidence/${evidenceId}`).then(r => r.data),
+  getActivities: (projectId: string) => api.get<Activity[]>(`/projects/${projectId}/activities`).then(r => r.data),
 };
 
 export const notificationApi = {
